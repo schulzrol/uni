@@ -13,6 +13,6 @@ Contains work, notes and other stuff acquired during my studies at [FIT BUT Brno
 #### IZP: Základy programování (Introduction to Programming Systems)
 - [Course details](https://www.fit.vut.cz/study/course/8042/.en)
 - [README](./izp/README.MD)
-- [Path](/.izp/)
+- [Path](./izp/)
 ---
 
