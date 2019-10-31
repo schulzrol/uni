@@ -101,16 +101,15 @@ int main(int argc, char *argv[]){
 
     printf("Contact Reading:\n");
 
-    // TODO: add comments
+    // Read paired info about contacts from stdin
     while ((retcode = readNewContact(&contactBook[ncontacts])) == 2) {
         printf("%s: %s\n", contactBook[ncontacts].fullName, contactBook[ncontacts].phoneNum);
         ncontacts++;
     }
 
-    // TODO: add comments
+    // Detect anomalies (TODO: for sure exists better term than anomalies) when done reading
     if (retcode == -2) 
         printf("%s: Line too long!\n", argv[0]);
-    // TODO: add comments
     if (retcode > 0)
         printf("%s: Unpaired contact info on %d. contact!\n", argv[0], ncontacts + 1);
 
