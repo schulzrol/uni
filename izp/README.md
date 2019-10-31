@@ -16,11 +16,10 @@ Contains work, notes and other stuff acquired during my studies at [FIT BUT Brno
 ### Projects:
 
 ---
-// TODO: make into automatically numbered list
 - #### Phonebook:
-    - (Requirements site)[ wis site]
-    - (Requirements local)[./proj1/todo.md]
-    - (Path)[./proj1/]
+    - [Requirements site](https://wis.fit.vutbr.cz/FIT/st/cwk.php?title=Projekt1&csid=709488&id=13376)
+    - [Requirements local](./proj1/todo.md)
+    - [Path](./proj1/)
 
 ---
 
