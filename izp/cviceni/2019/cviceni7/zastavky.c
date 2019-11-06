@@ -62,7 +62,6 @@ void print_bus(busT* busptr) {
 }
 
 // vypis prijezdu urciteho spoje na zastavce
-// TODO: needs FIXing, aka doesnt work
 void print_spoje(busT* busptr, char* zastavka, cas_T cas) {
 	int idzastavky = -1;
 
@@ -82,14 +81,16 @@ void print_spoje(busT* busptr, char* zastavka, cas_T cas) {
 	for (int i = 0; i < busptr->nspoju; i++){
 		// uz si nepamatuju na co ten cas chtel
 		(void) cas;
+
+        // melo by vypocitat pripady, kdy by hodina navysila den a minuta navysila hodinu
+        // TODO neotestovano
 		int soucet_minut = busptr->spoj[i].minut + busptr->zastavka[idzastavky].cas_jizdy.minut;
 		int soucet_hodin = busptr->spoj[i].hodin + busptr->zastavka[idzastavky].cas_jizdy.hodin + soucet_minut/60;
-
 		soucet_hodin = soucet_hodin%24;
 		soucet_minut = soucet_minut%60;
-		printf("%d %d\n", i, busptr->nspoju);
 
-		printf("Spoj %d:%d bude na zastavce \"%s\" v %d:%d\n", busptr->spoj[i].hodin, busptr->spoj[i].minut, zastavka,soucet_hodin, soucet_minut);
+        // formatovany vypis
+		printf("Spoj %d:%d bude na zastavce \"%s\" v %d:%d\n", busptr->spoj[i].hodin, busptr->spoj[i].minut, zastavka, soucet_hodin, soucet_minut);
 	}
 
 	return;

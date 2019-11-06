@@ -4,7 +4,6 @@ prvni 10
 druha 12
 treti 20
 ctvrta 25
-pata 45
 3
 8hod 0min
 12hod 5min
