@@ -48,12 +48,12 @@ int my_readLine(char* s, int size_s){
         return 0;
 
     for(int i = 0; i < size_s; i++){
-        char c = getchar();
+        int  c = getchar();
         if(c == EOF || c == '\n') {
            s[i] = '\0'; // add NUL byte
            return i;    // number of bytes read
         }
-        s[i] = c;
+        s[i] = (char) c;
     }
     
     return -1; // Line too long
