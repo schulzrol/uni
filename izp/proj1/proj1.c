@@ -12,7 +12,7 @@
 #define ARRLEN(a) sizeof(a)/sizeof(*a)
 
 typedef struct _contact{
-    char phoneNum[MAXLINELEN + 1];
+    char phoneNum[MAXLINELEN + 1]; // + 1 because of NUL for string termination
     char fullName[MAXLINELEN + 1];
     bool toPrint;
 } contact;
