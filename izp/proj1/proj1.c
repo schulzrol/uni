@@ -7,6 +7,7 @@
 // due to minimal project requirements
 #define MAXCONTACTS 42
 #define MAXLINELEN 100
+#define NOT_FOUND_STR "Not found"
 
 // returns size of static array
 #define ARRLEN(a) sizeof(a)/sizeof(*a)
