@@ -109,6 +109,25 @@ int readNewContact(contact *newContact){
     return nreadlines;
 }
 
+/* printContacts
+ * @contactBook: array of contacts to print
+ * @ncontacts: number of contacts to print
+ *
+ * Prints details about contacts to stdout stream.
+ *
+ * Warning: Doesn't check whether contact details are valid strings or NULL
+ */
+void printContacts(contact* contactBook, size_t ncontacts){
+    if (!contactBook)
+        return;
+
+    for (size_t i = 0; i < ncontacts; i++) {
+        printf("%s, %s\n", contactBook[i].fullName, contactBook[i].phoneNum);
+    }
+
+    return;
+}
+
 int main(int argc, char *argv[]){
     contact contactBook[MAXCONTACTS];
     int ncontacts = 0;
@@ -126,6 +145,14 @@ int main(int argc, char *argv[]){
         printf("%s: %s\n", contactBook[ncontacts].fullName, contactBook[ncontacts].phoneNum);
         ncontacts++;
     }
+    // Detect anomalies (TODO: for sure exists better term than anomalies) when done reading
+    if (retcode == -2) 
+        printf("%s: Line too long!\n", argv[0]);
+    if (retcode > 0)
+        printf("%s: Unpaired contact info on %d. contact!\n", argv[0], ncontacts + 1);
+
+    printf("Contact Printing:\n");
+    printContacts(contactBook, ncontacts);
 
     if (argc == 2)
     for (size_t i = 0; i < strlen(argv[1]); i++) {
@@ -137,11 +164,6 @@ int main(int argc, char *argv[]){
             printf("\'%c\' is NaN\n", c);
     }
 
-    // Detect anomalies (TODO: for sure exists better term than anomalies) when done reading
-    if (retcode == -2) 
-        printf("%s: Line too long!\n", argv[0]);
-    if (retcode > 0)
-        printf("%s: Unpaired contact info on %d. contact!\n", argv[0], ncontacts + 1);
 
     return 0;
 }
