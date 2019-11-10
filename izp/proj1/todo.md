@@ -5,6 +5,7 @@
 - line overflow (+100 characters)
 - unpaired contacts check
 - 42 contacts support
+- argv to integer conversion
 
 ## TODO:
 - check whether entered phonenum is really a phonenum

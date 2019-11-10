@@ -59,6 +59,20 @@ int my_readLine(char* s, int size_s){
     return -1; // Line too long
 }
 
+/* char2dec
+ * @c: digit character, which will be converted to the value it represents
+ *
+ * -In case @c is a valid digit char representation ('0' to '9'), then this
+ *  function returns the number the char represents, ie. char2dec('0') == 0.
+ *  Otherwise returns negative value -1!
+ */
+int char2dec(char c){
+    if (c >= '0' && c <= '9'){ // '0' <= c <= '9'
+        return (int) c - '0';  // due to ascii arrangement
+    }
+    return -1;
+}
+
 /* readNewContact
  * @newContact: Contact variable to initialize.
  *
@@ -99,12 +113,27 @@ int main(int argc, char *argv[]){
     int ncontacts = 0;
     int retcode;
 
+    if (argc > 2) {
+        printf("%s: Too many arguments!\n", argv[0]);
+        return 1;
+    }
+
     printf("Contact Reading:\n");
 
     // Read paired info about contacts from stdin
     while ((retcode = readNewContact(&contactBook[ncontacts])) == 2) {
         printf("%s: %s\n", contactBook[ncontacts].fullName, contactBook[ncontacts].phoneNum);
         ncontacts++;
+    }
+
+    if (argc == 2)
+    for (size_t i = 0; i < strlen(argv[1]); i++) {
+        char c = argv[1][i];
+        int d = char2dec(c);
+        if (d >= 0)
+            printf("\'%c\' == %d\n", c, char2dec(c));
+        else
+            printf("\'%c\' is NaN\n", c);
     }
 
     // Detect anomalies (TODO: for sure exists better term than anomalies) when done reading
