@@ -40,9 +40,8 @@ char* digitRep[10] = {"+0", "", "abc2", "def3", "ghi4", "jkl5", "mno6", "pqrs7",
  * - Reads from stdin until encounters either newline byte, EOF byte, in which
  *   case returns the number of bytes read, or until line length exceeds @size_s,
  *   in which case returns negative value. The bytes read are stored in @s.
- *
- *   Warning: When line length exceeds @size_s, no more is read from stdin and
- *            @s is not NUL terminated!
+ *   When line length exceeds @size_s, no more is read, @s is failsafe NUL 
+ *   terminated at @size_s-1.
  */
 int my_readLine(char* s, int size_s){
     if (!s)
@@ -57,6 +56,7 @@ int my_readLine(char* s, int size_s){
         s[i] = (char) c;
     }
     
+    s[size_s-1] = '\0'; // just in case someone ignores error value - rather end with NUL
     return -1; // Line too long
 }
 
