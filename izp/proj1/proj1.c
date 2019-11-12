@@ -109,20 +109,33 @@ int readNewContact(contact *newContact){
     return nreadlines;
 }
 
-/* printContacts
+
+/* printContact
+ * @c: contact which details should be printed in csv format
+ * 
+ * Prints @c info on stdout. Should be used as abstraction.
+ */
+void printContact(contact c){
+    if (c.fullName && c.phoneNum)
+        printf("%s, %s\n", c.fullName, c.phoneNum);
+
+    return;
+}
+
+
+/* printFilteredContacts - wrapper around printContact()
  * @contactBook: array of contacts to print
  * @ncontacts: number of contacts to print
  *
- * Prints details about contacts to stdout stream.
- *
- * Warning: Doesn't check whether contact details are valid strings or NULL
+ * Prints out details about contacts marked to print to stdout stream.
  */
-void printContacts(contact* contactBook, size_t ncontacts){
+void printFilteredContacts(contact* contactBook, size_t ncontacts){
     if (!contactBook)
         return;
 
     for (size_t i = 0; i < ncontacts; i++) {
-        printf("%s, %s\n", contactBook[i].fullName, contactBook[i].phoneNum);
+        if (contactBook[i].toPrint)
+            printContact(contactBook[i]);
     }
 
     return;
@@ -152,7 +165,7 @@ int main(int argc, char *argv[]){
         printf("%s: Unpaired contact info on %d. contact!\n", argv[0], ncontacts + 1);
 
     printf("Contact Printing:\n");
-    printContacts(contactBook, ncontacts);
+    printFilteredContacts(contactBook, ncontacts);
 
     if (argc == 2)
     for (size_t i = 0; i < strlen(argv[1]); i++) {
