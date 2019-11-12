@@ -36,24 +36,30 @@ char* digitRep[10] = {"+0", "", "abc2", "def3", "ghi4", "jkl5", "mno6", "pqrs7",
  * @s: buffer into which will the be line saved. Should be capable to hold at
  *     least @size_s + terminating NUL byte.
  * @size_s : length of @s
+ * @readbytes: used as output for user, how many bytes read into @s
  *
- * - Reads from stdin until encounters either newline byte, EOF byte, in which
- *   case returns the number of bytes read, or until line length exceeds @size_s,
- *   in which case returns negative value. The bytes read are stored in @s.
+ * - Reads from stdin until encounters either newline byte or EOF byte, in which
+ *   case returns 0 and @readbytes is set to the number of bytes read, or until
+ *   line length exceeds @size_s, in which case returns -1.
+ *   The bytes read are stored in @s. 
+ *
  *   When line length exceeds @size_s, no more is read, @s is failsafe NUL 
  *   terminated at @size_s-1.
  */
-int my_readLine(char* s, int size_s){
-    if (!s)
+int my_readLine(char* s, size_t size_s, size_t* readbytes){
+    if (!s || size_s == 0)
         return 0;
 
-    for(int i = 0; i < size_s; i++){
+    *readbytes = 0;
+
+    for(size_t i = 0; i < size_s; i++){
         int  c = getchar();
         if(c == EOF || c == '\n') {
            s[i] = '\0'; // add NUL byte
-           return i;    // number of bytes read
+           return 0;
         }
         s[i] = (char) c;
+        (*readbytes)++; // number of bytes read
     }
     
     s[size_s-1] = '\0'; // just in case someone ignores error value - rather end with NUL
@@ -85,26 +91,27 @@ int char2dec(char c){
 int readNewContact(contact *newContact){
     int nreadlines = 0;
     int retcode;
+    size_t readbytes;
     
     if (!newContact)
         return -1;
 
     /* Read information about new contact from stdin */
     // Initialize fullname
-    retcode = my_readLine(newContact->fullName, ARRLEN(newContact->fullName));
+    retcode = my_readLine(newContact->fullName, ARRLEN(newContact->fullName), &readbytes);
     if (retcode < 0)
         return -2;
-    if (retcode > 0)
+    if (readbytes > 0)
         nreadlines++;
         
     // Initialize phonenum
-    retcode = my_readLine(newContact->phoneNum, ARRLEN(newContact->phoneNum));
+    retcode = my_readLine(newContact->phoneNum, ARRLEN(newContact->phoneNum), &readbytes);
     if (retcode < 0)
         return -2;
-    if (retcode > 0)
+    if (readbytes > 0)
         nreadlines++;
 
-    newContact->toPrint = true; // defaultly marked as suitable for printing
+    newContact->toPrint = true; // defaultly marked as suitable for printing - due to requirements
 
     return nreadlines;
 }
