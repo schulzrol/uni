@@ -2,12 +2,13 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <stdbool.h>
+#include <stdbool.h> // bool type
+#include <ctype.h> // tolower
 
 // due to minimal project requirements
 #define MAXCONTACTS 42
 #define MAXLINELEN 100
-#define NOT_FOUND_STR "Not found"
+#define NOT_FOUND_STR "Not found\n"
 
 // returns size of static array
 #define ARRLEN(a) sizeof(a)/sizeof(*a)
@@ -20,8 +21,8 @@ typedef struct _contact{
 
 /*  Initalize what what each digit of number (argv[1]) can represent:
    0 (+,0)
-   1 ()
-   2 (a,b,c,3)
+   1 (1)
+   2 (a,b,c,2)
    3 (d,e,f,3)
    4 (g,h,i,4)
    5 (j,k,l,5)
@@ -30,7 +31,7 @@ typedef struct _contact{
    8 (t,u,v,8)
    9 (w,x,y,z,9)*
  */
-char* digitRep[10] = {"+0", "", "abc2", "def3", "ghi4", "jkl5", "mno6", "pqrs7", "tuv8", "wxyz9"};
+char* digitRep[10] = {"+0", "1", "abc2", "def3", "ghi4", "jkl5", "mno6", "pqrs7", "tuv8", "wxyz9"};
 
 /* my_readLine
  * @s: buffer into which will the be line saved. Should be capable to hold at
@@ -148,6 +149,77 @@ void printFilteredContacts(contact* contactBook, size_t ncontacts){
     return;
 }
 
+/* filter_neprerusene
+ * @filter: string containing the filter
+ * @contactBook: contacts through which to filter
+ * @ncontacts: number of contacts to filter
+ *
+ * Return values;
+ * >=0 = number of succesfully filtered contacts
+ *  -1 = general issue
+ *  -2 = input filter is NaN
+ */
+int filter_neprerusene(char* filter, contact* contactBook, int ncontacts){
+    if(!filter || !contactBook)
+        return -1;
+    int filtered = 0;
+    size_t match = 0;
+    size_t filterlen = strlen(filter);
+
+    for(int cbi = 0; cbi < ncontacts; cbi++){ // go through @ncontacts contacts
+        contactBook[cbi].toPrint = false; // defaultly doesnt match anything
+        
+        // go through all chars in filter
+        for (size_t fi = 0; fi < filterlen; fi++){ 
+            int dri = char2dec(filter[fi]);
+            if (dri < 0)
+                return -2; // input filter is not a number
+            match = 0;
+            
+            // go through all chars in phoneNum and ...
+            for (size_t stri = 0; stri < strlen(contactBook[cbi].phoneNum); stri++) {
+                // ...compare against digitRep of filter char
+                if (strchr(digitRep[dri], contactBook[cbi].phoneNum[stri])){
+                    // if matches
+                    match++;
+                    // if matches the full filterstring
+                    if (match == filterlen) {
+                        contactBook[cbi].toPrint = true;
+                        break;
+                    }
+                }
+                else {
+                    match = 0;
+                }
+            }// end of phoneNum search in filter digit rep
+
+            if (contactBook[cbi].toPrint)
+                break;
+            
+            // go through all chars in fullName and ...
+            for (size_t stri = 0; stri < strlen(contactBook[cbi].fullName); stri++) {
+                // ...compare against digitRep of filter char
+                if (strchr(digitRep[dri], tolower(contactBook[cbi].fullName[stri]))){
+                    // if matches
+                    match++;
+                    // if matches the full filterstring
+                    if (match == filterlen) {
+                        contactBook[cbi].toPrint = true;
+                        break;
+                    }
+                }
+                else {
+                    match = 0;
+                }
+            }// end of fullName search in filter digit rep
+        }// end of filter string
+    // increment the filtered counter
+    if (contactBook[cbi].toPrint)
+        filtered++;
+    }// end of contacts
+    return filtered;
+}
+
 int main(int argc, char *argv[]){
     contact contactBook[MAXCONTACTS];
     int ncontacts = 0;
@@ -158,32 +230,36 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    printf("Contact Reading:\n");
-
     // Read paired info about contacts from stdin
     while ((retcode = readNewContact(&contactBook[ncontacts])) == 2) {
-        printf("%s: %s\n", contactBook[ncontacts].fullName, contactBook[ncontacts].phoneNum);
+        //printf("%s: %s\n", contactBook[ncontacts].fullName, contactBook[ncontacts].phoneNum);
         ncontacts++;
     }
     // Detect anomalies (TODO: for sure exists better term than anomalies) when done reading
-    if (retcode == -2) 
-        printf("%s: Line too long!\n", argv[0]);
-    if (retcode > 0)
+    if (retcode < 0) {
+        if (retcode == -2)
+            printf("%s: Line too long!\n", argv[0]);
+        return 1;
+    }
+    if (retcode > 0) {
         printf("%s: Unpaired contact info on %d. contact!\n", argv[0], ncontacts + 1);
-
-    printf("Contact Printing:\n");
-    printFilteredContacts(contactBook, ncontacts);
-
-    if (argc == 2)
-    for (size_t i = 0; i < strlen(argv[1]); i++) {
-        char c = argv[1][i];
-        int d = char2dec(c);
-        if (d >= 0)
-            printf("\'%c\' == %d\n", c, char2dec(c));
-        else
-            printf("\'%c\' is NaN\n", c);
+        return 1;
     }
 
+    int nfiltered = 0;
+    if (argc == 2){
+        nfiltered = filter_neprerusene(argv[1], contactBook, ncontacts);
+        // detect errors
+        if (nfiltered < 0) {
+            if (nfiltered == -2)
+                printf("%s: Invalid input \"%s\" is NaN!\n", argv[0], argv[1]);
+            return 1;
+        }
+        if (nfiltered == 0)
+            printf(NOT_FOUND_STR);
+    }
+
+    printFilteredContacts(contactBook, ncontacts);
 
     return 0;
 }
