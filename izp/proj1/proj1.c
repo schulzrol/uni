@@ -175,6 +175,8 @@ int filter_neprerusene(char* filter, contact* contactBook, int ncontacts){
         // search through phoneNum until either at the end or found a match
         for (size_t stri = 0; stri < strlen(currContact->phoneNum) && match != filterlen; stri++){
                 int dri = char2dec(filter[match]); // digit representation index
+                if (dri < 0)
+                    return -2;
                 if (strchr(digitRep[dri], currContact->phoneNum[stri]) != NULL) {
                     match++;
                     if (match == 1) // remember the index to jump back in case filter doesnt pass
@@ -199,6 +201,8 @@ int filter_neprerusene(char* filter, contact* contactBook, int ncontacts){
         // search through fullName  until either at the end or found a match
         for (size_t stri = 0; stri < strlen(currContact->fullName) && match != filterlen; stri++){
                 int dri = char2dec(filter[match]); // digit representation index
+                if (dri < 0)
+                    return -2;
                 if (strchr(digitRep[dri], tolower(currContact->fullName[stri])) != NULL) {
                     match++;
                     if (match == 1) // remember the index to jump back in case filter doesnt pass
