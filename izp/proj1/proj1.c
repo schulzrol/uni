@@ -163,59 +163,60 @@ int filter_neprerusene(char* filter, contact* contactBook, int ncontacts){
     if(!filter || !contactBook)
         return -1;
     int filtered = 0;
-    size_t match = 0;
     size_t filterlen = strlen(filter);
 
     for(int cbi = 0; cbi < ncontacts; cbi++){ // go through @ncontacts contacts
-        contactBook[cbi].toPrint = false; // defaultly doesnt match anything
-        
-        // go through all chars in filter
-        for (size_t fi = 0; fi < filterlen; fi++){ 
-            int dri = char2dec(filter[fi]);
-            if (dri < 0)
-                return -2; // input filter is not a number
-            match = 0;
-            
-            // go through all chars in phoneNum and ...
-            for (size_t stri = 0; stri < strlen(contactBook[cbi].phoneNum); stri++) {
-                // ...compare against digitRep of filter char
-                if (strchr(digitRep[dri], contactBook[cbi].phoneNum[stri])){
-                    // if matches
-                    match++;
-                    // if matches the full filterstring
-                    if (match == filterlen) {
-                        contactBook[cbi].toPrint = true;
-                        break;
-                    }
-                }
-                else {
-                    match = 0;
-                }
-            }// end of phoneNum search in filter digit rep
+        contact* currContact = &contactBook[cbi]; // current contact
+        size_t rewindi = 0;
+        size_t match = 0;
 
-            if (contactBook[cbi].toPrint)
-                break;
-            
-            // go through all chars in fullName and ...
-            for (size_t stri = 0; stri < strlen(contactBook[cbi].fullName); stri++) {
-                // ...compare against digitRep of filter char
-                if (strchr(digitRep[dri], tolower(contactBook[cbi].fullName[stri]))){
-                    // if matches
+        currContact->toPrint = false; // defaultly doesnt match anything
+
+        // search through phoneNum until either at the end or found a match
+        for (size_t stri = 0; stri < strlen(currContact->phoneNum) && match != filterlen; stri++){
+                int dri = char2dec(filter[match]); // digit representation index
+                if (strchr(digitRep[dri], currContact->phoneNum[stri]) != NULL) {
                     match++;
-                    // if matches the full filterstring
-                    if (match == filterlen) {
-                        contactBook[cbi].toPrint = true;
-                        break;
-                    }
+                    if (match == 1) // remember the index to jump back in case filter doesnt pass
+                        rewindi = stri;
                 }
                 else {
+                    if (match > 0) // if filter didnt pass, jump back
+                        stri = rewindi;
                     match = 0;
                 }
-            }// end of fullName search in filter digit rep
-        }// end of filter string
-    // increment the filtered counter
-    if (contactBook[cbi].toPrint)
-        filtered++;
+        }
+        
+        // increment the filtered counter
+        if (match == filterlen){
+            currContact->toPrint = true;
+            filtered++;
+            continue;
+        }
+
+        match = 0;
+        rewindi = 0;
+        // search through fullName  until either at the end or found a match
+        for (size_t stri = 0; stri < strlen(currContact->fullName) && match != filterlen; stri++){
+                int dri = char2dec(filter[match]); // digit representation index
+                if (strchr(digitRep[dri], tolower(currContact->fullName[stri])) != NULL) {
+                    match++;
+                    if (match == 1) // remember the index to jump back in case filter doesnt pass
+                        rewindi = stri;
+                }
+                else {
+                    if (match > 0) // if filter didnt pass, jump back
+                        stri = rewindi;
+                    match = 0;
+                }
+        }
+        
+        // increment the filtered counter
+        if (match == filterlen){
+            currContact->toPrint = true;
+            filtered++;
+        }
+
     }// end of contacts
     return filtered;
 }
