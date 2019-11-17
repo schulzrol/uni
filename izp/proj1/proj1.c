@@ -149,11 +149,79 @@ void printFilteredContacts(contact* contactBook, size_t ncontacts){
     return;
 }
 
+/* check_prerusene
+ * - helper function for filter_prerusene, containing the correct algo
+ *
+ * Return values;
+ * >=0 = found
+ *  -1 = not found
+ *  -2 = input filter is NaN
+ */
+int check_prerusene(char* filter, char* string) {
+    if (filter == NULL || string == NULL) {
+        return -1;
+    }
+
+    size_t match = 0;
+    size_t filterlen = strlen(filter);
+    int dri = char2dec(filter[match]); // digit representation index
+    if (dri < 0)
+        return -2;
+
+    for (size_t stri = 0; stri < strlen(string) && match != filterlen; stri++) {
+        if (strchr(digitRep[dri], tolower(string[stri])) != NULL) {
+            match++;
+            dri = char2dec(filter[match]); // digit representation index
+        }
+    }
+
+    return (match == filterlen) ? 1: -1;
+}
+
+/* filter_prerusene - PREMIOVA FUNKCE (PRO POUZITI PROHODTE KOMENTARE NA RADKU 342 A 341)
+ */
+int filter_prerusene(char* filter, contact* contactBook, int ncontacts){
+    if(!filter || !contactBook)
+        return -1;
+    int filtered = 0;
+
+    for(int cbi = 0; cbi < ncontacts; cbi++){ // go through @ncontacts contacts
+        contact* currContact = &contactBook[cbi]; // current contact
+        int isPrerusene;
+
+        currContact->toPrint = false; // defaultly doesnt match anything
+
+        //check phonenum
+        isPrerusene = check_prerusene(filter, currContact->phoneNum);
+        if (isPrerusene >= 0) {
+            currContact->toPrint = true;
+            filtered++;
+            continue;
+        }
+        if(isPrerusene == -2) {
+            return -2;
+        }
+
+        // check fullname
+        isPrerusene = check_prerusene(filter, currContact->fullName);
+        if (isPrerusene >= 0) {
+            currContact->toPrint = true;
+            filtered++;
+            continue;
+        }
+        if(isPrerusene == -2) {
+            return -2;
+        }
+
+    }// end of contacts
+    return filtered;
+}
+
 /* check_neprerusene
  * - helper function for filter_neprerusene, containing the correct algo
  *
  * Return values;
- * >=0 = found, returns index at which filter starts to match sring (>=0)
+ * >=0 = found, returns index at which filter starts to match string (>=0)
  *  -1 = not found
  *  -2 = input filter is NaN
  */
@@ -271,6 +339,7 @@ int main(int argc, char *argv[]){
     int nfiltered = 0;
     if (argc == 2){
         nfiltered = filter_neprerusene(argv[1], contactBook, ncontacts);
+        //nfiltered = filter_prerusene(argv[1], contactBook, ncontacts);
         // detect errors
         if (nfiltered < 0) {
             if (nfiltered == -2)
