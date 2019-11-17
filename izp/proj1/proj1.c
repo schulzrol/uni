@@ -236,7 +236,7 @@ int main(int argc, char *argv[]){
     }
 
     // Read paired info about contacts from stdin
-    while ((retcode = readNewContact(&contactBook[ncontacts])) == 2) {
+    while (ncontacts < MAXCONTACTS && (retcode = readNewContact(&contactBook[ncontacts])) == 2) {
         //printf("%s: %s\n", contactBook[ncontacts].fullName, contactBook[ncontacts].phoneNum);
         ncontacts++;
     }
@@ -246,6 +246,11 @@ int main(int argc, char *argv[]){
             printf("%s: Line too long!\n", argv[0]);
         return 1;
     }
+    if (ncontacts == MAXCONTACTS) {
+        printf("%s: More than supported contacts! Expected %d max.\n", argv[0], MAXCONTACTS);
+        return 1;
+    }
+
     if (retcode > 0) {
         printf("%s: Unpaired contact info on %d. contact!\n", argv[0], ncontacts + 1);
         return 1;
