@@ -149,11 +149,52 @@ void printFilteredContacts(contact* contactBook, size_t ncontacts){
     return;
 }
 
+/* check_neprerusene
+ * - helper function for filter_neprerusene, containing the correct algo
+ *
+ * Return values;
+ * >=0 = found, returns index at which filter starts to match sring (>=0)
+ *  -1 = not found
+ *  -2 = input filter is NaN
+ */
+int check_neprerusene(const char* filter, const char* string) {
+    if (filter == NULL || string == NULL) {
+        return -1;
+    }
+    size_t filterlen = strlen(filter);
+    size_t match = 0;
+    size_t rewindi = 0;
+
+    // search through string until either at the end or found a match
+    for (size_t stri = 0; stri < strlen(string) && match != filterlen; stri++){
+        int dri = char2dec(filter[match]); // digit representation index
+        if (dri < 0)
+            return -2;
+        if (strchr(digitRep[dri], tolower(string[stri])) != NULL) {
+            match++;
+            if (match == 1) // remember the index to jump back in case filter doesnt pass
+                rewindi = stri;
+        }
+        else {
+            if (match > 0) // if filter didnt pass, jump back
+                stri = rewindi;
+            match = 0;
+        }
+    }
+        
+    // if ended because found match, return the start index
+    if (match == filterlen)
+        return rewindi;
+    return -1;
+}
+
 /* filter_neprerusene
  * @filter: string containing the filter
  * @contactBook: contacts through which to filter
  * @ncontacts: number of contacts to filter
  *
+ * Marks contacts suitable for printing using check_neprerusene algo
+ * 
  * Return values;
  * >=0 = number of succesfully filtered contacts
  *  -1 = general issue
@@ -163,62 +204,33 @@ int filter_neprerusene(char* filter, contact* contactBook, int ncontacts){
     if(!filter || !contactBook)
         return -1;
     int filtered = 0;
-    size_t filterlen = strlen(filter);
 
     for(int cbi = 0; cbi < ncontacts; cbi++){ // go through @ncontacts contacts
         contact* currContact = &contactBook[cbi]; // current contact
-        size_t rewindi = 0;
-        size_t match = 0;
+        int isNeprerusene;
 
         currContact->toPrint = false; // defaultly doesnt match anything
 
-        // search through phoneNum until either at the end or found a match
-        for (size_t stri = 0; stri < strlen(currContact->phoneNum) && match != filterlen; stri++){
-                int dri = char2dec(filter[match]); // digit representation index
-                if (dri < 0)
-                    return -2;
-                if (strchr(digitRep[dri], currContact->phoneNum[stri]) != NULL) {
-                    match++;
-                    if (match == 1) // remember the index to jump back in case filter doesnt pass
-                        rewindi = stri;
-                }
-                else {
-                    if (match > 0) // if filter didnt pass, jump back
-                        stri = rewindi;
-                    match = 0;
-                }
-        }
-        
-        // increment the filtered counter
-        if (match == filterlen){
+        //check phonenum
+        isNeprerusene = check_neprerusene(filter, currContact->phoneNum);
+        if (isNeprerusene >= 0) {
             currContact->toPrint = true;
             filtered++;
             continue;
         }
-
-        match = 0;
-        rewindi = 0;
-        // search through fullName  until either at the end or found a match
-        for (size_t stri = 0; stri < strlen(currContact->fullName) && match != filterlen; stri++){
-                int dri = char2dec(filter[match]); // digit representation index
-                if (dri < 0)
-                    return -2;
-                if (strchr(digitRep[dri], tolower(currContact->fullName[stri])) != NULL) {
-                    match++;
-                    if (match == 1) // remember the index to jump back in case filter doesnt pass
-                        rewindi = stri;
-                }
-                else {
-                    if (match > 0) // if filter didnt pass, jump back
-                        stri = rewindi;
-                    match = 0;
-                }
+        if(isNeprerusene == -2) {
+            return -2;
         }
-        
-        // increment the filtered counter
-        if (match == filterlen){
+
+        // check fullname
+        isNeprerusene = check_neprerusene(filter, currContact->fullName);
+        if (isNeprerusene >= 0) {
             currContact->toPrint = true;
             filtered++;
+            continue;
+        }
+        if(isNeprerusene == -2) {
+            return -2;
         }
 
     }// end of contacts
