@@ -231,7 +231,7 @@ int main(int argc, char *argv[]){
     int retcode;
 
     if (argc > 2) {
-        printf("%s: Too many arguments!\n", argv[0]);
+        fprintf(stderr, "%s: Too many arguments!\n", argv[0]);
         return 1;
     }
 
@@ -243,16 +243,16 @@ int main(int argc, char *argv[]){
     // Detect anomalies (TODO: for sure exists better term than anomalies) when done reading
     if (retcode < 0) {
         if (retcode == -2)
-            printf("%s: Line too long!\n", argv[0]);
+            fprintf(stderr, "%s: Line too long!\n", argv[0]);
         return 1;
     }
     if (ncontacts == MAXCONTACTS) {
-        printf("%s: More than supported contacts! Expected %d max.\n", argv[0], MAXCONTACTS);
+        fprintf(stderr, "%s: More than supported contacts! Expected %d max.\n", argv[0], MAXCONTACTS);
         return 1;
     }
 
     if (retcode > 0) {
-        printf("%s: Unpaired contact info on %d. contact!\n", argv[0], ncontacts + 1);
+        fprintf(stderr, "%s: Unpaired contact info on %d. contact!\n", argv[0], ncontacts + 1);
         return 1;
     }
 
@@ -262,11 +262,11 @@ int main(int argc, char *argv[]){
         // detect errors
         if (nfiltered < 0) {
             if (nfiltered == -2)
-                printf("%s: Invalid input \"%s\" is NaN!\n", argv[0], argv[1]);
+                fprintf(stderr, "%s: Invalid input \"%s\" is NaN!\n", argv[0], argv[1]);
             return 1;
         }
         if (nfiltered == 0)
-            printf(NOT_FOUND_STR);
+            fprintf(stderr, NOT_FOUND_STR);
     }
 
     printFilteredContacts(contactBook, ncontacts);
