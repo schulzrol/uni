@@ -23,7 +23,7 @@
 
 extern int errno; // error handling
 
-const double I0 =    10e-12; // [A]
+const double I0 =    1e-12; // [A]
 const double UT = 0.0258563; // [V]
 
 // exp(Up/UT) == e^Up/UT 
@@ -58,13 +58,21 @@ pedantic_strtod(const char* nptr,
     return true;
 }
 
+/* Reference circuit for diode()
+ *             R       D
+ * +3.3V o----/\/\----|>|---o 0V
+ */
+
 /* diode
  * @uo: voltage source
  * @r: resistance of resistor
- * @eps:
+ * @eps: allowed deviation
  *
  * Returns the operating voltage of diode using bisection method,
- * between 0.0 (due to req) and @u0
+ * between 0.0 (due to req) and @u0.
+ *
+ * WARNING: Expects correct values for inputs! Should be checked
+ *          before calling!
  */
 double diode(double u0, double r, double eps){
     // voltage level bounds
@@ -79,7 +87,7 @@ double diode(double u0, double r, double eps){
 
     // bisection method of guessing Up
     // with protection against too small epsilon doubles cant handle it
-    while ((dosazena_presnost >= eps) && (--max_cycles > 0)) {
+    while ((dosazena_presnost > eps) && (--max_cycles > 0)) {
         Up = (upperbound + lowerbound)/2; // novy stred pomoci bisekce
 
         double UR = u0 - Up;
