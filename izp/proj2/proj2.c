@@ -10,7 +10,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <errno.h>
-#include <limits.h>
 
 #define INVARGERR_STR "invalid arguments"
 #define PRINT_INVARGERR_AND_RETURN {\
@@ -75,21 +74,22 @@ pedantic_strtod(const char* nptr,
  *          before calling!
  */
 double diode(double u0, double r, double eps){
+    #ifdef DEBUG
+    size_t cycles = 0;
+    #endif
     // voltage level bounds
     double lowerbound = 0.0; 
     double upperbound = u0;
     
-    // infinite loop protection - some random huge value of iterations
-    int max_cycles = SHRT_MAX;
-
     double Up = (upperbound + lowerbound)/2; // pomoci bisekce
     double dosazena_presnost = fabs(upperbound - lowerbound);
 
     // bisection method of guessing Up
     // with protection against too small epsilon doubles cant handle it
-    while ((dosazena_presnost > eps) && (--max_cycles > 0)) {
+    while (dosazena_presnost > eps) {
         Up = (upperbound + lowerbound)/2; // novy stred pomoci bisekce
-
+        if (Up == upperbound || Up == lowerbound)
+            break;
         double UR = u0 - Up;
         // pro kontrolu
         double IR = UR/r;
@@ -105,7 +105,7 @@ double diode(double u0, double r, double eps){
         printf("%g | Up=%g | Ip=%g | IR=%g\n", fabs(eps - dosazena_presnost), Up, Ip, IR);
         printf("upper=%g\nlower=%g\n", upperbound, lowerbound);
         printf("Ipresnost=%g\n", fabs(Ip - IR));
-        printf("%u\n", max_cycles);
+        printf("%lu\n", ++cycles);
         #endif
     }
 
@@ -141,8 +141,8 @@ int main(int argc, char *argv[]) { // input U0 R EPS
     
     // EPS
     if (pedantic_strtod(argv[3], &EPS)){
-        // cant fulfill negative or zero precision
-        if (isinf(EPS) == -1 || fpclassify(EPS) == FP_ZERO) // man 3 fpclassify
+        // cant fulfill negative, zero, or -inf precision (inf precision is kinda nonsense but we can do it)
+        if (isinf(EPS) == -1 || fpclassify(EPS) == FP_ZERO || EPS <= 0.0) // man 3 fpclassify
             PRINT_INVARGERR_AND_RETURN;
     }
     else
