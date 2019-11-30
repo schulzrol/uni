@@ -18,7 +18,7 @@ OBJS=$(SRCS:.c=.o)
 all: $(EXECNAME)
 
 $(EXECNAME): $(OBJS) $(LDFLAGS)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
