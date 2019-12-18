@@ -1,0 +1,58 @@
+@startuml
+'Roland Schulz 1BIT
+'Bug Tracker Use Case Diagram
+'2019-11-xx
+'
+'compile to pdf:
+'   plantuml -t{filetype without preceding dot} uc.puml
+title Use case diagram\nBug tracker
+header Roland Schulz xschul06
+
+' Settings due to general *pretty*
+left to right direction
+'skinparam shadowing false
+skinparam defaultFontName Liberation Sans
+skinparam backgroundColor transparent
+'skinparam monochrome true
+
+'Actors with aliases
+:Programátor: as prog
+:Uživatel: as user
+:Anonymní uživatel: as anon
+:Správce systému: as sysadmin
+
+
+'a "extends" b properties
+prog -|> user
+'just to explicitly move anon under user
+user -[hidden] anon
+
+'programmer usecases
+(Zobrazit přidělené tikety) as zpt
+zpt <-[dotted]- (Editovat stav tiketu) : <<extend>>
+prog --> zpt
+(Zobrazit přidělené patche) as zpp
+zpp <-[dotted]- (Editovat stav patche) : <<extend>>
+prog --> zpp
+
+'user usecases
+(Zobrazit vytvořené tikety) as zvt
+zvt <-[dotted]- (Editovat tiket) : <<extend>>
+user --> zvt
+user --> (Zobrazit vytvořené patche)
+user --> (Zobrazit konto)
+user --> (Vytvořit tiket)
+user --> (Vytvořit patch)
+user --> (Upravit osobní informace)
+
+'anon usecases
+anon --> (Přihlásit)
+
+'sysadmin
+sysadmin --> (Vytvořit uživatele)
+(Zobrazit uživatele) as zuz
+zuz <-[dotted]- (Spravovat uživatele) : <<extend>>
+sysadmin --> zuz
+
+@enduml
+

@@ -1,0 +1,86 @@
+@startuml
+'Roland Schulz 1BIT
+'Bug Tracker Entity Relationship Diagram
+'2019-11-xx
+'
+'compile to pdf:
+'   plantuml -t{filetype without preceding dot} er.puml
+title Entity Relationship diagram\nBug tracker
+header Roland Schulz xschul06
+
+' Settings due to general *pretty*
+'left to right direction
+'skinparam shadowing false
+skinparam defaultFontName Liberation Sans
+skinparam backgroundColor transparent
+'skinparam monochrome true
+
+'Entities
+entity Osoba {
+    *<PK> user_id
+    --
+    jméno
+    přijmení
+    věk
+    role
+    kontakt
+}
+entity Nástroj {
+    *<PK> tool_id
+    --
+    název
+    popis
+}
+entity Patch {
+    *<PK> Datum vydání
+    --
+    stav
+    datum zavedení
+    popis
+}
+entity Modul {
+    *<PK> modul_id
+    --
+    název
+    popis
+}
+entity Tiket {
+    *<PK> tiket_id
+    --
+    popis
+    stav
+    datum vytvoření
+    datum poslední změny
+}
+entity Bug {
+    *<PK> bug_id
+    --
+    datum nahlášení
+    závažnost
+    popis
+}
+entity Odměna  {
+    *<PK> prize_id
+    --
+    částka
+}
+
+'Entity relations
+Nástroj "0..n" -- "0..n" Osoba  : umí používat
+
+Osoba   "0..n" -- "0..n" Modul  : odpovídá za
+Osoba      "1" -- "0..n" Odměna : na kontě
+Osoba   "1..n" -- "0..n" Bug    : je zahlášen
+Osoba      "1" -- "0..n" Patch  : je autorem
+
+Odměna  "0..n" -- "1..n" Bug    : je odměnou za
+
+Modul      "1" -- "0..n" Bug    : vyskytuje se
+
+Patch      "1" -- "1..n" Bug    : opravuje
+
+Bug     "1..n" -- "1..n" Tiket  : je součástí
+
+
+@enduml
+
