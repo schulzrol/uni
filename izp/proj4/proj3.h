@@ -60,7 +60,7 @@ int load_map(const char *filename, Map *map);
  *
  * @returns true if cell contains this type of border, otherwise false.
  *
- * @pre @p map must me a valid pointer to Map object.
+ * @pre @p map must be a valid pointer to Map object.
  * @pre @p r and @p c should be in bounds of allocated cells in @p map.
  */
 bool isborder(Map *map, int r, int c, int border);
