@@ -47,11 +47,19 @@ R4 = moje_zadani["R4"]
 R5 = moje_zadani["R5"]
 
 #vypocet vodivosti
+print("Vypocet vodivosti:")
+print("obecny vzorec: Gx = 1/Rx")
 G1 = 1/R1
+print("G1 = ", G1, "[S]")
 G2 = 1/R2
+print("G2 = ", G2, "[S]")
 G3 = 1/R3
+print("G3 = ", G3, "[S]")
 G4 = 1/R4
+print("G4 = ", G4, "[S]")
 G5 = 1/R5
+print("G5 = ", G5, "[S]")
+print()
 
 # vytvoreni matice na vyreseni soustavy rovnic Cramerem
 a = -(G1+G2)
@@ -68,6 +76,8 @@ leva1 = [a, b, c]
 leva2 = [d, e, f]
 leva3 = [g, h, i]
 leva = [leva1, leva2, leva3]
+
+print("Vytvoreni matic na Cramera:")
 print("leva strana matice:")
 pprint_arr(leva)
 
@@ -84,19 +94,38 @@ A1 = numpy.array([prava, leva2, leva3])
 A2 = numpy.array([leva1, prava, leva3])
 A3 = numpy.array([leva1, leva2, prava])
 
+print("Sefovska matice A:")
+pprint_arr(A)
+print("submatice A1:")
+pprint_arr(A1)
+print("submatice A2:")
+pprint_arr(A2)
+print("submatice A3:")
+pprint_arr(A3)
+
 # vypocet determinantu matic
 detA = numpy.linalg.det(A)
 detA1 = numpy.linalg.det(A1)
 detA2 = numpy.linalg.det(A2)
 detA3 = numpy.linalg.det(A3)
 
+print("det. A=", detA)
+print("det. A1=", detA1)
+print("det. A2=", detA2)
+print("det. A3=", detA3)
+
 # aplikovani Cramera
 UA = detA1/detA
 UB = detA2/detA
 UC = detA3/detA
 
+print("aplikovani Cramera:")
+print("UA = detA1/detA =", UA, "[V]")
+print("UB = detA2/detA =", UB, "[V]")
+print("UC = detA3/detA =", UC, "[V]")
+
 IR1 = (UA)/R1
-IR2 = (UB-UB)/R2
+IR2 = (UA-UB)/R2
 IR3 = (UC)/R3
 IR4 = (UB-UC)/R4
 IR5 = (U+UC-UB)/R5
