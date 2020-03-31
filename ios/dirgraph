@@ -1,0 +1,165 @@
+#!/bin/sh
+
+set -o posix
+
+# ---------------------------------------------------------- VARIABLES
+script_name=$(basename "$0")
+# used so that programs strictly follow POSIX standard behaviour
+POSIXLY_CORRECT=yes
+
+# width of terminal
+termwidth=$(tput cols)
+# whether we are running on terminal
+test -t 1
+onterm=$?
+
+normalize=false
+FILE_ERE=""
+dirpath=""
+
+# ---------------------------------------------------------- ARGS
+#handle options
+while getopts "i:n" option
+do
+    case $option in
+        i)  FILE_ERE=$OPTARG;;
+        n)  normalize=true;;
+        *)  exit 1 ;; # error return value when unknown option
+    esac
+done
+
+# shift the number of args found in getopts to get the last (dir path)
+shift "$(($OPTIND-1))"
+# set directory path according to available arguments
+if [ "$#" -eq 1 ]
+then
+    dirpath="$1"
+elif [ "$#" -eq 0 ]
+then
+    dirpath=$PWD
+else
+    echo "$script_name: Too much arguments!" >&2
+    exit 1
+fi
+
+# TODO: Add check for FILE_ERE matching dirpath
+#(echo "$dirpath" | grep -Eq "$FILE_ERE") && echo "$script_name: [FILE_ERE] matches [DIR]" ; exit 1
+
+# ---------------------------------------------------------- FUNCTIONS
+# prints out the length of longest string in arguments
+longeststr()
+{
+    local longest=0
+    for str in "$@"
+    do
+        local len=$(printf '"$str"' | wc -m)
+        if [ $len -gt $longest ] ; then longest=$len ; fi
+    done
+
+    echo "$longest"
+}
+
+# arg1 label
+# arg2 label justify
+# arg3 marker
+# arg4 how many markers for a bar
+histoline()
+{
+    local label=$1
+    local justify=$2
+    local marker=$3
+    local barlen=$4
+
+    printf "%"$justify"s: " "$label"
+    for i in $(seq $barlen)
+    do
+        printf "$marker"
+    done
+    echo
+}
+
+# arg1 working directory DIR
+# arg2 FILE_ERE
+FSHIST ()
+{
+    echo 'test'
+}
+
+# MAIN
+
+# ---------------------------------------------------------- REPORT DATA
+lsdirs=$(find "$dirpath" -type d)
+lsfiles=$(find "$dirpath" -type f)
+
+dircnt=$(echo "$lsdirs" | wc -l)
+filecnt=$(echo "$lsfiles" | wc -l)
+
+#DEBUG INFO
+#echo "lsdirs: "$lsdirs
+#echo "lsfiles: "$lsfiles
+#echo "dircnt: "$dircnt
+#echo "filecnt: "$filecnt
+
+# ---------------------------------------------------------- REPORT
+echo "Root directory: $dirpath"
+echo "Directories: $dircnt"
+echo "All files: $filecnt"
+echo "File size histogram:"
+
+# structured resolutions format (for cutting):
+#   f1        ;f2   ;f3  ;f4        ;f5
+#   comparator;value;unit;labelvalue;labelunit
+# if no unit (';;') bytes are used
+resolutions=$(echo \
+            '-;100;;<100;B' \
+            '-;1;Ki;<1;KiB' \
+            '-;10;Ki;<10;KiB' \
+            '-;1;Mi;<1;MiB' \
+            '-;10;Mi;<10;MiB' \
+            '-;100;Mi;<100;MiB' \
+            '-;1;Gi;<1;GiB' \
+            $(echo '+;'$(bc <<< $(echo '1Gi' | numfmt --from=auto)-1)';;>=1;GiB') \
+            )
+#echo $resolutions
+marker='#'
+delimiter=';'
+before=''
+
+#TODO: predelat do funkce
+for resolution in $resolutions
+do 
+    # extract attributes from structure
+    comparator=$(echo $resolution | cut -d "$delimiter" -f1)
+    value=$(echo $resolution | cut -d "$delimiter" -f2)
+    unit=$(echo $resolution | cut -d "$delimiter" -f3)
+    labelvalue=$(echo $resolution | cut -d "$delimiter" -f4)
+    labelunit=$(echo $resolution | cut -d "$delimiter" -f5)
+
+    #expanded resolutions multiplied by their metric suffix
+    expandval=$(echo $value$unit | numfmt --from=auto)
+
+    before=$together
+    #echo 'before:'$before
+
+    #echo "$comparator""$expandval"c
+    currently=$(find "$dirpath" -type f -size "$comparator""$expandval"c)
+    #echo 'currently:'$currently
+
+    together=$(echo $currently $before | tr ' ' '\n' | sort)
+    #echo 'together:'$together
+
+    newly=$(echo $before $currently | tr ' ' '\n' | sort | uniq -u)
+    echo 'newly:'$newly
+
+    # go through newly found files and increment filecounter
+    count='0'
+    for file in $newly
+    do
+        count=$(echo "$count+1" | bc)
+    done
+
+    histoline "  $labelvalue $labelunit" '-10' '#' $count
+
+done
+
+exit 0
