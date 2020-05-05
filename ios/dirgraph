@@ -7,14 +7,8 @@ script_name=$(basename "$0")
 # used so that programs strictly follow POSIX standard behaviour
 POSIXLY_CORRECT=yes
 
-# width of terminal
-termwidth=$(tput cols)
-# whether we are running on terminal
-test -t 1
-onterm=$?
-
 normalize=false
-FILE_ERE=""
+FILE_ERE=''
 dirpath=""
 
 # ---------------------------------------------------------- ARGS
@@ -42,22 +36,7 @@ else
     exit 1
 fi
 
-# TODO: Add check for FILE_ERE matching dirpath
-#(echo "$dirpath" | grep -Eq "$FILE_ERE") && echo "$script_name: [FILE_ERE] matches [DIR]" ; exit 1
-
 # ---------------------------------------------------------- FUNCTIONS
-# prints out the length of longest string in arguments
-longeststr()
-{
-    local longest=0
-    for str in "$@"
-    do
-        local len=$(printf '"$str"' | wc -m)
-        if [ $len -gt $longest ] ; then longest=$len ; fi
-    done
-
-    echo "$longest"
-}
 
 # arg1 label
 # arg2 label justify
@@ -71,34 +50,47 @@ histoline()
     local barlen=$4
 
     printf "%"$justify"s: " "$label"
-    for i in $(seq $barlen)
+    if [ "$normalize" = true ]
+    then
+        # width of terminal
+        termwidth=$(tput cols)
+        #whether stdout is connected to terminal
+        if [ -t 1 ] 
+        then
+            maxlen=$(echo "$termwidth-1" | bc)
+        else
+            maxlen='79'
+        fi
+
+        maxlen=$(echo $maxlen-12 | bc)
+        
+        norm=$(echo "scale=5; $barlen/$maxlen" | bc)
+        printlen=$(echo "scale=5; $barlen*$norm" | bc)
+    else
+        printlen=$barlen
+    fi
+
+    for i in $(seq $printlen)
     do
         printf "$marker"
     done
     echo
 }
 
-# arg1 working directory DIR
-# arg2 FILE_ERE
-FSHIST ()
-{
-    echo 'test'
-}
-
 # MAIN
 
 # ---------------------------------------------------------- REPORT DATA
-lsdirs=$(find "$dirpath" -type d)
-lsfiles=$(find "$dirpath" -type f)
-
-dircnt=$(echo "$lsdirs" | wc -l)
-filecnt=$(echo "$lsfiles" | wc -l)
-
-#DEBUG INFO
-#echo "lsdirs: "$lsdirs
-#echo "lsfiles: "$lsfiles
-#echo "dircnt: "$dircnt
-#echo "filecnt: "$filecnt
+if [ -z $FILE_ERE ]; then
+    dircnt=$(find "$dirpath" -type d | wc -l)
+    filecnt=$(find "$dirpath" -type f | wc -l)
+else
+    if [ "$FILE_ERE" = "$PWD" ]; then
+        echo $script_name': Regex same as target dir'
+        exit 1
+    fi
+    dircnt=$(find "$dirpath" -type d -regextype posix-extended -not -regex .*$FILE_ERE.* | wc -l)
+    filecnt=$(find "$dirpath" -type f -regextype posix-extended -not -regex .*$FILE_ERE.*  | wc -l)
+fi
 
 # ---------------------------------------------------------- REPORT
 echo "Root directory: $dirpath"
@@ -114,6 +106,7 @@ resolutions=$(echo \
             '-;100;;<100;B' \
             '-;1;Ki;<1;KiB' \
             '-;10;Ki;<10;KiB' \
+            '-;100;Ki;<100;KiB' \
             '-;1;Mi;<1;MiB' \
             '-;10;Mi;<10;MiB' \
             '-;100;Mi;<100;MiB' \
@@ -125,7 +118,6 @@ marker='#'
 delimiter=';'
 before=''
 
-#TODO: predelat do funkce
 for resolution in $resolutions
 do 
     # extract attributes from structure
@@ -139,17 +131,16 @@ do
     expandval=$(echo $value$unit | numfmt --from=auto)
 
     before=$together
-    #echo 'before:'$before
 
-    #echo "$comparator""$expandval"c
-    currently=$(find "$dirpath" -type f -size "$comparator""$expandval"c)
-    #echo 'currently:'$currently
+    if [ -z $FILE_ERE ]; then
+        currently=$(find "$dirpath" -type f -size "$comparator""$expandval"c -exec echo '{}' \;)
+    else
+        currently=$(find "$dirpath" -type f -regextype posix-extended -not -regex .*$FILE_ERE.* -size "$comparator""$expandval"c -exec echo '{}' \;)
+    fi
 
     together=$(echo $currently $before | tr ' ' '\n' | sort)
-    #echo 'together:'$together
 
     newly=$(echo $before $currently | tr ' ' '\n' | sort | uniq -u)
-    echo 'newly:'$newly
 
     # go through newly found files and increment filecounter
     count='0'
@@ -157,7 +148,7 @@ do
     do
         count=$(echo "$count+1" | bc)
     done
-
+    
     histoline "  $labelvalue $labelunit" '-10' '#' $count
 
 done
