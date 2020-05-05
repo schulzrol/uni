@@ -1,0 +1,22 @@
+0:g_complex: komplexni priklad
+# ./dirgraph -i '\.git' dir <stdin >>stdout 2>>stderr; echo $? >>errcode
+# diff -u stdout.ref stdout
+#   --- stdout.ref
+#   +++ stdout
+#   @@ -1,12 +1,11 @@
+#    Root directory: dir
+#   -Directories: 3
+#   -All files: 31
+#   +Directories: 4
+#   +All files: 32
+#    File size histogram:
+#   -  <100 B  : #######
+#   +  <100 B  : ########
+#      <1 KiB  : ###############
+#      <10 KiB : ######
+#   -  <100 KiB: ##
+#   -  <1 MiB  : #
+#   +  <1 MiB  : ###
+#      <10 MiB : 
+#      <100 MiB: 
+#      <1 GiB  : 

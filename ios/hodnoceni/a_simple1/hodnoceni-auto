@@ -1,0 +1,13 @@
+0:a_simple1: jednoduchy adresar
+# ./dirgraph dir <stdin >>stdout 2>>stderr; echo $? >>errcode
+# diff -u stdout.ref stdout
+#   --- stdout.ref
+#   +++ stdout
+#   @@ -5,7 +5,6 @@
+#      <100 B  : #
+#      <1 KiB  : 
+#      <10 KiB : 
+#   -  <100 KiB: 
+#      <1 MiB  : 
+#      <10 MiB : 
+#      <100 MiB: 

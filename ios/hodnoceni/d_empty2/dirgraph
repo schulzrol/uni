@@ -1,0 +1,161 @@
+#!/bin/sh
+
+set -o posix
+
+# ---------------------------------------------------------- VARIABLES
+script_name=$(basename "$0")
+# used so that programs strictly follow POSIX standard behaviour
+POSIXLY_CORRECT=yes
+
+normalize=false
+FILE_ERE=''
+dirpath=""
+
+# ---------------------------------------------------------- ARGS
+#handle options
+while getopts "i:n" option
+do
+    case $option in
+        i)  FILE_ERE=$OPTARG;;
+        n)  normalize=true;;
+        *)  exit 1 ;; # error return value when unknown option
+    esac
+done
+
+# shift the number of args found in getopts to get the last (dir path)
+shift "$(($OPTIND-1))"
+# set directory path according to available arguments
+if [ "$#" -eq 1 ]
+then
+    dirpath="$1"
+elif [ "$#" -eq 0 ]
+then
+    dirpath=$PWD
+else
+    echo "$script_name: Too much arguments!" >&2
+    exit 1
+fi
+
+# ---------------------------------------------------------- FUNCTIONS
+
+# arg1 label
+# arg2 label justify
+# arg3 marker
+# arg4 how many markers for a bar
+histoline()
+{
+    local label=$1
+    local justify=$2
+    local marker=$3
+    local barlen=$4
+
+    printf "%"$justify"s: " "$label"
+    if [ "$normalize" = true ]
+    then
+        # width of terminal
+        termwidth=$(tput cols)
+        #whether stdout is connected to terminal
+        if [ -t 1 ] 
+        then
+            maxlen=$(echo "$termwidth-1" | bc)
+        else
+            maxlen='79'
+        fi
+
+        maxlen=$(echo $maxlen-12 | bc)
+        
+        norm=$(echo "scale=5; $barlen/$maxlen" | bc)
+        printlen=$(echo "scale=5; $barlen*$norm" | bc)
+    else
+        printlen=$barlen
+    fi
+
+    for i in $(seq $printlen)
+    do
+        printf "$marker"
+    done
+    echo
+}
+
+# MAIN
+
+# ---------------------------------------------------------- REPORT DATA
+if [ -z $FILE_ERE ]; then
+    dircnt=$(find "$dirpath" -type d | wc -l)
+    filecnt=$(find "$dirpath" -type f | wc -l)
+else
+    if [ "$FILE_ERE" = "$PWD" ]; then
+        echo $script_name': Regex same as target dir'
+        exit 1
+    fi
+    dircnt=$(find "$dirpath" -not -regex $FILE_ERE -type d | wc -l)
+    filecnt=$(find "$dirpath" -not -regex $FILE_ERE -type f | wc -l)
+fi
+
+#dircnt=$(echo "$lsdirs" | wc -l)
+#filecnt=$(printf "$lsfiles" | wc -l)
+#echo $lsfiles
+#echo $filecnt
+
+# ---------------------------------------------------------- REPORT
+echo "Root directory: $dirpath"
+echo "Directories: $dircnt"
+echo "All files: $filecnt"
+echo "File size histogram:"
+
+# structured resolutions format (for cutting):
+#   f1        ;f2   ;f3  ;f4        ;f5
+#   comparator;value;unit;labelvalue;labelunit
+# if no unit (';;') bytes are used
+resolutions=$(echo \
+            '-;100;;<100;B' \
+            '-;1;Ki;<1;KiB' \
+            '-;10;Ki;<10;KiB' \
+            '-;100;Ki;<100;KiB' \
+            '-;1;Mi;<1;MiB' \
+            '-;10;Mi;<10;MiB' \
+            '-;100;Mi;<100;MiB' \
+            '-;1;Gi;<1;GiB' \
+            $(echo '+;'$(bc <<< $(echo '1Gi' | numfmt --from=auto)-1)';;>=1;GiB') \
+            )
+#echo $resolutions
+marker='#'
+delimiter=';'
+before=''
+
+for resolution in $resolutions
+do 
+    # extract attributes from structure
+    comparator=$(echo $resolution | cut -d "$delimiter" -f1)
+    value=$(echo $resolution | cut -d "$delimiter" -f2)
+    unit=$(echo $resolution | cut -d "$delimiter" -f3)
+    labelvalue=$(echo $resolution | cut -d "$delimiter" -f4)
+    labelunit=$(echo $resolution | cut -d "$delimiter" -f5)
+
+    #expanded resolutions multiplied by their metric suffix
+    expandval=$(echo $value$unit | numfmt --from=auto)
+
+    before=$together
+
+    if [ -z $FILE_ERE ]; then
+        currently=$(find "$dirpath" -type f -size "$comparator""$expandval"c)
+    else
+        currently=$(find "$dirpath" -not -regex $FILE_ERE -type f -size "$comparator""$expandval"c)
+    fi
+
+    together=$(echo $currently $before | tr ' ' '\n' | sort)
+
+    newly=$(echo $before $currently | tr ' ' '\n' | sort | uniq -u)
+
+    # go through newly found files and increment filecounter
+    count='0'
+    for file in $newly
+    do
+        count=$(echo "$count+1" | bc)
+    done
+    
+    histoline "  $labelvalue $labelunit" '-10' '#' $count
+
+done
+
+exit 0
