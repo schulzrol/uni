@@ -124,8 +124,7 @@ int readNewContact(contact *newContact){
  * Prints @c info on stdout. Should be used as abstraction.
  */
 void printContact(contact c){
-    if (c.fullName && c.phoneNum)
-        printf("%s, %s\n", c.fullName, c.phoneNum);
+    printf("%s, %s\n", c.fullName, c.phoneNum);
 
     return;
 }
@@ -336,9 +335,8 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    int nfiltered = 0;
     if (argc == 2){
-        nfiltered = filter_neprerusene(argv[1], contactBook, ncontacts);
+        int nfiltered = filter_neprerusene(argv[1], contactBook, ncontacts);
         //nfiltered = filter_prerusene(argv[1], contactBook, ncontacts);
         // detect errors
         if (nfiltered < 0) {
