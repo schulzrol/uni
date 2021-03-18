@@ -1,0 +1,27 @@
+QMAKE_CXX.INCDIRS = \
+    /usr/local/include/c++/7.4.0 \
+    /usr/local/include/c++/7.4.0/x86_64-linux \
+    /usr/local/include/c++/7.4.0/backward \
+    /usr/local/lib/gcc/x86_64-linux/7.4.0/include \
+    /usr/local/include \
+    /usr/local/lib/gcc/x86_64-linux/7.4.0/include-fixed \
+    /usr/include
+QMAKE_CXX.LIBDIRS = \
+    /usr/local/lib/gcc/x86_64-linux/7.4.0 \
+    /usr/local/x86_64-linux/lib64 \
+    /usr/local/lib64 \
+    /lib64 \
+    /usr/lib64 \
+    /usr/local/x86_64-linux/lib \
+    /usr/local/lib \
+    /lib \
+    /usr/lib
+QMAKE_CXX.QT_COMPILER_STDCXX = 201402L
+QMAKE_CXX.QMAKE_GCC_MAJOR_VERSION = 7
+QMAKE_CXX.QMAKE_GCC_MINOR_VERSION = 4
+QMAKE_CXX.QMAKE_GCC_PATCH_VERSION = 0
+QMAKE_CXX.COMPILER_MACROS = \
+    QT_COMPILER_STDCXX \
+    QMAKE_GCC_MAJOR_VERSION \
+    QMAKE_GCC_MINOR_VERSION \
+    QMAKE_GCC_PATCH_VERSION
