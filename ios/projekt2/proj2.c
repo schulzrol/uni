@@ -10,7 +10,11 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <limits.h>
-#include <errno.h>
+#include <errno.h> // 
+#include <semaphore.h> // semaphores, duh 💁
+#include <unistd.h> // forking and children
+
+#define log_file "proj2.out"
 
 typedef struct _ParamsType {
     int NE; // pocet skritku 0<NE<1000 - NElves
@@ -45,6 +49,9 @@ int loadParams(int argc, char** argv, ParamsType* params){
     return exit_ok;
 }
 
+
+int elves_counter = 0;
+int reindeer_counter = 0;
 
 int main(int argc, char** argv) {
     printf("HELLO WORLD\n");
