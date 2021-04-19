@@ -1,6 +1,6 @@
 /**
  * @file proj2.c
- * @author Rolans Schulz (xschul06 at fit.stud.vutbr.com)
+ * @author Roland Schulz (xschul06 at fit.stud.vutbr.com)
  * @brief Main program for Santa Clasu problem assignement
  * @version 0.1
  * @date 2021-04-19
@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <limits.h>
-#include <errno.h> // 
+#include <errno.h> // error detection
 #include <semaphore.h> // semaphores, duh 💁
 #include <unistd.h> // forking and children
 
@@ -27,6 +27,14 @@ typedef struct _ParamsType {
 #define exit_ok 0
 
 
+/**
+ * @brief 
+ * 
+ * @param argc 
+ * @param argv 
+ * @param params 
+ * @return int 
+ */
 int loadParams(int argc, char** argv, ParamsType* params){
     if (argc < 5) // not enough args
         return exit_err;
