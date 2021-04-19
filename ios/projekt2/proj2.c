@@ -26,15 +26,17 @@ typedef struct _ParamsType {
 #define exit_err 1
 #define exit_ok 0
 
-#define strtol_checked(p, i) do {                     \
-        p = strtol(argv[i], NULL, 10);\
-        if (errno == ERANGE) return exit_err;\
-    } while(0);
 
 int loadParams(int argc, char** argv, ParamsType* params){
     if (argc < 5) // not enough args
         return exit_err;
     
+    #define strtol_checked(p, i) do {\
+        errno = 0;\
+        p = strtol(argv[i], NULL, 10);\
+        if (errno != 0) return exit_err;\
+    } while(0);
+
     strtol_checked(params->NE, 1);
     strtol_checked(params->NR, 2);
     strtol_checked(params->TE, 3);
