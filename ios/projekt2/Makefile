@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic -ggdb
+CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic
 LDFLAGS=-pthread -lrt
 
 EXECNAME=proj2
@@ -15,7 +15,7 @@ ZIP_NAME=proj2.zip
 .PHONY: all clean run zip
 
 OBJS=$(SRCS:.c=.o)
-	
+
 all: $(EXECNAME)
 
 $(EXECNAME): $(OBJS)

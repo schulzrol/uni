@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS=-std=c99 -Wall -Wextra -Werror -g
+CFLAGS=-std=c99 -Wall -Wextra -Werror -ggdb
 LDFLAGS=-lm
 
 EXECNAME=proj2
@@ -14,7 +14,7 @@ HEADERS=
 .PHONY: all clean run
 
 OBJS=$(SRCS:.c=.o)
-	
+
 all: $(EXECNAME)
 
 $(EXECNAME): $(OBJS) $(LDFLAGS)
