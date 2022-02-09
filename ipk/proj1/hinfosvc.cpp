@@ -90,7 +90,7 @@ string get_response_for_request(const string& buffer, const vector<handlerT>& bo
             {"{VERSION}", "HTTP/1.1"},
             {"{CODE}", code},
             {"{STATUS}", status},
-            {"{CONTENT TYPE}", "text/html"},
+            {"{CONTENT TYPE}", "text/plain"},
             {"{BODY}", body},
     };
 
