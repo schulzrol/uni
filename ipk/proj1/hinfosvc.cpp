@@ -134,7 +134,7 @@ string handleRequest(const string& buffer, const vector<handlerT>& bodyHandlers)
             {"{CONNECTION}", "close"}
     };
 
-    auto response_template =
+    auto responseTemplate =
             "{VERSION} {CODE} {STATUS} \r\n"
             "Content-Type: {CONTENT TYPE}\r\n"
             "Content-Length: {CONTENT LENGTH}\r\n"
@@ -142,7 +142,7 @@ string handleRequest(const string& buffer, const vector<handlerT>& bodyHandlers)
             "\r\n"
             "{BODY}";
 
-    return renderTemplate(response_template, replacements);
+    return renderTemplate(responseTemplate, replacements);
 }
 
 vector<int> children;
