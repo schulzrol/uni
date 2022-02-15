@@ -15,9 +15,9 @@ using namespace std;
 
 // https://stackoverflow.com/a/2659995/8354587
 #define MAX_REQUEST_BYTES 8000
-#define BACKLOG_MAX 5
+#define MAX_BACKLOG 5
 
-string replace_all(string str, const string &remove, const string &insert) {
+string replaceEvery(string str, const string &remove, const string &insert) {
     string::size_type pos = 0;
     while ((pos = str.find(remove, pos)) != string::npos)
         str.replace(pos++, remove.size(), insert);
@@ -25,11 +25,11 @@ string replace_all(string str, const string &remove, const string &insert) {
     return str;
 }
 
-string render_template(string templatestr, const vector<pair<string, string>>& replacements){
+string renderTemplate(string templateStr, const vector<pair<string, string>>& replacements){
     for(const auto& replace : replacements) {
-        templatestr = replace_all(templatestr, replace.first, replace.second);
+        templateStr = replaceEvery(templateStr, replace.first, replace.second);
     }
-    return templatestr;
+    return templateStr;
 }
 
 typedef struct handlerT{
@@ -37,85 +37,85 @@ typedef struct handlerT{
     function<std::string(void)> execute;
 } handlerT;
 
-string get_cpu_model(){
-    FILE *cpuinfo = popen("grep '^model name' /proc/cpuinfo | uniq", "r");
-    if (cpuinfo == nullptr)
+string getCPUModel(){
+    FILE *cpuInfo = popen("grep '^model name' /proc/cpuinfo | uniq", "r");
+    if (cpuInfo == nullptr)
         return "FAILED";
     char line[HOST_NAME_MAX];
-    string retval;
-    if (fgets(line, HOST_NAME_MAX, cpuinfo) != nullptr) {
+    string returnValue;
+    if (fgets(line, HOST_NAME_MAX, cpuInfo) != nullptr) {
         auto ls = string(line);
-        retval = ls.substr(ls.find_first_of(':') + 2);
+        returnValue = ls.substr(ls.find_first_of(':') + 2);
     }
     else
-        retval = "FAILED";
-    fclose(cpuinfo);
-    return retval;
+        returnValue = "FAILED";
+    fclose(cpuInfo);
+    return returnValue;
 }
 
-string hostname_handler() {
+string hostnameRequestHandler() {
     char hostname[255];
     gethostname(hostname, 255);
     return {hostname};
 }
 
-vector<int> get_proc_stat_times(){
-    ifstream proc_stat("/proc/stat");
-    proc_stat.ignore(5, ' ');
+vector<int> getProcStatTimes(){
+    ifstream fileProcStat("/proc/stat");
+    fileProcStat.ignore(5, ' ');
     vector<int> times;
-    for (int time; proc_stat >> time; times.push_back(time));  // convert strings to size_ts and push to times
+    for (int time; fileProcStat >> time; times.push_back(time));  // convert strings to size_ts and push to times
 
     return times;
 }
 
-int get_cpu_times(int& idle_time, int& total_time){
-    vector<int> cpu_times = get_proc_stat_times();
-    if (cpu_times.size() < 4)
+int getCPUTimes(int& idleTime, int& totalTime){
+    vector<int> cpuTimes = getProcStatTimes();
+    if (cpuTimes.size() < 4)
         return 0;
-    int temp_idle = cpu_times[3];
-    idle_time = temp_idle;
-    total_time = accumulate(cpu_times.begin(), cpu_times.end(), 0);
+    int tempIdleTime = cpuTimes[3];
+    idleTime = tempIdleTime;
+    totalTime = accumulate(cpuTimes.begin(), cpuTimes.end(), 0);
     return 1;
 }
 
-float get_cpu_utilization(int over_seconds){
-    size_t previous_idle_time=0, previous_total_time=0;
+float getCPUUtilization(int over_seconds){
+    size_t previousIdleTime=0, previousTotalTime=0;
     float utilization = 0;
-    int idle_time, total_time;
-    for (int i = 0; i < over_seconds; i+=get_cpu_times(idle_time, total_time)) {
-        const float idle_time_delta = idle_time - previous_idle_time;
-        const float total_time_delta = total_time - previous_total_time;
-        utilization = 100.0 * (1- idle_time_delta / total_time_delta);
-        previous_idle_time = idle_time;
-        previous_total_time = total_time;
+    int idleTime, totalTime;
+    for (int i = 0; i < over_seconds; i+=getCPUTimes(idleTime, totalTime)) {
+        const float idleTimeDelta = idleTime - previousIdleTime;
+        const float totalTimeDelta = totalTime - previousTotalTime;
+        utilization = 100.0 * (1- idleTimeDelta / totalTimeDelta);
+        previousIdleTime = idleTime;
+        previousTotalTime = totalTime;
         sleep(1);
     }
     return utilization;
 }
 
-string load_handler() {
-    string utilization = to_string(get_cpu_utilization(5));
+string loadRequestHandler() {
+    string utilization = to_string(getCPUUtilization(5));
     return utilization.substr(0, utilization.find('.')) + "%";
 }
 
-string extract_path_from_request(const string& buffer){
+string getPathFromRequest(const string& buffer){
     auto path = buffer.substr(buffer.find_first_of('/'));  // GET /path/ HTTP... -> /path/ HTTP...
     path = path.substr(0, path.find_first_of(' '));  // /path/ HTTP... -> /path/
     return path;
 }
 
-string get_response_for_request(const string& buffer, const vector<handlerT>& body_handlers){
+string handleRequest(const string& buffer, const vector<handlerT>& bodyHandlers){
     string code = "404";
     string status = "Not Found";
     string body;
 
-    auto path = extract_path_from_request(buffer);
-    for(const handlerT& handler : body_handlers) {
+    auto path = getPathFromRequest(buffer);
+    for(const handlerT& handler : bodyHandlers) {
         if (handler.path == path) {
             try { body = handler.execute(); }
-            catch (int error_code){
-                code = to_string(error_code);
-                status = HttpStatus::reasonPhrase(error_code);
+            catch (int errorCode){
+                code = to_string(errorCode);
+                status = HttpStatus::reasonPhrase(errorCode);
                 break;
             }
 
@@ -142,73 +142,57 @@ string get_response_for_request(const string& buffer, const vector<handlerT>& bo
             "\r\n"
             "{BODY}";
 
-    return render_template(response_template, replacements);
+    return renderTemplate(response_template, replacements);
 }
 
 vector<int> children;
-int server_fd;
+int serverFD;
 
 void cleanup(){
     cout << "cleaning up!" << endl;
     for (auto child: children) {
         kill(child, SIGTERM);
     }
-    close(server_fd);
+    close(serverFD);
 }
 
-void sigint_handler(int s){
+void SIGINTHandler(int s){
     cleanup();
     exit(1);
 }
 
-int main(int argc, char **argv) {
-    signal(SIGINT, sigint_handler);
-
-    if (argc < 1){
-        cerr << "PORT not specified" << endl;
-        exit(EXIT_FAILURE);
-    }
-    const long PORT = strtol(argv[1], nullptr, 10);
-
-    auto cpumodel = get_cpu_model();
-
-    vector<handlerT> handlers = {
-            {.path="/hostname", .execute=hostname_handler},
-            {.path="/cpu-name", .execute=[cpumodel](){return cpumodel;}},
-            {.path="/load", .execute=load_handler},
-    };
-
-    int new_socket;
+void serveHttp(int port, vector<handlerT> handlers, int maxBacklog = MAX_BACKLOG, int maxBytesPerRequest = MAX_REQUEST_BYTES){
+    int newSocket;
     //initialize socket
-    server_fd = socket(AF_INET,  // ip
-                           SOCK_STREAM, // virtual circuit service
-                           0  // no variations in protocol -> 0
-                           );
-    if (server_fd < 0) {
+    serverFD = socket(AF_INET,     // ip
+                      SOCK_STREAM, // virtual circuit service
+                      0            // no variations in protocol -> 0
+    );
+    if (serverFD < 0) {
         cerr << "cannot create socket" << endl;
         exit(EXIT_FAILURE);
     }
 
-
     struct sockaddr_in address = {
             .sin_family = AF_INET,  // same as socket af
-            .sin_port = htons(PORT),  // specified port
+            .sin_port = htons(port),  // specified port
             .sin_addr = {htons(INADDR_ANY)}, // any net interface -> 0.0.0.0
     };
-    socklen_t addrlen = sizeof(address);
-    if (bind(server_fd,(struct sockaddr *) &address,sizeof(address)) < 0) {
-        cerr << "bind failed on port "<< PORT << endl;
+
+    socklen_t addressLen = sizeof(address);
+    if (bind(serverFD,(struct sockaddr *) &address,sizeof(address)) < 0) {
+        cerr << "bind failed on port "<< port << endl;
         exit(EXIT_FAILURE);
     }
 
-    if (listen(server_fd, BACKLOG_MAX) < 0) {
+    if (listen(serverFD, maxBacklog) < 0) {
         cout << "failed in listen" << endl;
         exit(EXIT_FAILURE);
     }
 
     int pid;
     while (true) {
-        if ((new_socket = accept(server_fd, (struct sockaddr *) &address, &addrlen)) < 0) {
+        if ((newSocket = accept(serverFD, (struct sockaddr *) &address, &addressLen)) < 0) {
             cout << "failed in accept" << endl;
             exit(EXIT_FAILURE);
         }
@@ -220,16 +204,36 @@ int main(int argc, char **argv) {
         }
 
         if (pid == 0) {
-            char buffer[MAX_REQUEST_BYTES];
-            read(new_socket, buffer, MAX_REQUEST_BYTES);
-            string response = get_response_for_request(buffer, handlers);
-            write(new_socket, response.c_str(), response.length());
-            close(new_socket);
+            char buffer[maxBytesPerRequest];
+            read(newSocket, buffer, sizeof(buffer));
+            string response = handleRequest(buffer, handlers);
+            write(newSocket, response.c_str(), response.length());
+            close(newSocket);
             exit(0);
         }
         else {
-            close(new_socket);
+            close(newSocket);
             children.push_back(pid);
         }
     }
+}
+
+int main(int argc, char **argv) {
+    signal(SIGINT, SIGINTHandler);
+
+    if (argc < 1){
+        cerr << "port not specified" << endl;
+        exit(EXIT_FAILURE);
+    }
+    const long port = strtol(argv[1], nullptr, 10);
+
+    auto cpuModel = getCPUModel();
+
+    vector<handlerT> handlers = {
+            {.path="/hostname", .execute=hostnameRequestHandler},
+            {.path="/cpu-name", .execute=[cpuModel](){return cpuModel;}},
+            {.path="/load", .execute=loadRequestHandler},
+    };
+
+    serveHttp(port, handlers);
 }
