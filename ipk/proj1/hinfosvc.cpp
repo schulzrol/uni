@@ -3,7 +3,6 @@
 #include <functional>
 #include <numeric>
 #include <unistd.h>
-#include <cstdio>
 #include <climits>
 #include <vector>
 #include <sys/socket.h>
@@ -71,8 +70,6 @@ vector<int> get_proc_stat_times(){
 
 int get_cpu_times(int& idle_time, int& total_time){
     vector<int> cpu_times = get_proc_stat_times();
-    for_each(cpu_times.begin(), cpu_times.end(), [](int t) { cout << t << " ";});
-    cout << endl;
     if (cpu_times.size() < 4)
         return 0;
     int temp_idle = cpu_times[3];
@@ -89,7 +86,6 @@ float get_cpu_utilization(int over_seconds){
         const float idle_time_delta = idle_time - previous_idle_time;
         const float total_time_delta = total_time - previous_total_time;
         utilization = 100.0 * (1- idle_time_delta / total_time_delta);
-        cout << utilization << endl;
         previous_idle_time = idle_time;
         previous_total_time = total_time;
         sleep(1);
@@ -134,11 +130,16 @@ string get_response_for_request(const string& buffer, const vector<handlerT>& bo
             {"{STATUS}", status},
             {"{CONTENT TYPE}", "text/plain"},
             {"{BODY}", body},
+            {"{CONTENT LENGTH}", to_string(body.size())},
+            {"{CONNECTION}", "close"}
     };
 
     auto response_template =
             "{VERSION} {CODE} {STATUS} \r\n"
-            "Content-Type: {CONTENT TYPE}\r\n\r\n"
+            "Content-Type: {CONTENT TYPE}\r\n"
+            "Content-Length: {CONTENT LENGTH}\r\n"
+            "Connection: {CONNECTION}\r\n"
+            "\r\n"
             "{BODY}";
 
     return render_template(response_template, replacements);
