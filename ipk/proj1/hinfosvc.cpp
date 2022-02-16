@@ -220,8 +220,9 @@ void cleanup(){
 }
 
 /**
+ * SIGINT handler for cleaning up
  *
- * @param s
+ * @param s unused
  */
 void SIGINTHandler(int s){
     cleanup();
