@@ -8,6 +8,8 @@ Project Hardware INFO SerViCe is a server written in C++ providing hardware reso
 
 Server is intended for use and tested on Ubuntu 20.04 LTS. Other linux distros may or may not work as expected.
 
+[Details of environment used when conducting continuous testing]https://github.com/actions/virtual-environments/blob/ubuntu20/20220213.1/images/linux/Ubuntu2004-Readme.md()
+
 ## Structure
 | File                                             | Description                                                                   |
 |--------------------------------------------------|-------------------------------------------------------------------------------|
