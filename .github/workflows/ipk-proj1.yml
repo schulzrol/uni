@@ -20,9 +20,9 @@ jobs:
       - name: archive
         working-directory: ${{env.working-directory}}
         run: make archive
-      with:
-        name: xschul06.zip
-        path: ./xschul06.zip
+        with:
+          name: xschul06.zip
+          path: ./xschul06.zip
 
 
 
