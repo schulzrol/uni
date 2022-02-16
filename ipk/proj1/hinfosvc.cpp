@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <csignal>
 #include <fstream>
+#include <arpa/inet.h>
 #include "HttpStatusCodes_Cpp.h"
 
 using namespace std;
@@ -238,7 +239,7 @@ void SIGINTHandler(int s){
  * @param maxBacklog maximum number of queued connections before new ones start to get dropped
  * @param maxBytesPerRequest maximum length of incoming request in bytes
  */
-void serveHttp(int port, vector<handlerT> handlers, int maxBacklog = MAX_BACKLOG, int maxBytesPerRequest = MAX_REQUEST_BYTES){
+void serveHttp(int port, const vector<handlerT>& handlers, int maxBacklog = MAX_BACKLOG, int maxBytesPerRequest = MAX_REQUEST_BYTES){
     int newSocket;
     //initialize socket
     serverFD = socket(AF_INET,     // ip
@@ -257,8 +258,12 @@ void serveHttp(int port, vector<handlerT> handlers, int maxBacklog = MAX_BACKLOG
     };
 
     socklen_t addressLen = sizeof(address);
-    if (bind(serverFD,(struct sockaddr *) &address,sizeof(address)) < 0) {
+    if (bind(serverFD,(struct sockaddr *) &address,addressLen) < 0) {
         cerr << "bind failed on port "<< port << endl;
+        exit(EXIT_FAILURE);
+    }
+    if (getsockname(serverFD, (struct sockaddr *)&address, &addressLen) < 0) {
+        cerr << "failed on reading binding"<< port << endl;
         exit(EXIT_FAILURE);
     }
 
@@ -267,12 +272,16 @@ void serveHttp(int port, vector<handlerT> handlers, int maxBacklog = MAX_BACKLOG
         exit(EXIT_FAILURE);
     }
 
+    cout << "server is listening on port: " << ntohs(address.sin_port) << endl;
+
     int pid;
     while (true) {
         if ((newSocket = accept(serverFD, (struct sockaddr *) &address, &addressLen)) < 0) {
             cout << "failed in accept" << endl;
             exit(EXIT_FAILURE);
         }
+
+        cout << "client " << inet_ntoa(address.sin_addr) << " accepted" << endl;
 
         pid = fork();
         if (pid < 0) {
@@ -299,7 +308,7 @@ int main(int argc, char **argv) {
     // register handler for SIGINT
     signal(SIGINT, SIGINTHandler);
 
-    if (argc < 1){
+    if (argc < 2){
         cerr << "port not specified" << endl;
         exit(EXIT_FAILURE);
     }
@@ -307,7 +316,8 @@ int main(int argc, char **argv) {
 
     auto cpuModel = getCPUModel();
 
-    /* Possible room for improvement: vector<string, void->string> to map<string, void->string>>,
+    /* Possible room for improvement left as an exercise for the reader:
+    vector<string, void->string> to map<string, void->string>
     Cpp maps don't have default values (which bugged me), and I think the time saved using maps O(1) is negligible since
     net-latency and handling of requests is already pretty costly
     */
