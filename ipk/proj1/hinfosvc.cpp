@@ -1,3 +1,10 @@
+/*! \file
+ *
+ * IPK Project 1: hinfosvc server
+ *
+ * \author Roland Schulz <xschul06@stud.fit.vutbr.cz>
+ */
+
 #include <iostream>
 #include <string>
 #include <functional>
