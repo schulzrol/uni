@@ -3,7 +3,7 @@ on: [push]
 jobs:
   build-and-test:
     runs-on: ubuntu-20.04
-    defaults:
+    env:
       working-directory: ./ipk/proj1
 
     steps:
