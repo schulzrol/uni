@@ -20,6 +20,8 @@ jobs:
       - name: archive
         working-directory: ${{env.working-directory}}
         run: make archive
+      with:
+        path: ./xschul06
 
 
 
