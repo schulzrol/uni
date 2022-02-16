@@ -18,12 +18,12 @@ Server is intended for use and tested on Ubuntu 20.04 LTS. Other linux distros m
 | [Makefile](./Makefile)                           | Build description for project, also provides basic jobs for testing           |
 | [Readme.md](./Readme.md)                         | Documentation (you are currently reading this)                                |
 
-## Services
+## Supported resources
 | Resource    | Description                                      | Usage                               |
 |-------------|--------------------------------------------------|-------------------------------------|
 | `/hostname` | Returns current hostname of the server           | `curl -s localhost:{port}/hostname` |
-| `/cpu-name` | Returns CPU model name                           | `curl -s localhost:{port}/hostname` |
-| `/load`     | Returns current cpu utilization/load in percents | `curl -s localhost:{port}/hostname` |
+| `/cpu-name` | Returns CPU model name                           | `curl -s localhost:{port}/cpu-name` |
+| `/load`     | Returns current cpu utilization/load in percents | `curl -s localhost:{port}/load`     |
 
 ## Makefile jobs
 | Job       | Description                                                                                                            | Usage          |
