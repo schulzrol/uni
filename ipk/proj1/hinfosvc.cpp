@@ -70,7 +70,7 @@ string getCPUModel(){
     else
         returnValue = "FAILED";
     fclose(cpuInfo);
-    return returnValue;
+    return replaceEvery(returnValue, "\n", "");
 }
 
 /**
