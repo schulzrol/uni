@@ -1,0 +1,17 @@
+name: IPK Project 1
+on: [push]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-20.04
+    defaults:
+      working-directory: ./ipk/proj1
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: compile
+        working-directory: ${{env.working-directory}}
+        run: make
+      - name: test
+        working-directory: ${{env.working-directory}}
+        run: make test
+
