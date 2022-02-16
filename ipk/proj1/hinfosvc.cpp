@@ -228,6 +228,15 @@ void SIGINTHandler(int s){
     exit(1);
 }
 
+/**
+ * Starts listening on given \p port for HTTP requests.
+ * Which resources can be reached through GET requests is defined using \p handlers.
+ *
+ * @param port port to bind with this server
+ * @param handlers reachable resources with corresponding handlers
+ * @param maxBacklog maximum number of queued connections before new ones start to get dropped
+ * @param maxBytesPerRequest maximum length of incoming request in bytes
+ */
 void serveHttp(int port, vector<handlerT> handlers, int maxBacklog = MAX_BACKLOG, int maxBytesPerRequest = MAX_REQUEST_BYTES){
     int newSocket;
     //initialize socket
@@ -286,6 +295,7 @@ void serveHttp(int port, vector<handlerT> handlers, int maxBacklog = MAX_BACKLOG
 }
 
 int main(int argc, char **argv) {
+    // register handler for SIGINT
     signal(SIGINT, SIGINTHandler);
 
     if (argc < 1){
