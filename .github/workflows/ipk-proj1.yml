@@ -4,7 +4,6 @@ on: [push]
 jobs:
   build-test-archive:
     runs-on: ubuntu-20.04
-    defaults:
     env:
       working-directory: ./ipk/proj1
 
