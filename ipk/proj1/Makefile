@@ -13,3 +13,7 @@ test: all
 
 clean:
 	rm -f hinfosvc
+	rm -f xschul06.zip
+
+archive: clean
+	zip -r xschul06.zip . --exclude .\* --exclude usage.sh todo.md

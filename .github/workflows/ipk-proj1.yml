@@ -1,8 +1,10 @@
 name: IPK Project 1
 on: [push]
+
 jobs:
-  build-and-test:
+  build-test-archive:
     runs-on: ubuntu-20.04
+    defaults:
     env:
       working-directory: ./ipk/proj1
 
@@ -11,7 +13,14 @@ jobs:
       - name: compile
         working-directory: ${{env.working-directory}}
         run: make
+
       - name: test
         working-directory: ${{env.working-directory}}
         run: make test
+
+      - name: archive
+        working-directory: ${{env.working-directory}}
+        run: make archive
+
+
 
