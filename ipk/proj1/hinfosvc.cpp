@@ -17,6 +17,15 @@ using namespace std;
 #define MAX_REQUEST_BYTES 8000
 #define MAX_BACKLOG 5
 
+
+/**
+ * Replace every occurrence of \p remove in \p str with \p insert
+ *
+ * @param str template string, possibly containing \p remove
+ * @param remove string to replace with \p insert
+ * @param insert string used as value to replace \p remove with
+ * @return \p str with every occurrence of \p remove replaced with \p insert
+ */
 string replaceEvery(string str, const string &remove, const string &insert) {
     string::size_type pos = 0;
     while ((pos = str.find(remove, pos)) != string::npos)
@@ -25,6 +34,13 @@ string replaceEvery(string str, const string &remove, const string &insert) {
     return str;
 }
 
+/**
+ * Fills in \p templateStr based on defined replacements
+ *
+ * @param templateStr string used as a template
+ * @param replacements key->value pairs to place into \p templateStr
+ * @return \p templateStr formatted with replacements from \p replacements
+ */
 string renderTemplate(string templateStr, const vector<pair<string, string>>& replacements){
     for(const auto& replace : replacements) {
         templateStr = replaceEvery(templateStr, replace.first, replace.second);
@@ -37,6 +53,10 @@ typedef struct handlerT{
     function<std::string(void)> execute;
 } handlerT;
 
+/**
+ * @returns CPU model as a string
+ * @pre Requires /proc/cpuinfo, thus only Linux compatible
+ */
 string getCPUModel(){
     FILE *cpuInfo = popen("grep '^model name' /proc/cpuinfo | uniq", "r");
     if (cpuInfo == nullptr)
@@ -53,12 +73,20 @@ string getCPUModel(){
     return returnValue;
 }
 
+/**
+ * @returns current hostname
+ */
 string hostnameRequestHandler() {
     char hostname[255];
     gethostname(hostname, 255);
     return {hostname};
 }
 
+/**
+ * Get first line of numbers found in /proc/stat. Used for load estimation
+ *
+ * @returns first line of numbers found in /proc/stat
+ */
 vector<int> getProcStatTimes(){
     ifstream fileProcStat("/proc/stat");
     fileProcStat.ignore(5, ' ');
@@ -68,6 +96,13 @@ vector<int> getProcStatTimes(){
     return times;
 }
 
+/**
+ * Processes /proc/stat times into /p idleTime and /p totalTime
+ *
+ * @param[out] idleTime overall cpu idle
+ * @param[out] totalTime sum of cpu overall times
+ * @returns a 1 whether successfully computed next idle/total times, 0 otherwise (used for effective sampling in a loop)
+ */
 int getCPUTimes(int& idleTime, int& totalTime){
     vector<int> cpuTimes = getProcStatTimes();
     if (cpuTimes.size() < 4)
@@ -78,6 +113,14 @@ int getCPUTimes(int& idleTime, int& totalTime){
     return 1;
 }
 
+/**
+ * Get CPU utilization/load in percents sampled over \p over_seconds seconds
+ *
+ * Based on https://stackoverflow.com/questions/23367857/accurate-calculation-of-cpu-usage-given-in-percentage-in-linux
+ *
+ * @param over_seconds number of samples (each taken with a frequency of approximately 1Hz)
+ * @return double specifying the CPU load/utilization over \p over_seconds seconds
+ */
 float getCPUUtilization(int over_seconds){
     size_t previousIdleTime=0, previousTotalTime=0;
     float utilization = 0;
@@ -93,23 +136,40 @@ float getCPUUtilization(int over_seconds){
     return utilization;
 }
 
+/**
+ * @returns current CPU utilization/load sampled over 5 seconds with frequency of approximately 1Hz
+ */
 string loadRequestHandler() {
     string utilization = to_string(getCPUUtilization(5));
     return utilization.substr(0, utilization.find('.')) + "%";
 }
 
-string getPathFromRequest(const string& buffer){
-    auto path = buffer.substr(buffer.find_first_of('/'));  // GET /path/ HTTP... -> /path/ HTTP...
+/**
+ * Retrieve path from GET request string
+ *
+ * @param request string containing the read GET request
+ * @returns path from GET request string
+ */
+string getPathFromRequest(const string& request){
+    auto path = request.substr(request.find_first_of('/'));  // GET /path/ HTTP... -> /path/ HTTP...
     path = path.substr(0, path.find_first_of(' '));  // /path/ HTTP... -> /path/
     return path;
 }
 
-string handleRequest(const string& buffer, const vector<handlerT>& bodyHandlers){
+/**
+ *  Executes a corresponding handler for resource specified in \p request path and constructs response string with
+ *  proper status codes, headers and body.
+ *
+ * @param request GET request string
+ * @param bodyHandlers collection specifying server handling capabilities using (path)->(body for path) pairs
+ * @returns full response string with body
+ */
+string handleRequest(const string& request, const vector<handlerT>& bodyHandlers){
     string code = "404";
     string status = "Not Found";
     string body;
 
-    auto path = getPathFromRequest(buffer);
+    auto path = getPathFromRequest(request);
     for(const handlerT& handler : bodyHandlers) {
         if (handler.path == path) {
             try { body = handler.execute(); }
@@ -148,6 +208,9 @@ string handleRequest(const string& buffer, const vector<handlerT>& bodyHandlers)
 vector<int> children;
 int serverFD;
 
+/**
+ * cleanup job killing forked children and closing server socket
+ */
 void cleanup(){
     cout << "cleaning up!" << endl;
     for (auto child: children) {
@@ -156,6 +219,10 @@ void cleanup(){
     close(serverFD);
 }
 
+/**
+ *
+ * @param s
+ */
 void SIGINTHandler(int s){
     cleanup();
     exit(1);
@@ -229,6 +296,10 @@ int main(int argc, char **argv) {
 
     auto cpuModel = getCPUModel();
 
+    /* Possible room for improvement: vector<string, void->string> to map<string, void->string>>,
+    Cpp maps don't have default values (which bugged me), and I think the time saved using maps O(1) is negligible since
+    net-latency and handling of requests is already pretty costly
+    */
     vector<handlerT> handlers = {
             {.path="/hostname", .execute=hostnameRequestHandler},
             {.path="/cpu-name", .execute=[cpuModel](){return cpuModel;}},
