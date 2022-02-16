@@ -9,7 +9,7 @@ test: all
 	curl -s localhost:12345/load ; echo
 	curl -s localhost:12345/cpu-name ; echo
 	curl -s localhost:12345/hostname ; echo
-	killall hinfosvc
+	killall -INT hinfosvc
 
 clean:
 	rm -f hinfosvc
