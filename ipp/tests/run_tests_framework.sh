@@ -21,7 +21,7 @@ for testCase in "$testFolder"/*.src; do
   echo "$nAll: ${testCase%.*} ->"
   echo "=============================================="
   echo "comparing outputs: $testOutput $runOutput"
-  diff -y "$testOutput" "$runOutput"
+  diff -bZd <(xmllint --c14n "$testOutput") <(xmllint --c14n "$runOutput")
   diffReturnCode="$?"
 
   if [[ "$diffReturnCode" == "0" ]]; then
@@ -41,7 +41,7 @@ for testCase in "$testFolder"/*.src; do
   fi
 
   if [ "$diffCorrect" = true ] && [ "$returnCorrect" = true ]; then
-    ((nAll=nAll+1))
+    ((nSuccess=nSuccess+1))
   fi
 
   echo
