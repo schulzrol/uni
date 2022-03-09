@@ -1,5 +1,6 @@
 <?php
 class ExitCode {
+    const OK = 0;
     const BAD_OR_MISSING_PARAM = 10;
     const ERR_INPUT_FILE = 11;
     const ERR_OUTPUT_FILE = 12;
@@ -13,8 +14,7 @@ class ExitCode {
 
     // test.php
     const TEST_ERR_FOLDER = 41;
-    const TEST_ERR_FILE = self::TEST_ERR_FOLDER
+    const TEST_ERR_FILE = self::TEST_ERR_FOLDER;
 
     const ERR_INTERNAL = 99;
 }
-?>
