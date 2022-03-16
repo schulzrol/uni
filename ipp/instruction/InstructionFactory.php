@@ -20,7 +20,19 @@ const SymbExpression = [
     BoolExpression
 ];
 
+/**
+ * Instruction factory used to create new instructions from associated opcode.
+ *
+ * Instruction parameters are not the domain of this factory and should be handled by factory caller
+ */
 class InstructionFactory {
+    /**
+     *  Factory function associating OPCODE with instruction class for OPCODE handling class
+     *
+     * @param string $opcode opcode of instruction (case insensitive)
+     * @return BaseInstruction|null if opcode associated instruction class exists, returns new instance of such class,
+     *                              else null
+     */
     public function forOPCODE(string $opcode): ?BaseInstruction {
         $capitalOpcode = strtoupper($opcode);
         $InstructionClassName = $capitalOpcode;
@@ -37,6 +49,8 @@ class InstructionFactory {
     }
 
 }
+
+// specific instructions
 
 class MOVE extends BinaryInstruction {
     public function __construct() {
@@ -72,12 +86,40 @@ class CALL extends UnaryInstruction {
     public function __construct() {
         parent::__construct("CALL", [LabelExpression]);
     }
+
+    /**
+     * @return callable returns context modification anonymous function useful for STATP bonus extension
+     */
+    public function getContextModification(): callable {
+        return function (){
+            $ctx = Context::getInstance();
+            $labelValue = $this->getParamValues()[0]->getValue();
+            # check if label is defined -> therefore it is not a fwjump
+            if ($ctx->labelDefined($labelValue)) {
+                $ctx->incrementLabelOccurrence($labelValue);
+                $ctx->incrementBwJumps();
+            }
+            else {
+                $ctx->addLabel($labelValue, 0);
+                $ctx->incrementFwJumps();
+            }
+        };
+    }
 }
 
 class RETURNInstruction extends NullaryInstruction {
     public function __construct() {
         parent::__construct("RETURN");
     }
+
+    public function getContextModification(): callable
+    {
+        return function () {
+            $ctx = Context::getInstance();
+            $ctx->incrementReturnCount();
+        };
+    }
+
 }
 
 class PUSHS extends UnaryInstruction {
@@ -214,21 +256,89 @@ class TYPE extends BinaryInstruction {
 # Control manipulation instructions
 class LABEL extends UnaryInstruction {
     public function __construct(){ parent::__construct("LABEL", [LabelExpression]); }
+
+    /**
+     * @return callable returns context modification anonymous function useful for STATP bonus extension
+     */
+    public function getContextModification(): callable {
+        return function (){
+            $ctx = Context::getInstance();
+            $labelValue = $this->getParamValues()[0]->getValue();
+            $ctx->addLabel($labelValue);
+        };
+    }
 }
 
 class JUMP extends UnaryInstruction {
     public function __construct(){ parent::__construct("JUMP", [LabelExpression]); }
+
+    /**
+     * @return callable returns context modification anonymous function useful for STATP bonus extension
+     */
+    public function getContextModification(): callable {
+        return function (){
+            $ctx = Context::getInstance();
+            $labelValue = $this->getParamValues()[0]->getValue();
+            # check if label is defined -> therefore it is not a fwjump
+            if ($ctx->labelDefined($labelValue)) {
+                $ctx->incrementLabelOccurrence($labelValue);
+                $ctx->incrementBwJumps();
+            }
+            else {
+                $ctx->addLabel($labelValue, 0);
+                $ctx->incrementFwJumps();
+            }
+        };
+    }
 }
 
 class JUMPIFEQ extends TernaryInstruction{
     public function __construct(){
         parent::__construct("JUMPIFEQ", [LabelExpression], SymbExpression, SymbExpression);
     }
+
+    /**
+     * @return callable returns context modification anonymous function useful for STATP bonus extension
+     */
+    public function getContextModification(): callable {
+        return function (){
+            $ctx = Context::getInstance();
+            $labelValue = $this->getParamValues()[0]->getValue();
+            # check if label is defined -> therefore it is not a fwjump
+            if ($ctx->labelDefined($labelValue)) {
+                $ctx->incrementLabelOccurrence($labelValue);
+                $ctx->incrementBwJumps();
+            }
+            else {
+                $ctx->addLabel($labelValue, 0);
+                $ctx->incrementFwJumps();
+            }
+        };
+    }
 }
 
 class JUMPIFNEQ extends TernaryInstruction{
     public function __construct(){
         parent::__construct("JUMPIFNEQ", [LabelExpression], SymbExpression, SymbExpression);
+    }
+
+    /**
+     * @return callable returns context modification anonymous function useful for STATP bonus extension
+     */
+    public function getContextModification(): callable {
+        return function (){
+            $ctx = Context::getInstance();
+            $labelValue = $this->getParamValues()[0]->getValue();
+            # check if label is defined -> therefore it is not a fwjump
+            if ($ctx->labelDefined($labelValue)) {
+                $ctx->incrementLabelOccurrence($labelValue);
+                $ctx->incrementBwJumps();
+            }
+            else {
+                $ctx->addLabel($labelValue, 0);
+                $ctx->incrementFwJumps();
+            }
+        };
     }
 }
 

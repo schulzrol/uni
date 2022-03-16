@@ -5,50 +5,56 @@ include_once("Comparable.php");
 
 use JetBrains\PhpStorm\Pure;
 
+/**
+ * Defines interface for associating expression value with expression type
+ */
 interface TypeCheckable {
     public function isTypeOf(string $supplied): bool;
 }
 
-//todo pridat interface na XML?
-//todo expression factory
 abstract class BaseExpression implements TypeCheckable, XMLPrintable, Comparable {
     protected string $pattern;
     protected string $value;
     protected string $label;
     protected string $precedence;
 
+    /**
+     * @param string $label name of this expression
+     * @param string $value value associated with this expression (must comply with expression pattern)
+     * @param string $pattern pattern specifying what values can be associated with this expression type
+     * @param int $precedence order of precedence when competing patterns might comply with the same expression value
+     */
     function __construct(string $label, string $value, string $pattern, int $precedence = 0) {
         $this->label = $label;
         $this->pattern = $pattern;
-        # todo add value type checking
         $this->setValue($value);
         $this->precedence = $precedence;
     }
 
     /**
-     * @return string
+     * @return string returns expression pattern
      */
     public function getPattern(): string {
         return $this->pattern;
     }
 
+    /**
+     * @param string $supplied value
+     * @return bool true if value complies with expression's pattern, else false
+     */
     public function isTypeOf(string $supplied): bool {
         return preg_match($this->getPattern(), $supplied);
     }
 
     /**
-     * @return string
+     * @return string label getter
      */
     public function getLabel(): string {
         return $this->label;
     }
 
-    public function getType(): string {
-        return $this->getLabel();
-    }
-
     /**
-     * @return string
+     * @return string value associated with expression
      */
     public function getValue(): string
     {
@@ -56,13 +62,17 @@ abstract class BaseExpression implements TypeCheckable, XMLPrintable, Comparable
     }
 
     /**
-     * @param string $value
+     * @param string $value value setter, extracts value from pattern matched string
      */
     public function setValue(string $value): void {
         if ($this->isTypeOf($value))
             $this->value = $value;
     }
 
+    /**
+     * @return string returns an XML template string of expression, expects key {ORDER} signifying position of
+     *                expression in instruction arguments
+     */
     public function toXMLTemplate(): string {
         $template = "        <arg{ORDER} type=\"{TYPE_LABEL}\">{VALUE}</arg{ORDER}>\n";
         $data = [
@@ -78,10 +88,17 @@ abstract class BaseExpression implements TypeCheckable, XMLPrintable, Comparable
         return $this->getValue();
     }
 
+    /**
+     * @return int precedence getter
+     */
     public function getPrecedence(): int {
         return $this->precedence;
     }
 
+    /**
+     * @param Comparable $other other expression
+     * @return int -1, 0, 1 respectively when less than, equal or higher precedence in comparison with $other
+     */
     public function compareTo(Comparable $other): int {
         if ($this->getPrecedence() == $other->getPrecedence()) {
             return 0;
@@ -91,14 +108,21 @@ abstract class BaseExpression implements TypeCheckable, XMLPrintable, Comparable
 
 }
 
+// Expressions
+
+/**
+ *  NilExpression used for amtching a single value nil@nil
+ */
 class NilExpression extends BaseExpression {
     public function __construct(string $value='') {
         parent::__construct("nil", "nil", "/^nil@nil$/i");
     }
 }
 
+/**
+ *  IntExpression used for associating [hexa]decimal or octal integer numbers
+ */
 class IntExpression extends BaseExpression {
-
     public function __construct(string $value="") {
         $formats = [
             "hexadecimal" => "0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*",
@@ -112,9 +136,6 @@ class IntExpression extends BaseExpression {
         parent::__construct("int", $value, $pattern);
     }
 
-    /**
-     * @param string $value
-     */
     public function setValue(string $value): void {
         if ($this->isTypeOf($value))
             $this->value = explode('@', $value, 2)[1];
@@ -123,12 +144,11 @@ class IntExpression extends BaseExpression {
 
 class StringExpression extends BaseExpression {
     public function __construct(string $value="") {
-        // TODO: check whether pattern is correct
         parent::__construct("string", $value, "/^string@[^\s]*$/iu");
     }
 
     /**
-     * @param string $value
+     * @param string $value value setter, cleans up string from any XML problematic characters
      */
     public function setValue(string $value): void {
         if ($this->isTypeOf($value))
@@ -138,14 +158,12 @@ class StringExpression extends BaseExpression {
 
 class VarExpression extends BaseExpression {
     public function __construct(string $value='') {
-        // TODO: check whether pattern is correct
-        parent::__construct("var", $value, "/^(TF|GF|LF)@\w+$/i");
+        parent::__construct("var", $value, "/^(TF|GF|LF)@[\w\-\$\&\%\*\!\?]+$/i");
     }
 }
 
 class BoolExpression extends BaseExpression {
     public function __construct(string $value='') {
-        // TODO: check whether pattern is correct
         parent::__construct("bool", $value, "/^bool@(true|false)$/i");
     }
 
@@ -157,17 +175,13 @@ class BoolExpression extends BaseExpression {
 
 class LabelExpression extends BaseExpression {
     public function __construct(string $value='') {
-        // TODO: check whether pattern is correct
         parent::__construct("label", $value, "/^\w+\$/iu", 1);
     }
 }
 
 class TypeExpression extends BaseExpression {
     public function __construct(string $value='') {
-        // TODO: check whether pattern is correct
         parent::__construct("type", $value, "/^(int|string|bool)$/i");
     }
 
 }
-
-//TODO rest of expression types

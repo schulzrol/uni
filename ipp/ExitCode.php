@@ -1,4 +1,8 @@
 <?php
+
+/**
+ * Class definition of exit codes specific for 1st and 3rd project
+ */
 class ExitCode {
     const OK = 0;
     const BAD_OR_MISSING_PARAM = 10;
