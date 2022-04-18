@@ -1,0 +1,68 @@
+@startuml ID3 Decision Tree 2
+hide circle
+skinparam shadowing false
+skinparam noteShadowing false
+skinparam NoteBackgroundColor white
+hide empty members
+hide empty methods
+
+object "oblacnost" as o
+object o {
+oblacnost  = 0.780
+srazky     = 0.270
+teplota    = 0.419
+vhkost    = 0.404
+}
+
+note right
+10: oblacnost[polojasno],   srazky[slabe], teplota[vysoka],  vhkost[mala] Q => {'S'} FAIL
+11:  oblacnost[zatazeno],   srazky[slabe],  teplota[nizka], vhkost[velka] S => {'Q'} FAIL
+12: oblacnost[polojasno], srazky[vydatne], teplota[vysoka],  vhkost[mala] Q => {'S'} FAIL
+end note
+
+object "teplota" as t1
+object t1 {
+srazky     = 0.000
+teplota    = 0.918
+vhkost    = 0.918
+}
+o --> t1 : polojasno {1, 6, 7}
+
+class "{R}" as r1
+class "{R}" as r2
+class "{S}" as s1
+t1 --> r1 : nizka {1}
+t1 --> r2 : stredni {6}
+t1 --> s1 : vysoka {7}
+
+object "srazky" as s
+object s {
+srazky     = 0.252
+teplota    = 0.252
+vhkost    = 0.252
+}
+class "{R}" as r3
+o --> s : oblacno {4, 8, 9}
+s --> r3 : slabe {4}
+
+object "teplota" as t2
+object t2 {
+teplota    = 1.000
+vhkost    = 1.000
+}
+class "{R}" as r4
+class "{Q}" as q1
+class "{Q}" as q2
+s --> t2 : vydatne {8, 9}
+t2 --> q1 : nizka {9}
+t2 --> q2 : stredni {}
+t2 --> r4 : vysoka {8}
+
+class "{Q}" as q3
+o --> q3 : zatazeno {2,3,5}
+
+
+
+
+
+@enduml
