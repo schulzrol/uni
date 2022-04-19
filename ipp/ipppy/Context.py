@@ -2,7 +2,9 @@ from typing import Dict, Any, Sequence, TextIO
 
 from .LabelManager import LabelManager
 from .FrameManager import FrameManager
-from .InstructionManager import InstructionManager, Instruction
+from .InstructionManager import Argument, InstructionManager, Instruction
+
+import ipppy.Errors as ippE
 
 class Context():
     def __init__(self,
@@ -22,7 +24,7 @@ class Context():
 
     def get_current_instruction(self, safe: bool = False) -> Instruction:
         if self.ip == -1:
-            raise "Exit called. No more instructions to execute."
+            raise Exception("Exit called. No more instructions to execute.")
         return self.im.get_instruction(self.ip)
 
     def start(self) -> None:
@@ -49,3 +51,12 @@ class Context():
     def as_breakpoint(self) -> str:
         return "BREAK: ip: {}, current instruction: {}, call stack: {}, data stack: {}" \
                .format(self.ip, self.get_current_instruction(), self.call_stack, self.data_stack)
+
+    def get_symbol_value_or_error(self, symbol: Argument) -> Any:
+        if symbol.type.lower() == 'var' and not self.fm.is_var_defined(symbol.value):
+            raise ippE.UndefinedVariableError(symbol.value)
+
+        return self.fm.get_var_value_or_default(symbol.value, symbol.get_typed_value())
+
+    def save_to_variable(self, varname: str, value: Any) -> None:
+        self.fm.set_var_value(varname, value)

@@ -2,6 +2,8 @@ from ipppy.InstructionManager import InstructionManager, Instruction
 from ipppy.LabelManager import LabelManager
 from ipppy.FrameManager import FrameManager
 from ipppy.Context import Context
+from ipppy.Errors import Error, GenericError, BadXMLError
+
 import xml.etree.ElementTree as ET
 import sys
 import argparse
@@ -39,13 +41,24 @@ def handle_argv(argv: Sequence[str]):
 
 def main(argv) -> int:
     source_handler, input_handler = handle_argv(argv[1:])
-    source_xml = ET.parse(source_handler).getroot()
+    try:
+        source_xml = ET.parse(source_handler).getroot()
+    except:
+        return BadXMLError("").exit_code
+
     if source_handler != sys.stdin:
         source_handler.close()
 
-    im = InstructionManager.from_et(source_xml)
-    lm = LabelManager.from_instructions(im.instructions)
-    fm = FrameManager(["GF", "LF", "TF"])
+    try:
+        im = InstructionManager.from_et(source_xml)
+        lm = LabelManager.from_instructions(im.instructions)
+    except Error as e:
+        print(e.message)
+        return e.exit_code
+    except:
+        return BadXMLError("").exit_code
+
+    fm = FrameManager([("GF", True), ("LF", True), ("TF", False)])
     ctx = Context(lm, fm, im, input_handler)
     
     # TODO handle exit
@@ -53,9 +66,12 @@ def main(argv) -> int:
         current_instruction = ctx.get_current_instruction()
         try:
             #print(current_instruction)
-            current_instruction.execute(ctx)
+            current_instruction.run(ctx)
+        except (Error) as e:
+            print(e.message)
+            return e.exit_code
         except Exception as e:
-            return e.code
+            return GenericError().exit_code
 
     if input_handler != sys.stdin:
         input_handler.close()

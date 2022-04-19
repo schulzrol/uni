@@ -1,5 +1,6 @@
 from typing import Any, Dict, Sequence
-from .InstructionManager import Instruction, LABELInstruction
+from .InstructionManager import CALLInstruction, Instruction, JUMPIFEQInstruction, JUMPIFNEQInstruction, JUMPInstruction, LABELInstruction
+import ipppy.Errors as ippE
 
 class LabelManager():
     def __init__(self, labels_init: Dict[str, Any] = None) -> None:
@@ -23,4 +24,12 @@ class LabelManager():
     @classmethod
     def from_instructions(cls, instructions: Sequence[Instruction]):
         label_instructions = {labins.args[0].value: labins.order - 1 for labins in instructions if isinstance(labins, LABELInstruction)}
+        call_instructions = {labins.args[0].value for labins in instructions
+                             if isinstance(labins, (CALLInstruction, JUMPInstruction, JUMPIFNEQInstruction, JUMPIFEQInstruction))
+                             }
+        # if there are call labels that are not in label instructions, throw error
+        for call_label in call_instructions:
+            if call_label not in label_instructions:
+                raise ippE.JumpToUndefinedLabelError(call_label)
+
         return cls(label_instructions)

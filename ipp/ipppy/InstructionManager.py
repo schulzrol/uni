@@ -3,16 +3,20 @@ from typing import Callable, Dict, Optional, Sequence, Union
 from xml.etree.ElementTree import ElementTree, Element
 import sys
 
+import ipppy.Errors as ippE
+
 class Argument():
     def __init__(self, order: int, type: str, value: str) -> None:
+        if order < 1:
+            raise ippE.UnsupportedXMLError(f"Negative order {order}")
+
         self.order = order
-        self.type = type
+        self.type = type.lower()
         self.value = value
 
-    # unescape XML values for use in Python
     def get_typed_value(self):
         if self.type == 'string':
-            return self.value.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+            return self.value
 
         if self.type == 'int':
             return int(self.value)
@@ -30,11 +34,11 @@ class Argument():
         if self.type == 'var':
             return self.value
 
-        raise Exception(f"Unknown type {self.type}")
+        raise ippE.UnknownTypeError(self.type)
 
     @classmethod
     def from_et(cls, e: Element):
-        return Argument(int(e.tag[-1]), e.attrib['type'], e.text)
+        return cls(int(e.tag[-1]), e.attrib['type'], e.text)
     
     @staticmethod
     def type_from_value(value: Optional[str]) -> str:
@@ -77,8 +81,15 @@ class Instruction():
         args = sorted([Argument.from_et(arg) for arg in [a for a in e.iter() if a != e]])
         return cls(int(e.attrib['order']), e.attrib['opcode'], args)
     
-    def execute(self, context):
-        raise Exception("Undefined instruction execution")
+    def execute(self, ctx):
+        raise ippE.NotYetImplementedError(f"execute() method for {self.opcode}") 
+
+    def before_execute(self, ctx):
+        raise ippE.NotYetImplementedError(f"before_execute() method for {self.opcode}") 
+
+    def run(self, ctx):
+        self.before_execute(ctx)
+        self.execute(ctx)
 
     def __str__(self) -> str:
         return f"{self.order}: {self.opcode} {self.args}"
@@ -89,331 +100,462 @@ class Instruction():
     def __lt__(self, other):
         return self.order < other.order
 
+class NullaryInstruction(Instruction):
+    def before_execute(self, ctx):
+        if not len(self.args) == 0:
+            raise ippE.InvalidArgumentCountError(self.opcode, 0, len(self.args))
+
+class UnaryInstruction(Instruction):
+    def before_execute(self, ctx):
+        if not len(self.args) == 1:
+            raise ippE.InvalidArgumentCountError(self.opcode, 1, len(self.args))
+
+class BinaryInstruction(Instruction):
+    def before_execute(self, ctx):
+        if not len(self.args) == 2:
+            raise ippE.InvalidArgumentCountError(self.opcode, 2, len(self.args))
+
+class TernaryInstruction(Instruction):
+    def before_execute(self, ctx):
+        if not len(self.args) == 3:
+            raise ippE.InvalidArgumentCountError(self.opcode, 3, len(self.args))
+
 # instruction set
 # create subclasses to handle each instruction
 # each instruction has a procedure that takes a context and manipulates it
-class MOVEInstruction(Instruction):
-    def execute(self, context):
+class MOVEInstruction(BinaryInstruction):
+    def execute(self, ctx):
         # get values from arguments
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].get_typed_value()
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {"value": symb1_value})
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
+        ctx.save_to_variable(varname, symb1_value)
 
-class CREATEFRAMEInstruction(Instruction):
-    def execute(self, context):
-        context.fm.init_frame('TF')
+class CREATEFRAMEInstruction(NullaryInstruction):
+    def execute(self, ctx):
+        ctx.fm.init_frame('TF')
     
-class PUSHFRAMEInstruction(Instruction):
-    def execute(self, context):
-        if context.fm.is_defined('TF'):
-            context.fm.move_to('TF', 'LF')
+class PUSHFRAMEInstruction(NullaryInstruction):
+    def execute(self, ctx):
+        if ctx.fm.is_defined('TF'):
+            ctx.fm.move_to('TF', 'LF')
         else:
-            raise Exception("No frame to push")
+            raise ippE.NoFrameToPush()
 
-class POPFRAMEInstruction(Instruction):
-    def execute(self, context):
-        if context.fm.is_defined('LF'):
-            context.fm.move_to('LF', 'TF')
+class POPFRAMEInstruction(NullaryInstruction):
+    def execute(self, ctx):
+        if ctx.fm.is_defined('LF'):
+            ctx.fm.move_to('LF', 'TF')
         else:
-            raise Exception("No frame to pop")
+            raise ippE.NoFrameToPop()
         
-class DEFVARInstruction(Instruction):
-    def execute(self, context):
+class DEFVARInstruction(UnaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, None)
+        if ctx.fm.is_var_defined(varname):
+            raise ippE.VariableAlreadyDefinedError(varname)
+        ctx.fm.define_var(varname)
 
-class CALLInstruction(Instruction):
-    def execute(self, context):
+class CALLInstruction(UnaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'label':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         label = self.args[0].value
-        if not context.lm.is_defined(label):
-            raise Exception(f"Label {label} not defined")
+        if not ctx.lm.is_defined(label):
+            raise ippE.JumpToUndefinedLabelError(label)
         # push return address
-        context.call_stack.append(context.ip)
+        ctx.call_stack.append(ctx.ip)
         # get label address
-        context.ip = context.lm.get_label_address(label)
+        ctx.ip = ctx.lm.get_label_address(label)
 
-class RETURNInstruction(Instruction):
-    def execute(self, context):
-        if len(context.call_stack) > 0:
-            context.ip = context.call_stack.pop()
+class RETURNInstruction(NullaryInstruction):
+    def execute(self, ctx):
+        if len(ctx.call_stack) > 0:
+            ctx.ip = ctx.call_stack.pop()
         else:
-            raise Exception("No call stack to return from")
+            raise ippE.NowhereToReturnError()
 
-class PUSHSInstruction(Instruction):
-    def execute(self, context):
-        symb1 = self.args[0]
+class PUSHSInstruction(UnaryInstruction):
+    def execute(self, ctx):
+        varname = self.args[0]
         # get value from frame manager
-        value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
-        context.data_stack.append(value)
+        value = ctx.get_symbol_value_or_error(varname)
+        ctx.data_stack.append(value)
 
-class POPSInstruction(Instruction):
-    def execute(self, context):
-        if len(context.data_stack) > 0:
-            data = context.data_stack.pop()
-            symb1 = self.args[0]
+class POPSInstruction(UnaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
+        if len(ctx.data_stack) > 0:
+            data = ctx.data_stack.pop()
+            varname = self.args[0].value
             # save data to variable in frame manager
-            context.fm.set(context.fm.frame_name_from_var(symb1.value), symb1.value, {'value': data})
+            ctx.save_to_variable(varname, data)
         else:
-            raise Exception("No data stack to pop")
+            raise ippE.NoDataToPopError()
 
-class ADDInstruction(Instruction):
-    def execute(self, context):
+class ADDInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
-        result = symb1_value + symb2_value
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        try:
+            result = symb1_value + symb2_value
+        except:
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "integers")
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {"value": result})
+        ctx.save_to_variable(varname, result)
 
-class SUBInstruction(Instruction):
-    def execute(self, context):
+class SUBInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
-        result = symb1_value - symb2_value
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        try:
+            result = symb1_value - symb2_value
+        except:
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "integers")
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {"value": result})
+        ctx.save_to_variable(varname, result)
     
-class MULInstruction(Instruction):
-    def execute(self, context):
+class MULInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
-        result = symb1_value * symb2_value
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        try:
+            result = symb1_value * symb2_value
+        except:
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "integers")
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {'value': result})
+        ctx.save_to_variable(varname, result)
 
-class IDIVInstruction(Instruction):
-    def execute(self, context):
+class IDIVInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
-        result = symb1_value // symb2_value
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        if symb2_value == 0:
+            raise ippE.DivisionByZeroError()
+
+        try:
+            result = symb1_value // symb2_value
+        except:
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "integers")
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {'value': result})
+        ctx.save_to_variable(varname, result)
 
 # TODO comparator instructions to account for variables
-class LTInstruction(Instruction):
-    def execute(self, context):
+class LTInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
-        result = symb1_value < symb2_value
-        # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {'value': result})
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        if symb1_value is None or symb2_value is None:
+            raise ippE.NilComparisonError()
 
-class GTInstruction(Instruction):
-    def execute(self, context):
-        varname = self.args[0].value
-        symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
-        symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
-        result = symb1_value > symb2_value
+        try:
+            result = symb1_value < symb2_value
+        except:
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "same types on both sides")
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {'value': result})
+        ctx.save_to_variable(varname, result)
 
-class EQInstruction(Instruction):
-    def execute(self, context):
+class GTInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
-        result = symb1_value == symb2_value
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        if symb1_value is None or symb2_value is None:
+            raise ippE.NilComparisonError()
+        try:
+            result = symb1_value > symb2_value
+        except:
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "same types on both sides")
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {'value': result})
+        ctx.save_to_variable(varname, result)
 
-class ANDInstruction(Instruction):
-    def execute(self, context):
+class EQInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        try:
+            result = symb1_value == symb2_value
+        except:
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "same types on both sides")
+        # save result to variable
+        ctx.save_to_variable(varname, result)
+
+class ANDInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
+        varname = self.args[0].value
+        symb1 = self.args[1]
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
+        symb2 = self.args[2]
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
         result = symb1_value and symb2_value
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {'value': result})
+        ctx.save_to_variable(varname, result)
 
-class ORInstruction(Instruction):
-    def execute(self, context):
+class ORInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
         result = symb1_value or symb2_value
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, result)
+        ctx.save_to_variable(varname, result)
 
-class NOTInstruction(Instruction):
-    def execute(self, context):
+class NOTInstruction(BinaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         result = not symb1_value
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, result)
+        ctx.save_to_variable(varname, result)
 
-class INT2CHARInstruction(Instruction):
-    def execute(self, context):
+class INT2CHARInstruction(BinaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         try:
             result = chr(symb1_value)
         except: 
             #TODO define exception errors 58
-            raise Exception("Invalid integer")
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "int")
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, result)
+        ctx.save_to_variable(varname, result)
     
-class STRI2INTInstruction(Instruction):
-    def execute(self, context):
+class STRI2INTInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
         symb2 = self.args[2]
-        symb2_value = context.fm.get_var_value_or_default(symb2.value, symb2.get_typed_value())
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
         try:
             result = ord(symb1_value[symb2_value])
         except:
             #TODO define exception errors 58
-            raise Exception("Invalid string")
-        # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, result)
+            raise ippE.Error(58, "string bad")
+            #raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "string")
 
-class READInstruction(Instruction):
-    def execute(self, context):
+        # save result to variable
+        ctx.save_to_variable(varname, result)
+
+class READInstruction(BinaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         try:
-            result = context.input_handler.readline().strip()
+            result = ctx.input_handler.readline().strip()
             type = Argument.type_from_value(result)
+            arg = Argument(type, result)
         except:
-            #TODO define exception errors 58
-            raise Exception("Invalid input")
+            ctx.save_to_variable(varname, None)
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, {"value": result})
+        ctx.save_to_variable(varname, result)
     
-class WRITEInstruction(Instruction):
-    def execute(self, context):
+class WRITEInstruction(UnaryInstruction):
+    def execute(self, ctx):
         symb1 = self.args[0]
-        symb1_value = context.fm.get_var_value_or_default(symb1.value, symb1.get_typed_value())
-        print(symb1_value, end="")
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
+        if isinstance(symb1_value, bool):
+            symb1_value = str(symb1_value).lower()
+        print('' if symb1_value is None else symb1_value, end="")
     
 # TODO add type checking for arguments using parent class or typed value
-class CONCATInstruction(Instruction):
-    def execute(self, context):
+class CONCATInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if not self.args[0].type == 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
-        symb1 = context.fm.get_var_value_or_default(self.args[1].value, self.args[1].get_typed_value())
-        symb2 = context.fm.get_var_value_or_default(self.args[2].value, self.args[2].get_typed_value())
-        result = symb1 + symb2
-        # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, result)
-
-class STRLENInstruction(Instruction):
-    def execute(self, context):
-        varname = self.args[0].value
-        symb1 = context.fm.get_var_value_or_default(self.args[1].value, self.args[1].get_typed_value())
-        result = len(symb1)
-        # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, result)
-
-class GETCHARInstruction(Instruction):
-    def execute(self, context):
-        varname = self.args[0].value
-        symb1 = context.fm.get_var_value_or_default(self.args[1].value, self.args[1].get_typed_value())
-        symb2 = context.fm.get_var_value_or_default(self.args[2].value, self.args[2].get_typed_value())
+        # TODO: use get_symbol_value_or_error instead of this
+        symb1 = self.args[1]
+        symb2 = self.args[2]
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        if not (isinstance(symb1_value, str) and isinstance(symb2_value, str)):
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "string")
         try:
-            result = symb1[symb2]
+            result = symb1_value + symb2_value
+        except Exception as e:
+            raise ippE.Error(58, "string bad")
+            #raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "strings")
+        # save result to variable
+        ctx.save_to_variable(varname, result)
+
+class STRLENInstruction(BinaryInstruction):
+    def execute(self, ctx):
+        if self.args[0].type != 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
+        varname = self.args[0].value
+        symb1 = self.args[1]
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
+        if not isinstance(symb1_value, str):
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "string")
+        try:
+            result = len(symb1_value)
+        except:
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "string")
+        # save result to variable
+        ctx.save_to_variable(varname, result)
+
+class GETCHARInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if self.args[0].type != 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
+        varname = self.args[0].value
+        symb1 = self.args[1]
+        symb2 = self.args[2]
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        try:
+            result = symb1_value[symb2_value]
         except:
             #TODO define exception errors 58
-            raise Exception("Invalid string")
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "string and int in bounds")
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, result)
+        ctx.save_to_variable(varname, result)
     
-class SETCHARInstruction(Instruction):
-    def execute(self, context):
+class SETCHARInstruction(TernaryInstruction):
+    def execute(self, ctx):
+        if self.args[0].type != 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
-        symb1 = context.fm.get_var_value_or_default(self.args[1].value, self.args[1].get_typed_value())
-        symb2 = context.fm.get_var_value_or_default(self.args[2].value, self.args[2].get_typed_value())
-        symb3 = context.fm.get_var_value_or_default(self.args[3].value, self.args[3].get_typed_value())
+        symb1 = self.args[1]
+        symb2 = self.args[2]
+        symb3 = self.args[3]
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
+        symb3_value = ctx.get_symbol_value_or_error(symb3)
+        if not isinstance(symb3_value, str):
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "string of one character")
+
+        if len(symb3_value) != 1:
+            raise ippE.BadValueError(self.opcode, "not given string of one character")
+
         try:
             # TODO check if symb3 is a valid character
-            symb1[symb2] = symb3
-            result = symb1
+            symb1_value[symb2_value] = symb3_value
+            result = symb1_value
         except:
             #TODO define exception errors 58
-            raise Exception("Invalid string")
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, "string, int in bounds and char")
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, result)
+        ctx.save_to_variable(varname, result)
     
-class TYPEInstruction(Instruction):
-    def execute(self, context):
+class TYPEInstruction(BinaryInstruction):
+    def execute(self, ctx):
+        if self.args[0].type != 'var':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
         varname = self.args[0].value
         symb1 = self.args[1].get_typed_value()
         result = Argument.type_from_value(symb1)
         # save result to variable
-        context.fm.set(context.fm.frame_name_from_var(varname), varname, result)
+        ctx.save_to_variable(varname, result)
 
-class LABELInstruction(Instruction):
-    def execute(self, context):
+class LABELInstruction(UnaryInstruction):
+    def execute(self, ctx):
         # define label with address
-        context.lm.define_label(self.args[0].value, {'address': context.ip})
+        if self.args[0].type != 'label':
+            raise ippE.InvalidInstructionArgumentTypesError(self.opcode, 'var', self.args[0].type)
+        ctx.lm.define_label(self.args[0].value, {'address': ctx.ip})
 
-class JUMPInstruction(Instruction):
-    def execute(self, context):
+class JUMPInstruction(UnaryInstruction):
+    def execute(self, ctx):
         # jump to label
-        context.ip = context.fm.get_label_address(self.args[0].value)
+        ctx.ip = ctx.fm.get_label_address(self.args[0].value)
 
-class JUMPIFEQInstruction(Instruction):
-    def execute(self, context):
+class JUMPIFEQInstruction(TernaryInstruction):
+    def execute(self, ctx):
         # jump to label if symb1 == symb2
         label = self.args[0].get_typed_value()
-        symb1_value = context.fm.get_var_value_or_default(self.args[1].value, self.args[1].get_typed_value())
-        symb2_value = context.fm.get_var_value_or_default(self.args[2].value, self.args[2].get_typed_value())
+        symb1 = self.args[1]
+        symb2 = self.args[2]
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
         if symb1_value == symb2_value:
-            context.ip = context.fm.get_label_address(label)
+            ctx.ip = ctx.fm.get_label_address(label)
 
-class JUMPIFNEQInstruction(Instruction):
-    def execute(self, context):
+class JUMPIFNEQInstruction(TernaryInstruction):
+    def execute(self, ctx):
         # jump to label if symb1 != symb2
         label = self.args[0].get_typed_value()
-        symb1_value = context.fm.get_var_value_or_default(self.args[1].value, self.args[1].get_typed_value())
-        symb2_value = context.fm.get_var_value_or_default(self.args[2].value, self.args[2].get_typed_value())
+        symb1 = self.args[1]
+        symb2 = self.args[2]
+        symb1_value = ctx.get_symbol_value_or_error(symb1)
+        symb2_value = ctx.get_symbol_value_or_error(symb2)
         if symb1_value != symb2_value:
-            context.ip = context.lm.get_label_address(label)
+            ctx.ip = ctx.lm.get_label_address(label)
 
-class EXITInstruction(Instruction):
-    def execute(self, context):
+class EXITInstruction(UnaryInstruction):
+    def execute(self, ctx):
         symb1 = self.args[0].get_typed_value()
         if not isinstance(symb1, int) or symb1 < 0 or symb1 >= 49:
             #TODO define exception errors 57
-            raise Exception("Invalid exit code")
+            raise ippE.InvalidExitCodeError(symb1)
 
-        context.ip = -1
-        context.exit_code = self.args[0].get_typed_value()
+        ctx.ip = -1
+        ctx.exit_code = self.args[0].get_typed_value()
 
-class DPRINTInstruction(Instruction):
-    def execute(self, context):
+class DPRINTInstruction(UnaryInstruction):
+    def execute(self, ctx):
         symb1 = self.args[0].get_typed_value()
         print(symb1, file=sys.stderr)
     
-class BREAKInstruction(Instruction):
-    def execute(self, context):
-        print(context.as_breakpoint(), file=sys.stderr)
-    
+class BREAKInstruction(NullaryInstruction):
+    def execute(self, ctx):
+        print(ctx.as_breakpoint(), file=sys.stderr)
+
 
 class InstructionFactory():
     instruction_set = {
@@ -455,8 +597,8 @@ class InstructionFactory():
     }
 
     @classmethod
-    def class_from_opcode(cls, opcode) -> Optional[Instruction]:
-        return cls.instruction_set[opcode] if opcode in cls.instruction_set else None
+    def class_from_opcode(cls, opcode: str) -> Union[Instruction, str]:
+        return cls.instruction_set[opcode.upper()] if opcode in cls.instruction_set else opcode
 
 
 class InstructionManager():
@@ -481,4 +623,13 @@ class InstructionManager():
     @classmethod
     def from_et(cls, program: ElementTree):
         instructions = sorted([InstructionFactory.class_from_opcode(e.attrib['opcode']).from_et(e) for e in program.iter('instruction')])
+        for uin in [uin for uin in instructions if isinstance(uin, str)]:
+            raise ippE.UnsupportedInstructionError(uin)
+
+        # check if order of instructions is valid
+        # order is valid if instruction order is consecutive and there are no gaps
+        zipped = list(zip(instructions, range(1, len(instructions), )))
+        if any(uin.order != order for uin, order in zipped):
+            raise ippE.UnsupportedXMLError('invalid order of instructions')
+
         return cls(instructions)
