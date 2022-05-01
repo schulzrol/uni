@@ -1,0 +1,9 @@
+[submodule "ipk/proj2/extern/cxxopts"]
+	path = ipk/proj2/extern/cxxopts
+	url = https://github.com/jarro2783/cxxopts
+[submodule "ipk/proj2/lib/cxxopts"]
+	path = ipk/proj2/lib/cxxopts
+	url = https://github.com/jarro2783/cxxopts
+[submodule "ipk/proj2/lib/libpcap"]
+	path = ipk/proj2/lib/libpcap
+	url = https://github.com/the-tcpdump-group/libpcap.git
