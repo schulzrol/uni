@@ -5,7 +5,7 @@ jobs:
   build-test-archive:
     runs-on: ubuntu-latest
     container:
-      image: schullzroll/ifj20_merlin:1.0
+      image: schullzroll/merlin
 
     env:
       working-directory: ./ios/projekt2_2022
