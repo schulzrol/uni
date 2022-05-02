@@ -1,6 +1,6 @@
 CC          = gcc
 CFLAGS		= -std=gnu99 -Wall -Wextra -Werror -pedantic -ggdb
-LDFLAGS		=
+LDFLAGS		= -lpthread -lrt
 SOURCES		= main.c oxygen.c hydrogen.c barrier.c utils.c
 INCLUDES	= oxygen.h hydrogen.h barrier.h utils.h globals.h
 OBJECTS		= $(SOURCES:.c=.o)
