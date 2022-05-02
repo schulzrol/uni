@@ -8,11 +8,11 @@ class Error(Exception):
 
 class NotYetImplementedError(Error):
     def __init__(self, message: str) -> None:
-        super().__init__(1, f'Not yet implemented: {message}')
+        super().__init__(32, f'Not yet implemented: {message}')
     
 class GenericError(Error):
     def __init__(self) -> None:
-        super().__init__(1, "Something went wrong")
+        super().__init__(56, "Something went wrong")
 
 class UnsupportedInstructionError(Error):
     def __init__(self, instruction: str) -> None:
@@ -89,3 +89,7 @@ class BadValueError(Error):
 class InvalidArgumentCountError(Error):
     def __init__(self, opcode: str, expected: int, actual: int) -> None:
         super().__init__(32, f'Invalid argument count for {opcode}: expected {expected} but got {actual}')
+
+class InputFileError(Error):
+    def __init__(self, message: str) -> None:
+        super().__init__(11, f'Input file error: {message}')

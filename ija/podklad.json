@@ -1,0 +1,27 @@
+{
+  'regaly': [
+    {'x': 0,'y': 0,
+      'bunky': [
+        ['typ1',20],
+        ['typ2',50]
+      ]
+    },
+    {'x': 1,'y': 1,
+      'bunky': [
+        ['typ3',20],
+        ['typ4',50]
+      ]
+    }
+  ],
+  'koleje': [
+   {'x': 0, 'y': 0, 'disx':0, 'disy':5, 'flags':'LRUD'},
+   {'x': 0, 'y': 6, 'disx':5, 'disy':0, 'flags':'R'},
+   {'x': 0, 'y': 10, 'disx':0, 'disy':0, 'flags':'LRUD'},
+   {'x': 0, 'y': 10, 'disx':0, 'disy':0, 'flags':'LRUD'},
+   {'x': 0, 'y': 10, 'disx':0, 'disy':0, 'flags':'LRUD'},
+  ],
+  'parkoviste': [
+  {'x':0, 'y': 0, 'vozik': {'kapacita':'50ks'}},
+  {'x':1, 'y': 1, 'vozik': {'kapacita':'25ks'}}
+  ],
+}

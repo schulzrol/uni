@@ -1,0 +1,12 @@
+{
+    "makefile.extensionOutputFolder": "./.vscode",
+    "files.associations": {
+        "globals.h": "c",
+        "utils.h": "c",
+        "hydrogen.h": "c",
+        "oxygen.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "types.h": "c"
+    }
+}

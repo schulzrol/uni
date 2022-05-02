@@ -626,10 +626,9 @@ class InstructionManager():
         for uin in [uin for uin in instructions if isinstance(uin, str)]:
             raise ippE.UnsupportedInstructionError(uin)
 
-        # check if order of instructions is valid
-        # order is valid if instruction order is consecutive and there are no gaps
-        zipped = list(zip(instructions, range(1, len(instructions), )))
-        if any(uin.order != order for uin, order in zipped):
-            raise ippE.UnsupportedXMLError('invalid order of instructions')
+        # check that there are no duplicate order numbers
+        if len(set(uin.order for uin in instructions)) != len(instructions):
+            raise ippE.UnsupportedXMLError('duplicate order of instructions')
+
 
         return cls(instructions)

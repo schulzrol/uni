@@ -1,4 +1,4 @@
-þÿ#!/usr/bin/env bash
+#!/usr/bin/env bash
 
 # pouziti:   is_it_ok.sh xlogin01-XYZ.zip testdir [task-num]
 #  
@@ -279,4 +279,4 @@ elif [[ $ERROR -eq 1 ]]; then
   echo_color red " WITH $ERROR ERROR!"    
 else
   echo_color red " WITH $ERROR ERRORS!"
-fiÿý
+fi

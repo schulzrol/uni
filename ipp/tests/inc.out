@@ -26,7 +26,29 @@
         <arg2 type="var">GF@a</arg2>
         <arg3 type="int">10</arg3>
     </instruction>
-    <instruction order="8" opcode="EXIT">
-        <arg1 type="int">0</arg1>
+    <instruction order="8" opcode="CREATEFRAME">
+    </instruction>
+    <instruction order="9" opcode="DEFVAR">
+        <arg1 type="var">TF@a</arg1>
+    </instruction>
+    <instruction order="10" opcode="MOVE">
+        <arg2 type="bool">true</arg2>
+        <arg1 type="var">TF@a</arg1>
+    </instruction>
+    <instruction order="11" opcode="PUSHFRAME">
+    </instruction>
+    <instruction order="12" opcode="WRITE">
+        <arg1 type="string">abc</arg1>
+    </instruction>
+    <instruction order="13" opcode="CONCAT">
+        <arg1 type="var">LF@a</arg1>
+        <arg2 type="string">a</arg2>
+        <arg3 type="string">b</arg3>
+    </instruction>
+    <instruction order="14" opcode="WRITE">
+        <arg1 type="nil">nil</arg1>
+    </instruction>
+    <instruction order="15" opcode="EXIT">
+        <arg1 type="int">32</arg1>
     </instruction>
 </program>

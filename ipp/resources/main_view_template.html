@@ -2,9 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>IPP22 Test Report</title>
 </head>
 <body>
+    <h1 class="results-header">Test Report</h1>
+    <h2>Správně {{TESTS_OK}}/{{TESTS_ALL}} testů -> {{TESTS_FAIL}} chybně</h2>
+    <table>
+        <tr>
+            <th>Umístění</th>
+            <th>Název testu<br></th>
+            <th>Očekávaný RC</th>
+            <th>Parse RC</th>
+            <th>Interpret RC</th>
+            <th>Výsledek</th>
+        </tr>
+        <tbody>
+            {{TEST_ROW}}
+        </tbody>
+        </table>
 
 </body>
 </html>

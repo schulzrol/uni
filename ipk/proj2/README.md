@@ -1,6 +1,21 @@
-https://dev.to/fmtweisszwerg/cc-how-to-get-all-interface-addresses-on-the-local-device-3pki
-https://www.tcpdump.org/
-https://people.math.sc.edu/Burkardt/examples/cmake/cmake.html
+# Packet Sniffer - IPK projekt
+Síťový analyzátor v C++, který je schopný na určitém síťovém rozhraním zachytávat a filtrovat pakety
 
-# Dependencies
-libpcap-dev
+## Podpora
+Otestovaná funkčnost v prostředí `Ubuntu 21.10 impish`.
+
+## Kompilace
+```
+make
+```
+
+## Příklady použití
+```
+./ipk-sniffer -i eth0 --tcp -p 80
+./ipk-sniffer
+```
+
+## Závislosti
+- `libpcap-dev`
+- externí inkludovaná single header knihovna [`lib/cxxopts.hpp`](https://github.com/jarro2783/cxxopts) pro zpracování argumentů příkazové řádky
+

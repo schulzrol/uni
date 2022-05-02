@@ -6,4 +6,11 @@ WRITE GF@a
 WRITE string@,
 ADD GF@a GF@a int@1
 JUMPIFNEQ repeat GF@a int@10
+CREATEFRAME
+DEFVAR TF@a
+MOVE TF@a bool@true
+PUSHFRAME
+WRITE string@abc
+WRITE LF@a
+WRITE bool@false
 EXIT int@0

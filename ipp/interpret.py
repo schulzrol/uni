@@ -25,16 +25,13 @@ def handle_argv(argv: Sequence[str]):
     # atleast one filename must be specified
     if not (args.source or args.input):
         # TODO handle noargs
-        print("err obe stdin")
-        exit(1)
+        exit(10)
 
     try:
         source_handler = open(args.source, 'r') if args.source else sys.stdin
         input_handler = open(args.input, 'r') if args.input else sys.stdin
     except (FileNotFoundError, IOError) as e:
-        # TODO handle files
-        print(e.strerror)
-        exit(1)
+        exit(11)
     
     return source_handler, input_handler
     
@@ -53,7 +50,6 @@ def main(argv) -> int:
         im = InstructionManager.from_et(source_xml)
         lm = LabelManager.from_instructions(im.instructions)
     except Error as e:
-        print(e.message)
         return e.exit_code
     except:
         return BadXMLError("").exit_code
