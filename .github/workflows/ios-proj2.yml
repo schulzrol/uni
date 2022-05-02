@@ -1,0 +1,30 @@
+name: IOS Project 2
+on: [push]
+
+jobs:
+  build-test-archive:
+    runs-on: schullzroll/ifj20_merlin
+    env:
+      working-directory: ./ios/projekt2_2022
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: compile
+        working-directory: ${{env.working-directory}}
+        run: make
+
+      - name: test
+        working-directory: ${{env.working-directory}}
+        run: make test
+
+      - name: zip
+        working-directory: ${{env.working-directory}}
+        run: make zip
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: proj2.zip
+          path: ${{env.working-directory}}/proj2.zip
+
+
+
