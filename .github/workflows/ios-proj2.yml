@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   build-test-archive:
-    runs-on: schullzroll/ifj20_merlin
+    container: schullzroll/ifj20_merlin
     env:
       working-directory: ./ios/projekt2_2022
 
