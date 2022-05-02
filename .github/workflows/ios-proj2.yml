@@ -3,28 +3,31 @@ on: [push]
 
 jobs:
   build-test-archive:
-    container: schullzroll/ifj20_merlin
-      env:
-        working-directory: ./ios/projekt2_2022
+    runs-on: ubuntu-latest
+    container:
+      image: schullzroll/ifj20_merlin
 
-      steps:
-        - uses: actions/checkout@v2
-        - name: compile
-          working-directory: ${{env.working-directory}}
-          run: make
+    env:
+      working-directory: ./ios/projekt2_2022
 
-        - name: test
-          working-directory: ${{env.working-directory}}
-          run: make test
+    steps:
+      - uses: actions/checkout@v2
+      - name: compile
+        working-directory: ${{env.working-directory}}
+        run: make
 
-        - name: zip
-          working-directory: ${{env.working-directory}}
-          run: make zip
+      - name: test
+        working-directory: ${{env.working-directory}}
+        run: make test
 
-        - uses: actions/upload-artifact@v2
-          with:
-            name: proj2.zip
-            path: ${{env.working-directory}}/proj2.zip
+      - name: zip
+        working-directory: ${{env.working-directory}}
+        run: make zip
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: proj2.zip
+          path: ${{env.working-directory}}/proj2.zip
 
 
 
