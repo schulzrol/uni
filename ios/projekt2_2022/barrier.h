@@ -1,3 +1,9 @@
+/**
+ * @file barrier.h
+ * @author Roland Schulz (xschul06@stud.fit.vutbr.cz)
+ * @brief Declarations for reusable barrier implementation (inspired by The Little Book of Semaphores)
+ * @date 2022-05-02
+ */
 
 #ifndef PROJEKT2_2022_BARRIER_H
 #define PROJEKT2_2022_BARRIER_H
@@ -6,9 +12,12 @@
 #include <semaphore.h>
 #include "utils.h"
 
+/**
+ * @brief Reusable barrier structure
+ */
 struct Barrier {
-    int n;
-    int count;
+    int n; /**< Number of entities to hold at the entry barrier */
+    int count; /**< Number of entities that have reached the barrier */
     sem_t mutex;
     sem_t turnstile;
     sem_t turnstile2;

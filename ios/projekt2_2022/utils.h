@@ -1,6 +1,9 @@
-//
-// Created by roland on 26.4.22.
-//
+/**
+ * @file utils.h
+ * @author Roland Schulz (xschul06@stud.fit.vutbr.cz)
+ * @brief Declarations of general utility functions used across project
+ * @date 2022-05-02
+ */
 
 #ifndef PROJEKT2_2022_UTILS_H
 #define PROJEKT2_2022_UTILS_H
@@ -33,7 +36,13 @@ void spawnProcesses(pid_t* returnArr,
                     cleanupHandlerT cleanupHandler);
 int rand_in_range(int min, int max);
 void debugEvent(const char* format, ...);
+void errPrint(const char* format, ...);
 void bond(char atom, int id, long int delayinMillis);
+
+void decreaseOxygenLeft(int count);
+void increaseOxygenLeft(int count);
+void decreaseHydrogenLeft(int count);
+void increaseHydrogenLeft(int count);
 
 #endif //PROJEKT2_2022_UTILS_H
 
