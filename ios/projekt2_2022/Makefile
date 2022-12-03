@@ -1,5 +1,5 @@
 CC          = gcc
-CFLAGS		= -std=gnu99 -Wall -Wextra -Werror -pedantic -ggdb
+CFLAGS		= -std=gnu99 -Wall -Wextra -Werror -pedantic
 LDFLAGS		= -lpthread -lrt
 SOURCES		= main.c oxygen.c hydrogen.c barrier.c utils.c
 INCLUDES	= oxygen.h hydrogen.h barrier.h utils.h globals.h
