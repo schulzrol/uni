@@ -1,0 +1,56 @@
+%--------------------
+% Packages
+% -------------------
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+%\usepackage{gentium}
+\usepackage{mathptmx} % Use Times Font
+\usepackage{flafter} 
+\usepackage{tabularx}
+\usepackage{tikz}
+
+\usepackage{rotating}
+%%\usepackage[pdftex]{graphicx} % Required for including pictures
+\usepackage[czech]{babel} %
+\usepackage[pdftex,linkcolor=black,pdfborder={0 0 0}]{hyperref} % Format links for pdf
+\usepackage{calc} % To reset the counter in the document after title page
+\usepackage{enumitem} % Includes lists
+\usepackage{hyperref}
+\frenchspacing % No double spacing between sentences
+\linespread{1.2} % Set linespace
+\usepackage[a4paper, lmargin=0.1666\paperwidth, rmargin=0.1666\paperwidth, tmargin=0.1111\paperheight, bmargin=0.1111\paperheight]{geometry} %margins
+%\usepackage{parskip}
+
+\usepackage[all]{nowidow} % Tries to remove widows
+\usepackage[protrusion=true,expansion=true]{microtype} % Improves typography, load after fontpackage is selected
+
+\author{
+        \textbf{Roland Schulz} \texttt{xschul06}
+        }
+\title{
+       {\Huge\textbf{Protokol k projektu do předmětu ISS 2022/21}} \\ 
+       }
+\date{}
+
+%-----------------------
+% Begin document
+%-----------------------
+\begin{document}
+   \begin{titlepage}
+   \begin{center}
+            {\includegraphics[width = \textwidth]{img/VUT-FIT-logo-cs.png}}
+            \vspace{\stretch{0.3}}
+            {\let\newpage\relax\maketitle}
+            \thispagestyle{empty}
+            \vspace{\fill}
+            \date{\today}
+        \end{center}
+    \end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Úvod}
+
+\end{document}
