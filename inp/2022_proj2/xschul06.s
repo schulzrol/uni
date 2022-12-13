@@ -33,9 +33,10 @@ main:
                 b    while_end
 
             pismeno:
+                ; zjistit jestli pricist nebo odecist podle indexu
                 xor r0, r0, r0     ; r0 = 0
                 addi r3, r0, 2     ; r3 = 2
-                div	r4, r3         ; r4 / r3
+                div	r1, r3         ; r1 / r3
                 mfhi r3	           ; r0 = r4 % r0 
                 ; nebo andi r0, r4, 0x1
 
@@ -52,8 +53,22 @@ main:
                 xor r0, r0, r0     ; r0 = 0
                 lb r3, even_key(r0)    ; r3 = ord('s')
             ulozeni_na_vystup: ; predpoklada posun v r3
-                add r3, r3, r4		; r3 = r3 + r4
-                ;[x] 4. ulozit sifru
+                add r3, r3, r4 ; r3 = r3 + r4 ; aplikace posunu sifrou
+                ; kontroly podteceni a preteceni
+                slti r11, r3, 97 ; r11 = (r3 < 97) ? 1 : 0
+                bnez r11, podteceni
+
+                addi r11, r0, 122 
+                slt r11, r11, r3  ; r11 = (122 < r3) ? 1 : 0
+                bnez r11, preteceni
+                b v_rozsahu
+                
+            podteceni:
+                addi r3, r3, 26
+                b v_rozsahu
+            preteceni:
+                addi r3, r3, -26
+            v_rozsahu:
                 sb r3, cipher(r1)
                 addi r1, r1, 1     ; r1 = r1 + 1
                 b while_start
