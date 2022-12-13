@@ -40,11 +40,11 @@ main:
                 mfhi r3	           ; r0 = r4 % r0 
                 ; nebo andi r0, r4, 0x1
 
-                bnez r3, liche      
+                bne r3, r0, liche      
                 b sude
             ;[x] 3. vypocitat sifru
             ;  [x] - bude treba pamatovat jestli odcitame/pricitame (jednim vzdy pricitame a druhy vzdy odcitame - ulozit uz se znamenkem)
-            ;  [] - zajistit podtekani a pretekani TODO: zajistit spravne podtekani/pretekani
+            ;  [x] - zajistit podtekani a pretekani TODO: zajistit spravne podtekani/pretekani
             liche:
                 xor r0, r0, r0     ; r0 = 0
                 lb r3, odd_key(r0)     ; r3 = ord('c')
@@ -56,11 +56,11 @@ main:
                 add r3, r3, r4 ; r3 = r3 + r4 ; aplikace posunu sifrou
                 ; kontroly podteceni a preteceni
                 slti r11, r3, 97 ; r11 = (r3 < 97) ? 1 : 0
-                bnez r11, podteceni
+                bne r11, r0, podteceni
 
                 addi r11, r0, 122 
                 slt r11, r11, r3  ; r11 = (122 < r3) ? 1 : 0
-                bnez r11, preteceni
+                bne r11, r0, preteceni
                 b v_rozsahu
                 
             podteceni:
