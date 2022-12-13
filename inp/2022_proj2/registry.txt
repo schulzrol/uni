@@ -1,0 +1,7 @@
+xschul06
+x r1
+  r20
+x r3
+  r11
+x r0
+x r4
