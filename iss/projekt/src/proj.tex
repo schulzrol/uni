@@ -1,0 +1,1368 @@
+\documentclass[11pt]{article}
+
+    \usepackage[breakable]{tcolorbox}
+    \usepackage{parskip} % Stop auto-indenting (to mimic markdown behaviour)
+    
+
+    % Basic figure setup, for now with no caption control since it's done
+    % automatically by Pandoc (which extracts ![](path) syntax from Markdown).
+    \usepackage{graphicx}
+    % Maintain compatibility with old templates. Remove in nbconvert 6.0
+    \let\Oldincludegraphics\includegraphics
+    % Ensure that by default, figures have no caption (until we provide a
+    % proper Figure object with a Caption API and a way to capture that
+    % in the conversion process - todo).
+    \usepackage{caption}
+    \DeclareCaptionFormat{nocaption}{}
+    \captionsetup{format=nocaption,aboveskip=0pt,belowskip=0pt}
+
+    \usepackage{float}
+    \floatplacement{figure}{H} % forces figures to be placed at the correct location
+    \usepackage{xcolor} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage{textcomp} % defines textquotesingle
+    % Hack from http://tex.stackexchange.com/a/47451/13684:
+    \AtBeginDocument{%
+        \def\PYZsq{\textquotesingle}% Upright quotes in Pygmentized code
+    }
+    \usepackage{upquote} % Upright quotes for verbatim code
+    \usepackage{eurosym} % defines \euro
+
+    \usepackage{iftex}
+    \ifPDFTeX
+        \usepackage[T1]{fontenc}
+        \IfFileExists{alphabeta.sty}{
+              \usepackage{alphabeta}
+          }{
+              \usepackage[mathletters]{ucs}
+              \usepackage[utf8x]{inputenc}
+          }
+    \else
+        \usepackage{fontspec}
+        \usepackage{unicode-math}
+    \fi
+
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics
+                         % to support a larger range
+    \makeatletter % fix for old versions of grffile with XeLaTeX
+    \@ifpackagelater{grffile}{2019/11/01}
+    {
+      % Do nothing on new versions
+    }
+    {
+      \def\Gread@@xetex#1{%
+        \IfFileExists{"\Gin@base".bb}%
+        {\Gread@eps{\Gin@base.bb}}%
+        {\Gread@@xetex@aux#1}%
+      }
+    }
+    \makeatother
+    \usepackage[Export]{adjustbox} % Used to constrain images to a maximum size
+    \adjustboxset{max size={0.9\linewidth}{0.9\paperheight}}
+
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    % The default LaTeX title has an obnoxious amount of whitespace. By default,
+    % titling removes some of it. It also provides customization options.
+    \usepackage{titling}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage{array}     % table support for pandoc >= 2.11.3
+    \usepackage{calc}      % table minipage width calculation for pandoc >= 2.11.1
+    \usepackage[inline]{enumitem} % IRkernel/repr support (it uses the enumerate* environment)
+    \usepackage[normalem]{ulem} % ulem is needed to support strikethroughs (\sout)
+                                % normalem makes italics be italics, not underlines
+    \usepackage{mathrsfs}
+    
+
+    
+    % Colors for the hyperref package
+    \definecolor{urlcolor}{rgb}{0,.145,.698}
+    \definecolor{linkcolor}{rgb}{.71,0.21,0.01}
+    \definecolor{citecolor}{rgb}{.12,.54,.11}
+
+    % ANSI colors
+    \definecolor{ansi-black}{HTML}{3E424D}
+    \definecolor{ansi-black-intense}{HTML}{282C36}
+    \definecolor{ansi-red}{HTML}{E75C58}
+    \definecolor{ansi-red-intense}{HTML}{B22B31}
+    \definecolor{ansi-green}{HTML}{00A250}
+    \definecolor{ansi-green-intense}{HTML}{007427}
+    \definecolor{ansi-yellow}{HTML}{DDB62B}
+    \definecolor{ansi-yellow-intense}{HTML}{B27D12}
+    \definecolor{ansi-blue}{HTML}{208FFB}
+    \definecolor{ansi-blue-intense}{HTML}{0065CA}
+    \definecolor{ansi-magenta}{HTML}{D160C4}
+    \definecolor{ansi-magenta-intense}{HTML}{A03196}
+    \definecolor{ansi-cyan}{HTML}{60C6C8}
+    \definecolor{ansi-cyan-intense}{HTML}{258F8F}
+    \definecolor{ansi-white}{HTML}{C5C1B4}
+    \definecolor{ansi-white-intense}{HTML}{A1A6B2}
+    \definecolor{ansi-default-inverse-fg}{HTML}{FFFFFF}
+    \definecolor{ansi-default-inverse-bg}{HTML}{000000}
+
+    % common color for the border for error outputs.
+    \definecolor{outerrorbackground}{HTML}{FFDFDF}
+
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \providecommand{\tightlist}{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+
+    % Additional commands for more recent versions of Pandoc
+    \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{{#1}}}
+    \newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{{#1}}}
+    \newcommand{\ImportTok}[1]{{#1}}
+    \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{{#1}}}}
+    \newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{{#1}}}
+    \newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{{#1}}}
+    \newcommand{\BuiltInTok}[1]{{#1}}
+    \newcommand{\ExtensionTok}[1]{{#1}}
+    \newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{{#1}}}
+    \newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{{#1}}}
+    \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+
+
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatibility definitions
+    \def\gt{>}
+    \def\lt{<}
+    \let\Oldtex\TeX
+    \let\Oldlatex\LaTeX
+    \renewcommand{\TeX}{\textrm{\Oldtex}}
+    \renewcommand{\LaTeX}{\textrm{\Oldlatex}}
+    % Document parameters
+    % Document title
+    
+    \author{Roland Schulz xschul06}
+    \title{ISS Projekt 2022/23}
+    \pagestyle{myheadings}
+    \markright{Roland Schulz xschul06} 
+    
+    
+    
+% Pygments definitions
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\@namedef{PY@tok@w}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\@namedef{PY@tok@c}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cp}{\def\PY@tc##1{\textcolor[rgb]{0.61,0.40,0.00}{##1}}}
+\@namedef{PY@tok@k}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kt}{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\@namedef{PY@tok@o}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ow}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@nb}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nf}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@ne}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.80,0.25,0.22}{##1}}}
+\@namedef{PY@tok@nv}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@no}{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\@namedef{PY@tok@nl}{\def\PY@tc##1{\textcolor[rgb]{0.46,0.46,0.00}{##1}}}
+\@namedef{PY@tok@ni}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@na}{\def\PY@tc##1{\textcolor[rgb]{0.41,0.47,0.13}{##1}}}
+\@namedef{PY@tok@nt}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nd}{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@s}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sd}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@si}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@se}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.36,0.12}{##1}}}
+\@namedef{PY@tok@sr}{\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@ss}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sx}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@m}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@gh}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gu}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gd}{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\@namedef{PY@tok@gi}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.52,0.00}{##1}}}
+\@namedef{PY@tok@gr}{\def\PY@tc##1{\textcolor[rgb]{0.89,0.00,0.00}{##1}}}
+\@namedef{PY@tok@ge}{\let\PY@it=\textit}
+\@namedef{PY@tok@gs}{\let\PY@bf=\textbf}
+\@namedef{PY@tok@gp}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@go}{\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@gt}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\@namedef{PY@tok@err}{\def\PY@bc##1{{\setlength{\fboxsep}{\string -\fboxrule}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}}
+\@namedef{PY@tok@kc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kd}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kr}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@bp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@fm}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@vc}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vg}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vi}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vm}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sa}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sb}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sc}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@dl}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s2}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sh}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s1}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@mb}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mf}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mh}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mi}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@il}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mo}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ch}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cm}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cpf}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@c1}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cs}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % For linebreaks inside Verbatim environment from package fancyvrb.
+    \makeatletter
+        \newbox\Wrappedcontinuationbox
+        \newbox\Wrappedvisiblespacebox
+        \newcommand*\Wrappedvisiblespace {\textcolor{red}{\textvisiblespace}}
+        \newcommand*\Wrappedcontinuationsymbol {\textcolor{red}{\llap{\tiny$\m@th\hookrightarrow$}}}
+        \newcommand*\Wrappedcontinuationindent {3ex }
+        \newcommand*\Wrappedafterbreak {\kern\Wrappedcontinuationindent\copy\Wrappedcontinuationbox}
+        % Take advantage of the already applied Pygments mark-up to insert
+        % potential linebreaks for TeX processing.
+        %        {, <, #, %, $, ' and ": go to next line.
+        %        _, }, ^, &, >, - and ~: stay at end of broken line.
+        % Use of \textquotesingle for straight quote.
+        \newcommand*\Wrappedbreaksatspecials {%
+            \def\PYGZus{\discretionary{\char`\_}{\Wrappedafterbreak}{\char`\_}}%
+            \def\PYGZob{\discretionary{}{\Wrappedafterbreak\char`\{}{\char`\{}}%
+            \def\PYGZcb{\discretionary{\char`\}}{\Wrappedafterbreak}{\char`\}}}%
+            \def\PYGZca{\discretionary{\char`\^}{\Wrappedafterbreak}{\char`\^}}%
+            \def\PYGZam{\discretionary{\char`\&}{\Wrappedafterbreak}{\char`\&}}%
+            \def\PYGZlt{\discretionary{}{\Wrappedafterbreak\char`\<}{\char`\<}}%
+            \def\PYGZgt{\discretionary{\char`\>}{\Wrappedafterbreak}{\char`\>}}%
+            \def\PYGZsh{\discretionary{}{\Wrappedafterbreak\char`\#}{\char`\#}}%
+            \def\PYGZpc{\discretionary{}{\Wrappedafterbreak\char`\%}{\char`\%}}%
+            \def\PYGZdl{\discretionary{}{\Wrappedafterbreak\char`\$}{\char`\$}}%
+            \def\PYGZhy{\discretionary{\char`\-}{\Wrappedafterbreak}{\char`\-}}%
+            \def\PYGZsq{\discretionary{}{\Wrappedafterbreak\textquotesingle}{\textquotesingle}}%
+            \def\PYGZdq{\discretionary{}{\Wrappedafterbreak\char`\"}{\char`\"}}%
+            \def\PYGZti{\discretionary{\char`\~}{\Wrappedafterbreak}{\char`\~}}%
+        }
+        % Some characters . , ; ? ! / are not pygmentized.
+        % This macro makes them "active" and they will insert potential linebreaks
+        \newcommand*\Wrappedbreaksatpunct {%
+            \lccode`\~`\.\lowercase{\def~}{\discretionary{\hbox{\char`\.}}{\Wrappedafterbreak}{\hbox{\char`\.}}}%
+            \lccode`\~`\,\lowercase{\def~}{\discretionary{\hbox{\char`\,}}{\Wrappedafterbreak}{\hbox{\char`\,}}}%
+            \lccode`\~`\;\lowercase{\def~}{\discretionary{\hbox{\char`\;}}{\Wrappedafterbreak}{\hbox{\char`\;}}}%
+            \lccode`\~`\:\lowercase{\def~}{\discretionary{\hbox{\char`\:}}{\Wrappedafterbreak}{\hbox{\char`\:}}}%
+            \lccode`\~`\?\lowercase{\def~}{\discretionary{\hbox{\char`\?}}{\Wrappedafterbreak}{\hbox{\char`\?}}}%
+            \lccode`\~`\!\lowercase{\def~}{\discretionary{\hbox{\char`\!}}{\Wrappedafterbreak}{\hbox{\char`\!}}}%
+            \lccode`\~`\/\lowercase{\def~}{\discretionary{\hbox{\char`\/}}{\Wrappedafterbreak}{\hbox{\char`\/}}}%
+            \catcode`\.\active
+            \catcode`\,\active
+            \catcode`\;\active
+            \catcode`\:\active
+            \catcode`\?\active
+            \catcode`\!\active
+            \catcode`\/\active
+            \lccode`\~`\~
+        }
+    \makeatother
+
+    \let\OriginalVerbatim=\Verbatim
+    \makeatletter
+    \renewcommand{\Verbatim}[1][1]{%
+        %\parskip\z@skip
+        \sbox\Wrappedcontinuationbox {\Wrappedcontinuationsymbol}%
+        \sbox\Wrappedvisiblespacebox {\FV@SetupFont\Wrappedvisiblespace}%
+        \def\FancyVerbFormatLine ##1{\hsize\linewidth
+            \vtop{\raggedright\hyphenpenalty\z@\exhyphenpenalty\z@
+                \doublehyphendemerits\z@\finalhyphendemerits\z@
+                \strut ##1\strut}%
+        }%
+        % If the linebreak is at a space, the latter will be displayed as visible
+        % space at end of first line, and a continuation symbol starts next line.
+        % Stretch/shrink are however usually zero for typewriter font.
+        \def\FV@Space {%
+            \nobreak\hskip\z@ plus\fontdimen3\font minus\fontdimen4\font
+            \discretionary{\copy\Wrappedvisiblespacebox}{\Wrappedafterbreak}
+            {\kern\fontdimen2\font}%
+        }%
+
+        % Allow breaks at special characters using \PYG... macros.
+        \Wrappedbreaksatspecials
+        % Breaks at punctuation characters . , ; ? ! and / need catcode=\active
+        \OriginalVerbatim[#1,codes*=\Wrappedbreaksatpunct]%
+    }
+    \makeatother
+
+    % Exact colors from NB
+    \definecolor{incolor}{HTML}{303F9F}
+    \definecolor{outcolor}{HTML}{D84315}
+    \definecolor{cellborder}{HTML}{CFCFCF}
+    \definecolor{cellbackground}{HTML}{F7F7F7}
+
+    % prompt
+    \makeatletter
+    \newcommand{\boxspacing}{\kern\kvtcb@left@rule\kern\kvtcb@boxsep}
+    \makeatother
+    \newcommand{\prompt}[4]{
+        {\ttfamily\llap{{\color{#2}[#3]:\hspace{3pt}#4}}\vspace{-\baselineskip}}
+    }
+    
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=urlcolor,
+      linkcolor=linkcolor,
+      citecolor=citecolor,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+\begin{document}
+    
+    \maketitle
+    
+    
+
+    
+    \hypertarget{import-potux159ebnuxfdch-knihoven}{%
+\section{Import potřebných
+knihoven}\label{import-potux159ebnuxfdch-knihoven}}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{1}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+\PY{k+kn}{import} \PY{n+nn}{soundfile} \PY{k}{as} \PY{n+nn}{sf}
+\PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+\PY{k+kn}{from} \PY{n+nn}{matplotlib} \PY{k+kn}{import} \PY{n}{cm}
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+\PY{k+kn}{from} \PY{n+nn}{IPython}\PY{n+nn}{.}\PY{n+nn}{display} \PY{k+kn}{import} \PY{n}{Audio}
+\PY{k+kn}{from} \PY{n+nn}{pathlib} \PY{k+kn}{import} \PY{n}{Path}
+\PY{k+kn}{import} \PY{n+nn}{scipy}\PY{n+nn}{.}\PY{n+nn}{signal} \PY{k}{as} \PY{n+nn}{ss}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \hypertarget{naux10dtenuxed-skladby-a-midi-reference-ze-souborux16f}{%
+\section{Načtení skladby a midi reference ze
+souborů}\label{naux10dtenuxed-skladby-a-midi-reference-ze-souborux16f}}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{2}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} Načtení skladby}
+\PY{n}{skladba} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{loadtxt}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{skladba.txt}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{delimiter}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ }\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{dtype}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{dtype}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{f, f, i, i}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{)}
+\PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{skladba}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{2}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+            f0        f1  f2  f3
+0       7200.0    8100.0  64  44
+1      12600.0   13500.0  64  44
+2      23400.0   24300.0  64  44
+3      28800.0   29700.0  64  44
+4      50400.0   51300.0  64  49
+{\ldots}        {\ldots}       {\ldots}  ..  ..
+1169   19350.0   19800.0  67  70
+1170   46350.0   46800.0  67  70
+1171   73350.0   73800.0  67  70
+1172  100350.0  100800.0  67  70
+1173  127350.0  127800.0  67  70
+
+[1174 rows x 4 columns]
+\end{Verbatim}
+\end{tcolorbox}
+        
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{3}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} Načtení midi.text}
+\PY{n}{midi} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{loadtxt}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{midi.txt}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{delimiter}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}t}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{[}\PY{p}{:}\PY{p}{:}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}
+\PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{midi}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{3}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+        0        1
+0    24.0    32.70
+1    25.0    34.65
+2    26.0    36.71
+3    27.0    38.89
+4    28.0    41.20
+..    {\ldots}      {\ldots}
+80  104.0  3322.44
+81  105.0  3520.00
+82  106.0  3729.31
+83  107.0  3951.07
+84  108.0  4186.01
+
+[85 rows x 2 columns]
+\end{Verbatim}
+\end{tcolorbox}
+        
+    \hypertarget{vytvoux159enuxed-adresuxe1ux159ux16f-pro-zuxe1pis-zvukovuxfdch-a-obrazovuxfdch-vuxfdstupux16f}{%
+\section{Vytvoření adresářů pro zápis zvukových a obrazových
+výstupů}\label{vytvoux159enuxed-adresuxe1ux159ux16f-pro-zuxe1pis-zvukovuxfdch-a-obrazovuxfdch-vuxfdstupux16f}}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{4}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{plt\PYZus{}scale} \PY{o}{=} \PY{l+m+mi}{3}
+\PY{n}{img\PYZus{}gen\PYZus{}folder} \PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{./gen\PYZus{}img/}\PY{l+s+s2}{\PYZdq{}}
+\PY{n}{Path}\PY{p}{(}\PY{n}{img\PYZus{}gen\PYZus{}folder}\PY{p}{)}\PY{o}{.}\PY{n}{mkdir}\PY{p}{(}\PY{n}{exist\PYZus{}ok}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+
+\PY{n}{audio\PYZus{}folder} \PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{../audio/}\PY{l+s+s2}{\PYZdq{}}
+\PY{n}{Path}\PY{p}{(}\PY{n}{audio\PYZus{}folder}\PY{p}{)}\PY{o}{.}\PY{n}{mkdir}\PY{p}{(}\PY{n}{exist\PYZus{}ok}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \hypertarget{zuxedskuxe1nuxed-konkruxe9tnuxedch-tuxf3nux16f-z-klavuxedrnuxed-nahruxe1vky}{%
+\section{Získání konkrétních tónů z klavírní
+nahrávky}\label{zuxedskuxe1nuxed-konkruxe9tnuxedch-tuxf3nux16f-z-klavuxedrnuxed-nahruxe1vky}}
+
+převzato ze zadání
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{5}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{MIDIFROM} \PY{o}{=} \PY{l+m+mi}{24}
+\PY{n}{MIDITO} \PY{o}{=} \PY{l+m+mi}{108}
+\PY{n}{SKIP\PYZus{}SEC} \PY{o}{=} \PY{l+m+mf}{0.25}
+\PY{n}{HOWMUCH\PYZus{}SEC} \PY{o}{=} \PY{l+m+mf}{0.5}
+\PY{n}{WHOLETONE\PYZus{}SEC} \PY{o}{=} \PY{l+m+mi}{2}
+\PY{n}{howmanytones} \PY{o}{=} \PY{n}{MIDITO} \PY{o}{\PYZhy{}} \PY{n}{MIDIFROM} \PY{o}{+} \PY{l+m+mi}{1}
+\PY{n}{tones} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{n}{MIDIFROM}\PY{p}{,} \PY{n}{MIDITO}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{s}\PY{p}{,} \PY{n}{Fs} \PY{o}{=} \PY{n}{sf}\PY{o}{.}\PY{n}{read}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{klavir.wav}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{N} \PY{o}{=} \PY{n+nb}{int}\PY{p}{(}\PY{n}{Fs} \PY{o}{*} \PY{n}{HOWMUCH\PYZus{}SEC}\PY{p}{)}
+\PY{n}{Nwholetone} \PY{o}{=} \PY{n+nb}{int}\PY{p}{(}\PY{n}{Fs} \PY{o}{*} \PY{n}{WHOLETONE\PYZus{}SEC}\PY{p}{)}
+\PY{n}{xall} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{p}{(}\PY{n}{MIDITO}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{,} \PY{n}{N}\PY{p}{)}\PY{p}{)} \PY{c+c1}{\PYZsh{} matrix with all tones \PYZhy{} first signals empty,}
+\PY{c+c1}{\PYZsh{} but we have plenty of memory ...}
+\PY{n}{samplefrom} \PY{o}{=} \PY{n+nb}{int}\PY{p}{(}\PY{n}{SKIP\PYZus{}SEC} \PY{o}{*} \PY{n}{Fs}\PY{p}{)}
+\PY{n}{sampleto} \PY{o}{=} \PY{n}{samplefrom} \PY{o}{+} \PY{n}{N}
+\PY{k}{for} \PY{n}{tone} \PY{o+ow}{in} \PY{n}{tones}\PY{p}{:}
+    \PY{n}{x} \PY{o}{=} \PY{n}{s}\PY{p}{[}\PY{n}{samplefrom}\PY{p}{:}\PY{n}{sampleto}\PY{p}{]}
+    \PY{n}{x} \PY{o}{=} \PY{n}{x} \PY{o}{\PYZhy{}} \PY{n}{np}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{n}{x}\PY{p}{)} \PY{c+c1}{\PYZsh{} safer to center ...}
+    \PY{n}{xall}\PY{p}{[}\PY{n}{tone}\PY{p}{,}\PY{p}{:}\PY{p}{]} \PY{o}{=} \PY{n}{x}
+    \PY{n}{samplefrom} \PY{o}{+}\PY{o}{=} \PY{n}{Nwholetone}
+    \PY{n}{sampleto} \PY{o}{+}\PY{o}{=} \PY{n}{Nwholetone}
+
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{s}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{6}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{my\PYZus{}tones} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{p}{[}\PY{l+m+mi}{37}\PY{p}{,} \PY{l+m+mi}{77}\PY{p}{,} \PY{l+m+mi}{93}\PY{p}{]}\PY{p}{)} \PY{c+c1}{\PYZsh{} ze zadani}
+\PY{n}{my\PYZus{}tones\PYZus{}fund} \PY{o}{=} \PY{n}{midi}\PY{p}{[}\PY{n}{my\PYZus{}tones} \PY{o}{\PYZhy{}} \PY{l+m+mi}{24}\PY{p}{]}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{1}\PY{p}{]}
+\PY{n}{a}\PY{p}{,} \PY{n}{b}\PY{p}{,} \PY{n}{c} \PY{o}{=} \PY{p}{(}\PY{n}{xall}\PY{p}{[}\PY{n}{my\PYZus{}tone}\PY{p}{]} \PY{k}{for} \PY{n}{my\PYZus{}tone} \PY{o+ow}{in} \PY{n}{my\PYZus{}tones}\PY{p}{)}
+
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{a}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{b}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{c}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    \hypertarget{zuxe1klady}{%
+\section{Základy}\label{zuxe1klady}}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{7}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{fig}\PY{p}{,} \PY{p}{(}\PY{n}{a\PYZus{}plots}\PY{p}{,} \PY{n}{b\PYZus{}plots}\PY{p}{,} \PY{n}{c\PYZus{}plots}\PY{p}{)} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplots}\PY{p}{(}\PY{l+m+mi}{3}\PY{p}{,} \PY{l+m+mi}{2}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{8}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{,} \PY{l+m+mi}{3}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{)}\PY{p}{)}
+\PY{k}{def} \PY{n+nf}{plot\PYZus{}tone}\PY{p}{(}\PY{n}{tone}\PY{p}{,} \PY{n+nb}{id}\PY{p}{,} \PY{n}{axis}\PY{p}{,} \PY{n}{zakladni\PYZus{}f}\PY{p}{,} \PY{n}{periods}\PY{o}{=}\PY{l+m+mi}{3}\PY{p}{,} \PY{n}{freq\PYZus{}range\PYZus{}highlight}\PY{o}{=}\PY{l+m+mi}{100}\PY{p}{)}\PY{p}{:}
+    \PY{c+c1}{\PYZsh{} compute n periods}
+    \PY{n}{T} \PY{o}{=} \PY{l+m+mi}{1}\PY{o}{/}\PY{n}{zakladni\PYZus{}f} \PY{c+c1}{\PYZsh{} in [seconds]}
+    \PY{n}{t} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{n}{tone}\PY{o}{.}\PY{n}{size}\PY{p}{)} \PY{o}{/} \PY{n}{Fs} 
+
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}ylabel}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{magnituda}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}xlabel}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{čas [s]}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}xlim}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n}{periods}\PY{o}{*}\PY{n}{T}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t}\PY{p}{,} \PY{n}{tone}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}title}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{periods}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ periody midi tónu }\PY{l+s+si}{\PYZob{}}\PY{n+nb}{id}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ (\PYZdl{}T=}\PY{l+s+si}{\PYZob{}}\PY{n}{T}\PY{o}{*}\PY{l+m+mi}{1000}\PY{l+s+si}{:}\PY{l+s+s2}{.4f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ [ms]\PYZdl{})}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+
+    \PY{n}{fft\PYZus{}of\PYZus{}tone} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{abs}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{fft}\PY{o}{.}\PY{n}{fft}\PY{p}{(}\PY{n}{tone}\PY{p}{)}\PY{p}{[}\PY{p}{:}\PY{n}{tone}\PY{o}{.}\PY{n}{size}\PY{o}{/}\PY{o}{/}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{)}
+    \PY{n}{t\PYZus{}dft} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{n}{fft\PYZus{}of\PYZus{}tone}\PY{o}{.}\PY{n}{size}\PY{p}{)} \PY{o}{*} \PY{l+m+mi}{2}
+    \PY{n}{PSD} \PY{o}{=} \PY{l+m+mi}{10} \PY{o}{*} \PY{n}{np}\PY{o}{.}\PY{n}{log10}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{abs}\PY{p}{(}\PY{n}{fft\PYZus{}of\PYZus{}tone}\PY{p}{)}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2} \PY{o}{+} \PY{p}{(}\PY{l+m+mf}{0.00000001}\PY{p}{)}\PY{p}{)}
+
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}xticks}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n}{fft\PYZus{}of\PYZus{}tone}\PY{p}{)}\PY{p}{,} \PY{l+m+mi}{1000}\PY{p}{)}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}xticks}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n}{fft\PYZus{}of\PYZus{}tone}\PY{p}{)}\PY{p}{,} \PY{l+m+mi}{250}\PY{p}{)}\PY{p}{,} \PY{n}{minor}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}ylabel}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}PSD |X| [dB]\PYZdl{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}xlabel}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}frekvence [Hz]\PYZdl{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}title}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Spektrum tónu }\PY{l+s+se}{\PYZbs{}\PYZsq{}}\PY{l+s+si}{\PYZob{}}\PY{n+nb}{id}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}\PYZsq{}}\PY{l+s+s2}{ (fund. frekvence tónu = }\PY{l+s+si}{\PYZob{}}\PY{n}{zakladni\PYZus{}f}\PY{l+s+si}{:}\PY{l+s+s2}{0.3f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ [Hz]}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{.}\PY{n}{set\PYZus{}xlim}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{100}\PY{p}{,} \PY{p}{(}\PY{n}{t\PYZus{}dft}\PY{o}{.}\PY{n}{size}\PY{p}{)}\PY{p}{)}
+    \PY{n}{axis}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t\PYZus{}dft}\PY{p}{,} \PY{n}{PSD}\PY{p}{)}
+    \PY{k}{return} \PY{n}{fft\PYZus{}of\PYZus{}tone}
+
+\PY{n}{plot\PYZus{}tone}\PY{p}{(}\PY{n}{a}\PY{p}{,} \PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{a\PYZus{}plots}\PY{p}{,} \PY{n}{my\PYZus{}tones\PYZus{}fund}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}
+\PY{n}{plot\PYZus{}tone}\PY{p}{(}\PY{n}{b}\PY{p}{,} \PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{b\PYZus{}plots}\PY{p}{,} \PY{n}{my\PYZus{}tones\PYZus{}fund}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
+\PY{n}{plot\PYZus{}tone}\PY{p}{(}\PY{n}{c}\PY{p}{,} \PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{,} \PY{n}{c\PYZus{}plots}\PY{p}{,} \PY{n}{my\PYZus{}tones\PYZus{}fund}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{)}
+
+\PY{n}{fig}\PY{o}{.}\PY{n}{tight\PYZus{}layout}\PY{p}{(}\PY{p}{)}
+\PY{n}{fig}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{n}{img\PYZus{}gen\PYZus{}folder} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{my\PYZus{}tones\PYZus{}periods\PYZus{}dft.png}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{proj_files/proj_11_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    Uložení tónů jako audio/a\_orig.wav, audio/b\_orig.wav, a
+audio/c\_orig.wav.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{8}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} uložení tónů jako audio/a\PYZus{}orig.wav, audio/b\PYZus{}orig.wav, a audio/c\PYZus{}orig.wav}
+\PY{k}{for} \PY{n}{orig\PYZus{}tone}\PY{p}{,} \PY{n}{orig\PYZus{}name} \PY{o+ow}{in} \PY{n+nb}{zip}\PY{p}{(}\PY{p}{[}\PY{n}{a}\PY{p}{,} \PY{n}{b}\PY{p}{,} \PY{n}{c}\PY{p}{]}\PY{p}{,} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{a}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{b}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{c}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}\PY{p}{:}
+    \PY{n}{sf}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{audio\PYZus{}folder} \PY{o}{+} \PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{orig\PYZus{}name}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{\PYZus{}orig.wav}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{orig\PYZus{}tone}\PY{p}{,} \PY{n}{Fs}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \hypertarget{urux10denuxed-zuxe1kladnuxed-frekvence}{%
+\section{Určení základní
+frekvence}\label{urux10denuxed-zuxe1kladnuxed-frekvence}}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{9}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} funkce pro nalezení peaku ve výstupu DFT}
+\PY{c+c1}{\PYZsh{} inspirováno Python notebooky z webu ISS}
+\PY{k}{def} \PY{n+nf}{get\PYZus{}dft\PYZus{}peak}\PY{p}{(}\PY{n}{dft}\PY{p}{,} \PY{n}{N}\PY{p}{)}\PY{p}{:}
+    \PY{n}{kall} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,}\PY{n+nb}{int}\PY{p}{(}\PY{n}{N}\PY{o}{/}\PY{l+m+mi}{2}\PY{p}{)} \PY{o}{+}\PY{l+m+mi}{1}\PY{p}{)}
+    \PY{n}{f} \PY{o}{=} \PY{n}{kall} \PY{o}{/} \PY{n}{N} \PY{o}{*} \PY{n}{Fs}
+    \PY{n}{Xmag} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{abs}\PY{p}{(}\PY{n}{dft}\PY{p}{[}\PY{n}{kall}\PY{p}{]}\PY{p}{)}
+    \PY{c+c1}{\PYZsh{}plt.plot(Xmag[:12000])}
+    \PY{c+c1}{\PYZsh{}plt.xlim(0, 100)}
+
+    \PY{c+c1}{\PYZsh{} finding the max and showing where we\PYZsq{}ll compute ... }
+    \PY{n}{fmax} \PY{o}{=} \PY{n}{f}\PY{p}{[}\PY{n}{np}\PY{o}{.}\PY{n}{argmax}\PY{p}{(}\PY{n}{Xmag}\PY{p}{)}\PY{p}{]}
+    \PY{n}{Xmax} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{max}\PY{p}{(}\PY{n}{Xmag}\PY{p}{)}
+    \PY{k}{return} \PY{n}{fmax}
+
+\PY{c+c1}{\PYZsh{} funkce pro nalezení peaku ve výstupu autokorelace}
+\PY{c+c1}{\PYZsh{} inspirováno Python notebooky z webu ISS}
+\PY{k}{def} \PY{n+nf}{get\PYZus{}autocorr\PYZus{}peak}\PY{p}{(}\PY{n}{xac}\PY{p}{)}\PY{p}{:}
+    \PY{n}{xac} \PY{o}{=} \PY{n}{xac}\PY{p}{[}\PY{n}{xac}\PY{o}{.}\PY{n}{size}\PY{o}{/}\PY{o}{/}\PY{l+m+mi}{2}\PY{p}{:}\PY{p}{]}
+    \PY{n}{start} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{argmax}\PY{p}{(}\PY{n}{xac} \PY{o}{\PYZlt{}} \PY{l+m+mi}{0}\PY{p}{)}
+    \PY{n}{p} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{argmax}\PY{p}{(}\PY{n}{xac}\PY{p}{[}\PY{n}{start}\PY{p}{:}\PY{p}{]}\PY{p}{)} \PY{o}{+} \PY{n}{start}
+    \PY{n}{fmax} \PY{o}{=} \PY{n}{Fs}\PY{o}{/}\PY{n}{p}
+    \PY{k}{return} \PY{n}{fmax}
+
+\PY{c+c1}{\PYZsh{} výpočet frekvencí metodou DFT}
+\PY{n}{xall\PYZus{}dfts} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+\PY{k}{for} \PY{n}{index}\PY{p}{,} \PY{n}{tone} \PY{o+ow}{in} \PY{n+nb}{enumerate}\PY{p}{(}\PY{n}{xall}\PY{p}{)}\PY{p}{:}
+    \PY{n}{fft\PYZus{}of\PYZus{}tone} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{fft}\PY{o}{.}\PY{n}{fft}\PY{p}{(}\PY{n}{tone}\PY{p}{)}
+    \PY{n}{t\PYZus{}dft} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{n}{fft\PYZus{}of\PYZus{}tone}\PY{o}{.}\PY{n}{size}\PY{p}{)}
+    \PY{n}{fmax} \PY{o}{=} \PY{n}{get\PYZus{}dft\PYZus{}peak}\PY{p}{(}\PY{n}{fft\PYZus{}of\PYZus{}tone}\PY{p}{,} \PY{n}{N}\PY{p}{)}
+    \PY{n}{xall\PYZus{}dfts}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{fmax}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} výpočet frekvencí metodou autokorelace}
+\PY{n}{xall\PYZus{}autocorr} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+\PY{n}{raw\PYZus{}autocorr} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+\PY{k}{for} \PY{n}{index}\PY{p}{,} \PY{n}{tone} \PY{o+ow}{in} \PY{n+nb}{enumerate}\PY{p}{(}\PY{n}{xall}\PY{p}{)}\PY{p}{:}
+    \PY{n}{xautocorr} \PY{o}{=} \PY{n}{ss}\PY{o}{.}\PY{n}{correlate}\PY{p}{(}\PY{n}{tone}\PY{p}{,} \PY{n}{tone}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{full}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+    \PY{n}{fmax} \PY{o}{=} \PY{n}{get\PYZus{}autocorr\PYZus{}peak}\PY{p}{(}\PY{n}{xautocorr}\PY{p}{)}
+    \PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{index}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{: }\PY{l+s+si}{\PYZob{}}\PY{n}{fmax}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ [Hz]}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{xall\PYZus{}autocorr}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{fmax}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+0: inf [Hz]
+1: inf [Hz]
+2: inf [Hz]
+3: inf [Hz]
+4: inf [Hz]
+5: inf [Hz]
+6: inf [Hz]
+7: inf [Hz]
+8: inf [Hz]
+9: inf [Hz]
+10: inf [Hz]
+11: inf [Hz]
+12: inf [Hz]
+13: inf [Hz]
+14: inf [Hz]
+15: inf [Hz]
+16: inf [Hz]
+17: inf [Hz]
+18: inf [Hz]
+19: inf [Hz]
+20: inf [Hz]
+21: inf [Hz]
+22: inf [Hz]
+23: inf [Hz]
+24: 32.80929596719071 [Hz]
+25: 34.757422157856624 [Hz]
+26: 36.83806600153492 [Hz]
+27: 39.02439024390244 [Hz]
+28: 41.343669250645995 [Hz]
+29: 43.7956204379562 [Hz]
+30: 46.42166344294004 [Hz]
+31: 49.18032786885246 [Hz]
+32: 52.11726384364821 [Hz]
+33: 55.172413793103445 [Hz]
+34: 58.465286236297196 [Hz]
+35: 61.935483870967744 [Hz]
+36: 65.57377049180327 [Hz]
+37: 69.46454413892909 [Hz]
+38: 73.61963190184049 [Hz]
+39: 77.92207792207792 [Hz]
+40: 82.61617900172116 [Hz]
+41: 87.75137111517367 [Hz]
+42: 92.84332688588007 [Hz]
+43: 98.36065573770492 [Hz]
+44: 104.34782608695652 [Hz]
+45: 110.59907834101382 [Hz]
+46: 117.07317073170732 [Hz]
+47: 123.71134020618557 [Hz]
+48: 131.14754098360655 [Hz]
+49: 138.72832369942196 [Hz]
+50: 147.23926380368098 [Hz]
+51: 155.84415584415584 [Hz]
+52: 164.94845360824743 [Hz]
+53: 175.1824817518248 [Hz]
+54: 185.32818532818533 [Hz]
+55: 196.72131147540983 [Hz]
+56: 207.7922077922078 [Hz]
+57: 220.1834862385321 [Hz]
+58: 234.14634146341464 [Hz]
+59: 247.42268041237114 [Hz]
+60: 262.2950819672131 [Hz]
+61: 277.4566473988439 [Hz]
+62: 294.47852760736197 [Hz]
+63: 311.68831168831167 [Hz]
+64: 328.7671232876712 [Hz]
+65: 350.3649635036496 [Hz]
+66: 369.2307692307692 [Hz]
+67: 393.44262295081967 [Hz]
+68: 417.39130434782606 [Hz]
+69: 440.3669724770642 [Hz]
+70: 466.0194174757282 [Hz]
+71: 494.8453608247423 [Hz]
+72: 521.7391304347826 [Hz]
+73: 551.7241379310345 [Hz]
+74: 585.3658536585366 [Hz]
+75: 623.3766233766233 [Hz]
+76: 657.5342465753424 [Hz]
+77: 695.6521739130435 [Hz]
+78: 738.4615384615385 [Hz]
+79: 786.8852459016393 [Hz]
+80: 827.5862068965517 [Hz]
+81: 888.8888888888889 [Hz]
+82: 941.1764705882352 [Hz]
+83: 1000.0 [Hz]
+84: 1043.4782608695652 [Hz]
+85: 1116.2790697674418 [Hz]
+86: 1170.7317073170732 [Hz]
+87: 1230.7692307692307 [Hz]
+88: 1333.3333333333333 [Hz]
+89: 1411.764705882353 [Hz]
+90: 1500.0 [Hz]
+91: 1548.3870967741937 [Hz]
+92: 1655.1724137931035 [Hz]
+93: 1777.7777777777778 [Hz]
+94: 1846.1538461538462 [Hz]
+95: 2000.0 [Hz]
+96: 2086.9565217391305 [Hz]
+97: 2181.818181818182 [Hz]
+98: 1170.7317073170732 [Hz]
+99: 2526.315789473684 [Hz]
+100: 2666.6666666666665 [Hz]
+101: 2823.529411764706 [Hz]
+102: 3000.0 [Hz]
+103: 1043.4782608695652 [Hz]
+104: 1655.1724137931035 [Hz]
+105: 1170.7317073170732 [Hz]
+106: 3692.3076923076924 [Hz]
+107: 4000.0 [Hz]
+108: 2086.9565217391305 [Hz]
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+/tmp/ipykernel\_64719/711234149.py:21: RuntimeWarning: divide by zero encountered
+in long\_scalars
+  fmax = Fs/p
+    \end{Verbatim}
+
+    \hypertarget{srovnuxe1nuxed-vypoux10duxedtanuxfdch-zuxe1kladnuxedch-frekvencuxed-s-referenux10dnuxedm-midi}{%
+\subsection{Srovnání vypočítaných základních frekvencí s referenčním
+midi}\label{srovnuxe1nuxed-vypoux10duxedtanuxfdch-zuxe1kladnuxedch-frekvencuxed-s-referenux10dnuxedm-midi}}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{10}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{xall\PYZus{}dfts\PYZus{}p} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{n}{xall\PYZus{}dfts}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{24}\PY{p}{:}\PY{p}{]}
+\PY{n}{xall\PYZus{}autocorr\PYZus{}p} \PY{o}{=} \PY{n}{xall\PYZus{}autocorr}\PY{p}{[}\PY{l+m+mi}{24}\PY{p}{:}\PY{p}{]}
+
+\PY{n}{t} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n}{xall\PYZus{}dfts\PYZus{}p}\PY{o}{.}\PY{n}{size}\PY{p}{)} \PY{o}{+} \PY{l+m+mi}{24}
+\PY{c+c1}{\PYZsh{}plt.plot(t, abs(xall\PYZus{}autocorr\PYZus{}p), color=\PYZdq{}orange\PYZdq{})}
+\PY{n}{fig} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{8}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{,} \PY{l+m+mi}{3}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{)}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t}\PY{p}{,} \PY{n+nb}{abs}\PY{p}{(}\PY{n}{xall\PYZus{}dfts\PYZus{}p}\PY{p}{)}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pomocí DFT}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t}\PY{p}{,} \PY{n}{xall\PYZus{}autocorr\PYZus{}p}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pomocí autokorelace}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t}\PY{p}{,} \PY{n}{midi}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{referenční midi soubor}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{title}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Vypočítané základní frekvence}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Midi tón}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Frekvence [Hz]}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{n}{img\PYZus{}gen\PYZus{}folder} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{dft\PYZus{}autocorr\PYZus{}vs\PYZus{}midi.png}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{proj_files/proj_17_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{11}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{fig} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{5}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{,} \PY{l+m+mi}{3}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{)}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t}\PY{p}{,} \PY{n+nb}{abs}\PY{p}{(}\PY{n}{xall\PYZus{}dfts\PYZus{}p}\PY{p}{)} \PY{o}{\PYZhy{}} \PY{n}{midi}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{DFT \PYZhy{} midi}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t}\PY{p}{,} \PY{n}{xall\PYZus{}autocorr\PYZus{}p} \PY{o}{\PYZhy{}} \PY{n}{midi}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{autokorelace \PYZhy{} midi}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{title}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Rozdíly vypočítaných frekvencí od referenčních midi frekvencí}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Midi tón}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Frekvence [Hz]}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{n}{img\PYZus{}gen\PYZus{}folder} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{computed\PYZus{}vs\PYZus{}midi.png}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{proj_files/proj_18_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    Z grafů je patrné nevýhod jednotlivých metod.
+
+Autokorelace dosahuje větších odchylek u vyšších tónů, kde naopak DFT
+dosahuje frekvencí bliších referenčním z midi souboru. U nižších tónů je
+situace opačná, DFT zde dosahuuje větších odchylek oproti autokorelaci.
+
+Pro získání základních frekvencí s nejmenší odchylkou od referenčních
+frekvencí je tedy vhodné použít kombinaci těchto metod.
+
+    \hypertarget{vuxfdbux11br-frekvencuxed-podle-metody-s-menux161uxed-odchylkou-od-referenux10dnuxedho-midi}{%
+\subsection{Výběr frekvencí podle metody s menší odchylkou od
+referenčního
+midi}\label{vuxfdbux11br-frekvencuxed-podle-metody-s-menux161uxed-odchylkou-od-referenux10dnuxedho-midi}}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{12}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{xall\PYZus{}computed\PYZus{}freqs\PYZus{}ac\PYZus{}dft} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{n}{xall\PYZus{}dfts}\PY{p}{)}\PY{o}{.}\PY{n}{size}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{index | midi [Hz]| DFT (odchylka) [Hz]| AC (odchylka) [Hz]| Metoda s menší odchylkou od midi | }\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}|}\PY{l+s+s2}{\PYZdq{}} \PY{o}{*} \PY{l+m+mi}{5}\PY{p}{)}
+\PY{n}{i} \PY{o}{=} \PY{l+m+mi}{24}
+\PY{k}{for} \PY{n}{ac}\PY{p}{,} \PY{n}{dft}\PY{p}{,} \PY{n}{midi\PYZus{}ref}\PY{p}{,} \PY{n}{odchylka\PYZus{}ac}\PY{p}{,} \PY{n}{odchylka\PYZus{}dft} \PY{o+ow}{in} \PY{n+nb}{zip}\PY{p}{(}\PY{n}{xall\PYZus{}autocorr\PYZus{}p}\PY{p}{,} \PY{n}{xall\PYZus{}dfts\PYZus{}p}\PY{p}{,} \PY{n}{midi}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n+nb}{abs}\PY{p}{(}\PY{n}{xall\PYZus{}autocorr\PYZus{}p} \PY{o}{\PYZhy{}} \PY{n}{midi}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n+nb}{abs}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{abs}\PY{p}{(}\PY{n}{xall\PYZus{}dfts\PYZus{}p}\PY{p}{)} \PY{o}{\PYZhy{}} \PY{n}{midi}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}\PY{p}{)}\PY{p}{:}
+    \PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{i}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ | }\PY{l+s+si}{\PYZob{}}\PY{n}{midi\PYZus{}ref}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ |  }\PY{l+s+si}{\PYZob{}}\PY{n}{dft}\PY{l+s+si}{:}\PY{l+s+s2}{.3f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ (}\PY{l+s+si}{\PYZob{}}\PY{n}{odchylka\PYZus{}dft}\PY{l+s+si}{:}\PY{l+s+s2}{.3f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{) | }\PY{l+s+si}{\PYZob{}}\PY{n}{ac}\PY{l+s+si}{:}\PY{l+s+s2}{.3f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ (}\PY{l+s+si}{\PYZob{}}\PY{n}{odchylka\PYZus{}ac}\PY{l+s+si}{:}\PY{l+s+s2}{.3f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{) | }\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{end}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+    \PY{k}{if} \PY{p}{(}\PY{n}{odchylka\PYZus{}ac} \PY{o}{\PYZgt{}} \PY{n}{odchylka\PYZus{}dft}\PY{p}{)}\PY{p}{:}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{DFT}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{xall\PYZus{}computed\PYZus{}freqs\PYZus{}ac\PYZus{}dft}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{=} \PY{n}{dft}
+    \PY{k}{else}\PY{p}{:}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{AC}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{xall\PYZus{}computed\PYZus{}freqs\PYZus{}ac\PYZus{}dft}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{=} \PY{n}{ac}
+    \PY{n}{i}\PY{o}{+}\PY{o}{=}\PY{l+m+mi}{1}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+index | midi [Hz]| DFT (odchylka) [Hz]| AC (odchylka) [Hz]| Metoda s menší
+odchylkou od midi |
+-|-|-|-|-|
+24 | 32.7 |  66.000 (33.300) | 32.809 (0.109) | AC
+25 | 34.65 |  70.000 (35.350) | 34.757 (0.107) | AC
+26 | 36.71 |  74.000 (37.290) | 36.838 (0.128) | AC
+27 | 38.89 |  78.000 (39.110) | 39.024 (0.134) | AC
+28 | 41.2 |  82.000 (40.800) | 41.344 (0.144) | AC
+29 | 43.65 |  88.000 (44.350) | 43.796 (0.146) | AC
+30 | 46.25 |  92.000 (45.750) | 46.422 (0.172) | AC
+31 | 49.0 |  98.000 (49.000) | 49.180 (0.180) | AC
+32 | 51.91 |  104.000 (52.090) | 52.117 (0.207) | AC
+33 | 55.0 |  110.000 (55.000) | 55.172 (0.172) | AC
+34 | 58.27 |  116.000 (57.730) | 58.465 (0.195) | AC
+35 | 61.74 |  124.000 (62.260) | 61.935 (0.195) | AC
+36 | 65.41 |  130.000 (64.590) | 65.574 (0.164) | AC
+37 | 69.3 |  138.000 (68.700) | 69.465 (0.165) | AC
+38 | 73.42 |  220.000 (146.580) | 73.620 (0.200) | AC
+39 | 77.78 |  234.000 (156.220) | 77.922 (0.142) | AC
+40 | 82.41 |  248.000 (165.590) | 82.616 (0.206) | AC
+41 | 87.31 |  88.000 (0.690) | 87.751 (0.441) | AC
+42 | 92.5 |  92.000 (0.500) | 92.843 (0.343) | AC
+43 | 98.0 |  98.000 (0.000) | 98.361 (0.361) | DFT
+44 | 103.83 |  104.000 (0.170) | 104.348 (0.518) | DFT
+45 | 110.0 |  110.000 (0.000) | 110.599 (0.599) | DFT
+46 | 116.54 |  118.000 (1.460) | 117.073 (0.533) | AC
+47 | 123.47 |  124.000 (0.530) | 123.711 (0.241) | AC
+48 | 130.81 |  130.000 (0.810) | 131.148 (0.338) | AC
+49 | 138.59 |  138.000 (0.590) | 138.728 (0.138) | AC
+50 | 146.83 |  146.000 (0.830) | 147.239 (0.409) | AC
+51 | 155.56 |  156.000 (0.440) | 155.844 (0.284) | AC
+52 | 164.81 |  164.000 (0.810) | 164.948 (0.138) | AC
+53 | 174.61 |  350.000 (175.390) | 175.182 (0.572) | AC
+54 | 185.0 |  370.000 (185.000) | 185.328 (0.328) | AC
+55 | 196.0 |  392.000 (196.000) | 196.721 (0.721) | AC
+56 | 207.65 |  208.000 (0.350) | 207.792 (0.142) | AC
+57 | 220.0 |  220.000 (0.000) | 220.183 (0.183) | DFT
+58 | 233.08 |  234.000 (0.920) | 234.146 (1.066) | DFT
+59 | 246.94 |  248.000 (1.060) | 247.423 (0.483) | AC
+60 | 261.63 |  262.000 (0.370) | 262.295 (0.665) | DFT
+61 | 277.18 |  278.000 (0.820) | 277.457 (0.277) | AC
+62 | 293.66 |  294.000 (0.340) | 294.479 (0.819) | DFT
+63 | 311.13 |  312.000 (0.870) | 311.688 (0.558) | AC
+64 | 329.63 |  330.000 (0.370) | 328.767 (0.863) | DFT
+65 | 349.23 |  350.000 (0.770) | 350.365 (1.135) | DFT
+66 | 369.99 |  370.000 (0.010) | 369.231 (0.759) | DFT
+67 | 392.0 |  392.000 (0.000) | 393.443 (1.443) | DFT
+68 | 415.3 |  416.000 (0.700) | 417.391 (2.091) | DFT
+69 | 440.0 |  440.000 (0.000) | 440.367 (0.367) | DFT
+70 | 466.16 |  466.000 (0.160) | 466.019 (0.141) | AC
+71 | 493.88 |  494.000 (0.120) | 494.845 (0.965) | DFT
+72 | 523.25 |  524.000 (0.750) | 521.739 (1.511) | DFT
+73 | 554.37 |  554.000 (0.370) | 551.724 (2.646) | DFT
+74 | 587.33 |  588.000 (0.670) | 585.366 (1.964) | DFT
+75 | 622.25 |  622.000 (0.250) | 623.377 (1.127) | DFT
+76 | 659.26 |  660.000 (0.740) | 657.534 (1.726) | DFT
+77 | 698.46 |  698.000 (0.460) | 695.652 (2.808) | DFT
+78 | 739.99 |  740.000 (0.010) | 738.462 (1.528) | DFT
+79 | 783.99 |  784.000 (0.010) | 786.885 (2.895) | DFT
+80 | 830.61 |  830.000 (0.610) | 827.586 (3.024) | DFT
+81 | 880.0 |  882.000 (2.000) | 888.889 (8.889) | DFT
+82 | 932.33 |  932.000 (0.330) | 941.176 (8.846) | DFT
+83 | 987.77 |  988.000 (0.230) | 1000.000 (12.230) | DFT
+84 | 1046.5 |  1046.000 (0.500) | 1043.478 (3.022) | DFT
+85 | 1108.73 |  1108.000 (0.730) | 1116.279 (7.549) | DFT
+86 | 1174.66 |  1174.000 (0.660) | 1170.732 (3.928) | DFT
+87 | 1244.51 |  1244.000 (0.510) | 1230.769 (13.741) | DFT
+88 | 1318.51 |  1318.000 (0.510) | 1333.333 (14.823) | DFT
+89 | 1396.91 |  1396.000 (0.910) | 1411.765 (14.855) | DFT
+90 | 1479.98 |  1478.000 (1.980) | 1500.000 (20.020) | DFT
+91 | 1567.98 |  1566.000 (1.980) | 1548.387 (19.593) | DFT
+92 | 1661.22 |  1660.000 (1.220) | 1655.172 (6.048) | DFT
+93 | 1760.0 |  1758.000 (2.000) | 1777.778 (17.778) | DFT
+94 | 1864.66 |  1864.000 (0.660) | 1846.154 (18.506) | DFT
+95 | 1975.53 |  1976.000 (0.470) | 2000.000 (24.470) | DFT
+96 | 2093.0 |  2094.000 (1.000) | 2086.957 (6.043) | DFT
+97 | 2217.46 |  2218.000 (0.540) | 2181.818 (35.642) | DFT
+98 | 2349.32 |  2350.000 (0.680) | 1170.732 (1178.588) | DFT
+99 | 2489.02 |  2490.000 (0.980) | 2526.316 (37.296) | DFT
+100 | 2637.02 |  2638.000 (0.980) | 2666.667 (29.647) | DFT
+101 | 2793.83 |  2796.000 (2.170) | 2823.529 (29.699) | DFT
+102 | 2959.96 |  2962.000 (2.040) | 3000.000 (40.040) | DFT
+103 | 3135.96 |  3138.000 (2.040) | 1043.478 (2092.482) | DFT
+104 | 3322.44 |  3324.000 (1.560) | 1655.172 (1667.268) | DFT
+105 | 3520.0 |  3522.000 (2.000) | 1170.732 (2349.268) | DFT
+106 | 3729.31 |  3732.000 (2.690) | 3692.308 (37.002) | DFT
+107 | 3951.07 |  3954.000 (2.930) | 4000.000 (48.930) | DFT
+108 | 4186.01 |  4188.000 (1.990) | 2086.957 (2099.053) | DFT
+    \end{Verbatim}
+
+    \hypertarget{zpux159esnux11bnuxed-odhadu-zuxe1kladnuxed-frekvence-f0}{%
+\section{Zpřesnění odhadu základní frekvence
+f0}\label{zpux159esnux11bnuxed-odhadu-zuxe1kladnuxed-frekvence-f0}}
+
+    Implementace DTFT převzata z dostupných zdrojů na webu ISS.
+
+Hodnoty \texttt{range} a \texttt{points} byly vybrány manuálně
+opakovanými pokusy o zpřesnění výstupu.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{13}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} převzato z dostupných python notebooků na stránkách ISS}
+\PY{c+c1}{\PYZsh{} \PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{}\PYZgt{} \PYZsh{}dtft \PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}\PYZlt{}}
+\PY{n}{x} \PY{o}{=} \PY{n}{xall}\PY{p}{[}\PY{l+m+mi}{80}\PY{p}{]}
+\PY{c+c1}{\PYZsh{} do the DTFT }
+\PY{k}{def} \PY{n+nf}{DTFT}\PY{p}{(}\PY{n}{tone}\PY{p}{,} \PY{n}{f}\PY{p}{,} \PY{n}{N}\PY{o}{=}\PY{l+m+mi}{24000}\PY{p}{,} \PY{n}{Fs}\PY{o}{=}\PY{l+m+mi}{48000}\PY{p}{,} \PY{n+nb}{range}\PY{o}{=}\PY{l+m+mi}{4}\PY{p}{,} \PY{n}{points}\PY{o}{=}\PY{l+m+mi}{500}\PY{p}{)}\PY{p}{:}
+    \PY{n}{FREQRANGE} \PY{o}{=} \PY{n+nb}{range}
+    \PY{n}{FREQPOINTS} \PY{o}{=} \PY{n}{points}
+
+    \PY{n}{n} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,}\PY{n}{N}\PY{p}{)}
+    \PY{n}{fsweep} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{linspace}\PY{p}{(}\PY{n}{f}\PY{o}{\PYZhy{}}\PY{n}{FREQRANGE}\PY{p}{,} \PY{n}{f}\PY{o}{+}\PY{n}{FREQRANGE}\PY{p}{,}\PY{n}{FREQPOINTS}\PY{p}{)}
+    \PY{n}{A} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{p}{[}\PY{n}{FREQPOINTS}\PY{p}{,} \PY{n}{N}\PY{p}{]}\PY{p}{,}\PY{n}{dtype}\PY{o}{=}\PY{n+nb}{complex}\PY{p}{)}   
+    \PY{k}{for} \PY{n}{k} \PY{o+ow}{in} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,}\PY{n}{FREQPOINTS}\PY{p}{)}\PY{p}{:}
+        \PY{n}{A}\PY{p}{[}\PY{n}{k}\PY{p}{,}\PY{p}{:}\PY{p}{]} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{exp}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{n}{j} \PY{o}{*} \PY{l+m+mi}{2} \PY{o}{*} \PY{n}{np}\PY{o}{.}\PY{n}{pi} \PY{o}{*} \PY{n}{fsweep}\PY{p}{[}\PY{n}{k}\PY{p}{]} \PY{o}{/} \PY{n}{Fs} \PY{o}{*} \PY{n}{n}\PY{p}{)}     \PY{c+c1}{\PYZsh{} norm. omega = 2 * pi * f / Fs ... }
+    \PY{n}{Xdtft} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{matmul}\PY{p}{(}\PY{n}{A}\PY{p}{,}\PY{n}{tone}\PY{o}{.}\PY{n}{T}\PY{p}{)}
+    \PY{n}{Xmax} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{argmax}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{abs}\PY{p}{(}\PY{n}{Xdtft}\PY{p}{)}\PY{p}{)}
+    \PY{n}{precisefmax} \PY{o}{=} \PY{n}{fsweep}\PY{p}{[}\PY{n}{Xmax}\PY{p}{]}
+    \PY{k}{return} \PY{n}{Xdtft}\PY{p}{,} \PY{n}{precisefmax}\PY{p}{,} \PY{n}{fsweep}\PY{p}{,} \PY{n}{Xmax}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \hypertarget{srovnuxe1nuxed-metody-dtft-metody-s-nejmenux161uxed-odchylkou-od-midi-a-midi-samotnuxe9ho}{%
+\subsection{Srovnání metody DTFT, metody s nejmenší odchylkou od midi a
+midi
+samotného}\label{srovnuxe1nuxed-metody-dtft-metody-s-nejmenux161uxed-odchylkou-od-midi-a-midi-samotnuxe9ho}}
+
+Jako vstupní odhad základní frekvence pro DTFT používáme frekvence
+získané kombinací autokorelace a DFT podle menší odchylky od
+referenčního midi.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{14}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{xall\PYZus{}dtft} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{p}{(}\PY{n}{xall\PYZus{}computed\PYZus{}freqs\PYZus{}ac\PYZus{}dft}\PY{o}{.}\PY{n}{size}\PY{p}{)}\PY{p}{)}
+\PY{n}{i} \PY{o}{=} \PY{l+m+mi}{0}
+\PY{k}{for} \PY{n}{f}\PY{p}{,} \PY{n}{tone} \PY{o+ow}{in} \PY{n+nb}{zip}\PY{p}{(}\PY{n}{xall\PYZus{}computed\PYZus{}freqs\PYZus{}ac\PYZus{}dft}\PY{p}{[}\PY{l+m+mi}{24}\PY{p}{:}\PY{p}{]}\PY{p}{,} \PY{n}{xall}\PY{p}{[}\PY{l+m+mi}{24}\PY{p}{:}\PY{p}{]}\PY{p}{)}\PY{p}{:}
+    \PY{n}{tone\PYZus{}sound} \PY{o}{=} \PY{n}{tone}
+    \PY{n}{Xdtft}\PY{p}{,} \PY{n}{precisefmax}\PY{p}{,} \PY{n}{fsweep}\PY{p}{,} \PY{n}{xmax} \PY{o}{=} \PY{n}{DTFT}\PY{p}{(}\PY{n}{tone\PYZus{}sound}\PY{p}{,} \PY{n}{f}\PY{p}{)}
+    \PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{i}\PY{o}{+}\PY{l+m+mi}{24}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{: comp=}\PY{l+s+si}{\PYZob{}}\PY{n}{f}\PY{l+s+si}{:}\PY{l+s+s2}{.3f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ dtft=}\PY{l+s+si}{\PYZob{}}\PY{n}{precisefmax}\PY{l+s+si}{:}\PY{l+s+s2}{.4f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ midi=}\PY{l+s+si}{\PYZob{}}\PY{n}{midi}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{xall\PYZus{}dtft}\PY{p}{[}\PY{n}{i}\PY{o}{+}\PY{l+m+mi}{24}\PY{p}{]} \PY{o}{=} \PY{n}{precisefmax}
+    \PY{n}{i}\PY{o}{+}\PY{o}{=}\PY{l+m+mi}{1}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+24: comp=32.809 dtft=32.1600 midi=32.7
+25: comp=34.757 dtft=32.5370 midi=34.65
+26: comp=36.838 dtft=36.1888 midi=36.71
+27: comp=39.024 dtft=38.3270 midi=38.89
+28: comp=41.344 dtft=39.2355 midi=41.2
+29: comp=43.796 dtft=44.3648 midi=43.65
+30: comp=46.422 dtft=43.5279 midi=46.25
+31: comp=49.180 dtft=46.7996 midi=49.0
+32: comp=52.117 dtft=54.4660 midi=51.91
+33: comp=55.172 dtft=55.5973 midi=55.0
+34: comp=58.465 dtft=59.3871 midi=58.27
+35: comp=61.935 dtft=61.9756 midi=61.74
+36: comp=65.574 dtft=65.3413 midi=65.41
+37: comp=69.465 dtft=69.0718 midi=69.3
+38: comp=73.620 dtft=72.9543 midi=73.42
+39: comp=77.922 dtft=77.3048 midi=77.78
+40: comp=82.616 dtft=81.9669 midi=82.41
+41: comp=87.751 dtft=87.6953 midi=87.31
+42: comp=92.843 dtft=92.9315 midi=92.5
+43: comp=98.000 dtft=98.4569 midi=98.0
+44: comp=104.000 dtft=104.2966 midi=103.83
+45: comp=110.000 dtft=110.5050 midi=110.0
+46: comp=117.073 dtft=117.0652 midi=116.54
+47: comp=123.711 dtft=123.1903 midi=123.47
+48: comp=131.148 dtft=130.5143 midi=130.81
+49: comp=138.728 dtft=138.2714 midi=138.59
+50: comp=147.239 dtft=146.6862 midi=146.83
+51: comp=155.844 dtft=155.3872 midi=155.56
+52: comp=164.948 dtft=164.6038 midi=164.81
+53: comp=175.182 dtft=174.5172 midi=174.61
+54: comp=185.328 dtft=184.8873 midi=185.0
+55: comp=196.721 dtft=195.8957 midi=196.0
+56: comp=207.792 dtft=207.8002 midi=207.65
+57: comp=220.000 dtft=220.1523 midi=220.0
+58: comp=234.000 dtft=233.2385 midi=233.08
+59: comp=247.423 dtft=247.0780 midi=246.94
+60: comp=262.000 dtft=261.7675 midi=261.63
+61: comp=277.457 dtft=277.3364 midi=277.18
+62: comp=294.000 dtft=293.6232 midi=293.66
+63: comp=311.688 dtft=311.0871 midi=311.13
+64: comp=330.000 dtft=329.5912 midi=329.63
+65: comp=350.000 dtft=349.1423 midi=349.23
+66: comp=370.000 dtft=369.8958 midi=369.99
+67: comp=392.000 dtft=391.8798 midi=392.0
+68: comp=416.000 dtft=415.4469 midi=415.3
+69: comp=440.000 dtft=440.1363 midi=440.0
+70: comp=466.019 dtft=466.2679 midi=466.16
+71: comp=494.000 dtft=493.8317 midi=493.88
+72: comp=524.000 dtft=523.1904 midi=523.25
+73: comp=554.000 dtft=554.2966 midi=554.37
+74: comp=588.000 dtft=587.1904 midi=587.33
+75: comp=622.000 dtft=622.1042 midi=622.25
+76: comp=660.000 dtft=659.0942 midi=659.26
+77: comp=698.000 dtft=697.5591 midi=698.46
+78: comp=740.000 dtft=739.0782 midi=739.99
+79: comp=784.000 dtft=783.0942 midi=783.99
+80: comp=830.000 dtft=829.6072 midi=830.61
+81: comp=882.000 dtft=878.9940 midi=880.0
+82: comp=932.000 dtft=931.3507 midi=932.33
+83: comp=988.000 dtft=987.6072 midi=987.77
+84: comp=1046.000 dtft=1046.1523 midi=1046.5
+85: comp=1108.000 dtft=1108.3126 midi=1108.73
+86: comp=1174.000 dtft=1174.2164 midi=1174.66
+87: comp=1244.000 dtft=1244.1042 midi=1244.51
+88: comp=1318.000 dtft=1318.1683 midi=1318.51
+89: comp=1396.000 dtft=1395.9279 midi=1396.91
+90: comp=1478.000 dtft=1478.9379 midi=1479.98
+91: comp=1566.000 dtft=1566.9058 midi=1567.98
+92: comp=1660.000 dtft=1660.0561 midi=1661.22
+93: comp=1758.000 dtft=1758.9539 midi=1760.0
+94: comp=1864.000 dtft=1863.6072 midi=1864.66
+95: comp=1976.000 dtft=1976.4729 midi=1975.53
+96: comp=2094.000 dtft=2093.9920 midi=2093.0
+97: comp=2218.000 dtft=2218.5050 midi=2217.46
+98: comp=2350.000 dtft=2350.6493 midi=2349.32
+99: comp=2490.000 dtft=2490.4248 midi=2489.02
+100: comp=2638.000 dtft=2638.5210 midi=2637.02
+101: comp=2796.000 dtft=2795.0621 midi=2793.83
+102: comp=2962.000 dtft=2961.2545 midi=2959.96
+103: comp=3138.000 dtft=3137.3828 midi=3135.96
+104: comp=3324.000 dtft=3324.0240 midi=3322.44
+105: comp=3522.000 dtft=3521.6874 midi=3520.0
+106: comp=3732.000 dtft=3731.1423 midi=3729.31
+107: comp=3954.000 dtft=3953.1904 midi=3951.07
+108: comp=4188.000 dtft=4188.2485 midi=4186.01
+    \end{Verbatim}
+
+    Ve výpisu lze vidět, že DTFT dosahuje oproti kombinaci DFT a
+autokorelace vyšších odchylek od referenčního midi u nižších tónů.
+
+    Předpokádáme že nějaké odchylky od referenčního midi se ve vypočítaných
+frekvencích budou vyskytovat, kvůli drobným nepřesnostem výpočtu či
+možného ``rozladění'' klavíru ve vstupní nahrávce použité pro výpočet
+frekvencí může k takovýmto odchylkám dojít.
+
+    \hypertarget{reprezentace-klavuxedru-10-fp-ux10duxedsly}{%
+\section{Reprezentace klavíru 10 FP
+čísly}\label{reprezentace-klavuxedru-10-fp-ux10duxedsly}}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{15}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{xall\PYZus{}computed\PYZus{}frequencies} \PY{o}{=} \PY{n}{xall\PYZus{}dtft}\PY{p}{[}\PY{l+m+mi}{24}\PY{p}{:}\PY{p}{]} \PY{c+c1}{\PYZsh{} pro koeficienty použijeme frekvence zjištěné z DTFT}
+\PY{n}{times\PYZus{}DTFT} \PY{o}{=} \PY{l+m+mi}{10} \PY{c+c1}{\PYZsh{} získáme 10 modulů}
+\PY{k}{def} \PY{n+nf}{DTFT\PYZus{}n\PYZus{}times}\PY{p}{(}\PY{n}{f}\PY{p}{,} \PY{n}{sound}\PY{p}{,} \PY{n}{n}\PY{o}{=}\PY{n}{times\PYZus{}DTFT}\PY{p}{)}\PY{p}{:}
+    \PY{n}{modules} \PY{o}{=} \PY{n+nb}{list}\PY{p}{(}\PY{p}{)}
+    \PY{n}{phases} \PY{o}{=} \PY{n+nb}{list}\PY{p}{(}\PY{p}{)}
+    \PY{n}{freqs} \PY{o}{=} \PY{n+nb}{list}\PY{p}{(}\PY{p}{)}
+    \PY{n}{dtfts} \PY{o}{=} \PY{n+nb}{list}\PY{p}{(}\PY{p}{)}
+    \PY{k}{for} \PY{n}{xdtft}\PY{p}{,} \PY{n}{fmax}\PY{p}{,} \PY{n}{fsweep}\PY{p}{,} \PY{n}{xmax} \PY{o+ow}{in} \PY{p}{[}\PY{n}{DTFT}\PY{p}{(}\PY{n}{sound}\PY{p}{,} \PY{n}{f}\PY{o}{*}\PY{n}{multiple}\PY{p}{)} \PY{k}{for} \PY{n}{multiple} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{,} \PY{n}{n}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{]}\PY{p}{:}
+        \PY{n}{dtfts}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{xdtft}\PY{p}{)}
+        \PY{n}{modules}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{abs}\PY{p}{(}\PY{n}{xdtft}\PY{p}{[}\PY{n}{xmax}\PY{p}{]}\PY{p}{)}\PY{p}{)}
+        \PY{n}{phases}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{angle}\PY{p}{(}\PY{n}{xdtft}\PY{p}{[}\PY{n}{xmax}\PY{p}{]}\PY{p}{)}\PY{p}{)}
+        \PY{n}{freqs}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{fmax}\PY{p}{)}
+    \PY{k}{return} \PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{n}{modules}\PY{p}{)}\PY{p}{,} \PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{n}{phases}\PY{p}{)}\PY{p}{,} \PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{n}{freqs}\PY{p}{)}\PY{p}{,} \PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{n}{dtfts}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} spouštění DTFT paralelně pro zrychlení}
+\PY{k+kn}{import} \PY{n+nn}{multiprocessing}
+\PY{k+kn}{from} \PY{n+nn}{contextlib} \PY{k+kn}{import} \PY{n}{closing}
+\PY{k}{with} \PY{n}{closing}\PY{p}{(}\PY{n}{multiprocessing}\PY{o}{.}\PY{n}{Pool}\PY{p}{(}\PY{n}{maxtasksperchild}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{)} \PY{k}{as} \PY{n}{pool}\PY{p}{:}
+    \PY{n}{keyboard\PYZus{}repr} \PY{o}{=} \PY{n}{pool}\PY{o}{.}\PY{n}{starmap}\PY{p}{(}\PY{n}{DTFT\PYZus{}n\PYZus{}times}\PY{p}{,} \PY{n+nb}{zip}\PY{p}{(}\PY{n}{xall\PYZus{}computed\PYZus{}frequencies}\PY{p}{,} \PY{n}{xall}\PY{p}{[}\PY{l+m+mi}{24}\PY{p}{:}\PY{p}{]}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{16}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} naplnění dále používaných struktur pro moduly, fáze, frekvence a dtft z vypočítané reprezentace klavíru}
+\PY{n}{i} \PY{o}{=} \PY{l+m+mi}{24}
+\PY{n}{modules} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{p}{(}\PY{n}{xall}\PY{o}{.}\PY{n}{size}\PY{p}{,} \PY{n}{times\PYZus{}DTFT}\PY{p}{)}\PY{p}{)}
+\PY{n}{phases} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{p}{(}\PY{n}{xall}\PY{o}{.}\PY{n}{size}\PY{p}{,} \PY{n}{times\PYZus{}DTFT}\PY{p}{)}\PY{p}{)}
+\PY{n}{freqs} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{p}{(}\PY{n}{xall}\PY{o}{.}\PY{n}{size}\PY{p}{,} \PY{n}{times\PYZus{}DTFT}\PY{p}{)}\PY{p}{)}
+\PY{n}{dtfts} \PY{o}{=} \PY{n+nb}{list}\PY{p}{(}\PY{p}{)}
+\PY{k}{for} \PY{n}{tone\PYZus{}repr} \PY{o+ow}{in} \PY{n}{keyboard\PYZus{}repr}\PY{p}{:}
+    \PY{n}{modules}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{=} \PY{n}{tone\PYZus{}repr}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}
+    \PY{n}{phases}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{=} \PY{n}{tone\PYZus{}repr}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}
+    \PY{n}{freqs}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{=} \PY{n}{tone\PYZus{}repr}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}
+    \PY{n}{dtfts}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{tone\PYZus{}repr}\PY{p}{[}\PY{l+m+mi}{3}\PY{p}{]}\PY{p}{)}
+    \PY{n}{i}\PY{o}{+}\PY{o}{=}\PY{l+m+mi}{1}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{17}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} vykreslení spektra s koeficienty}
+\PY{n}{fig}\PY{p}{,} \PY{p}{(}\PY{n}{a\PYZus{}plots}\PY{p}{,} \PY{n}{b\PYZus{}plots}\PY{p}{,} \PY{n}{c\PYZus{}plots}\PY{p}{)} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplots}\PY{p}{(}\PY{l+m+mi}{3}\PY{p}{,} \PY{l+m+mi}{1}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{3}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{,} \PY{l+m+mi}{4}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{)}\PY{p}{)}
+\PY{k}{def} \PY{n+nf}{plot\PYZus{}tone\PYZus{}coeff}\PY{p}{(}\PY{n}{tone}\PY{p}{,} \PY{n+nb}{id}\PY{p}{,} \PY{n}{axis}\PY{p}{,} \PY{n}{zakladni\PYZus{}f}\PY{p}{)}\PY{p}{:}
+    \PY{n}{fft\PYZus{}of\PYZus{}tone} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{abs}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{fft}\PY{o}{.}\PY{n}{fft}\PY{p}{(}\PY{n}{tone}\PY{p}{)}\PY{p}{[}\PY{p}{:}\PY{n}{tone}\PY{o}{.}\PY{n}{size}\PY{p}{]}\PY{p}{)}
+    \PY{n}{t\PYZus{}dft} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{n}{fft\PYZus{}of\PYZus{}tone}\PY{o}{.}\PY{n}{size}\PY{p}{)} \PY{o}{*} \PY{l+m+mi}{2}
+    \PY{n}{PSD} \PY{o}{=} \PY{l+m+mi}{10} \PY{o}{*} \PY{n}{np}\PY{o}{.}\PY{n}{log10}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{abs}\PY{p}{(}\PY{n}{fft\PYZus{}of\PYZus{}tone}\PY{p}{)}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2} \PY{o}{+} \PY{p}{(}\PY{l+m+mf}{0.00000001}\PY{p}{)}\PY{p}{)}
+
+    \PY{n}{axis}\PY{o}{.}\PY{n}{set\PYZus{}ylabel}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}PSD |X| [dB]\PYZdl{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{set\PYZus{}xlabel}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}frekvence [Hz]\PYZdl{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{set\PYZus{}title}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Spektrum tónu }\PY{l+s+se}{\PYZbs{}\PYZsq{}}\PY{l+s+si}{\PYZob{}}\PY{n+nb}{id}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}\PYZsq{}}\PY{l+s+s2}{ s vyznačenými koeficienty  (\PYZdl{}f\PYZus{}0 = }\PY{l+s+si}{\PYZob{}}\PY{n}{zakladni\PYZus{}f}\PY{l+s+si}{:}\PY{l+s+s2}{0.3f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ [Hz]\PYZdl{})}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{set\PYZus{}xticks}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n}{fft\PYZus{}of\PYZus{}tone}\PY{p}{)}\PY{p}{,} \PY{l+m+mi}{100}\PY{p}{)}\PY{p}{,} \PY{n}{minor}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{set\PYZus{}xlim}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{100}\PY{p}{,} \PY{p}{(}\PY{n}{freqs}\PY{p}{[}\PY{n+nb}{id}\PY{p}{]}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{*}\PY{l+m+mi}{11}\PY{p}{)}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t\PYZus{}dft}\PY{p}{,} \PY{n}{PSD}\PY{p}{)}
+
+    \PY{c+c1}{\PYZsh{} vyznačení koeficientů ve spektru}
+    \PY{k}{for} \PY{n}{f}\PY{p}{,} \PY{n}{m} \PY{o+ow}{in} \PY{n+nb}{zip}\PY{p}{(}\PY{n}{freqs}\PY{p}{[}\PY{n+nb}{id}\PY{p}{]}\PY{p}{,} \PY{n}{modules}\PY{p}{[}\PY{n+nb}{id}\PY{p}{]}\PY{p}{)}\PY{p}{:}
+        \PY{n}{point\PYZus{}x} \PY{o}{=} \PY{n+nb}{int}\PY{p}{(}\PY{n}{f}\PY{p}{)}
+        \PY{n}{point\PYZus{}y} \PY{o}{=} \PY{l+m+mi}{10} \PY{o}{*} \PY{n}{np}\PY{o}{.}\PY{n}{log10}\PY{p}{(}\PY{n}{m}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2} \PY{o}{+} \PY{p}{(}\PY{l+m+mf}{0.0000000000000001}\PY{p}{)}\PY{p}{)}
+        \PY{n}{axis}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{point\PYZus{}x}\PY{p}{,} \PY{n}{point\PYZus{}y}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{rx}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{axis}\PY{o}{.}\PY{n}{axvline}\PY{p}{(}\PY{n}{point\PYZus{}x}\PY{p}{,} \PY{n}{linestyle}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{dotted}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{color}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{r}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)} \PY{c+c1}{\PYZsh{} pro lepší zvýraznění bodů}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{(}\PY{l+s+si}{\PYZob{}}\PY{n}{point\PYZus{}x}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{,}\PY{l+s+si}{\PYZob{}}\PY{n}{point\PYZus{}y}\PY{l+s+si}{:}\PY{l+s+s2}{.2f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{), }\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{end}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{k}{return} \PY{n}{fft\PYZus{}of\PYZus{}tone}
+
+\PY{n}{plot\PYZus{}tone\PYZus{}coeff}\PY{p}{(}\PY{n}{a}\PY{p}{,} \PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{a\PYZus{}plots}\PY{p}{,} \PY{n}{freqs}\PY{p}{[}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{]}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}
+\PY{n}{plot\PYZus{}tone\PYZus{}coeff}\PY{p}{(}\PY{n}{b}\PY{p}{,} \PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{b\PYZus{}plots}\PY{p}{,} \PY{n}{freqs}\PY{p}{[}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{]}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}
+\PY{n}{plot\PYZus{}tone\PYZus{}coeff}\PY{p}{(}\PY{n}{c}\PY{p}{,} \PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{,} \PY{n}{c\PYZus{}plots}\PY{p}{,} \PY{n}{freqs}\PY{p}{[}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{]}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}
+
+\PY{n}{fig}\PY{o}{.}\PY{n}{tight\PYZus{}layout}\PY{p}{(}\PY{p}{)}
+\PY{n}{fig}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{n}{img\PYZus{}gen\PYZus{}folder} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{my\PYZus{}tones\PYZus{}spectrum\PYZus{}coeffs\PYZus{}paralell.png}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+(69,22.08), (138,58.98), (207,50.15), (277,50.70), (346,44.63), (416,52.01),
+(485,43.10), (555,33.06), (624,40.38), (694,43.07),
+(697,44.47), (1398,33.86), (2096,11.87), (2788,-16.61), (3491,-12.98),
+(4188,-14.06), (4880,-20.73), (5582,-22.20), (6278,-23.16), (6972,-26.57),
+(1758,34.61), (3519,1.73), (5280,-21.90), (7038,-35.58), (8792,-43.15),
+(10554,-46.71), (12314,-47.93), (14072,-48.36), (15830,-48.52), (17585,-51.25),
+    \end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{proj_files/proj_32_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{syntuxe9za-tuxf3nux16f}{%
+\section{Syntéza tónů}\label{syntuxe9za-tuxf3nux16f}}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{22}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k}{def} \PY{n+nf}{get\PYZus{}synt}\PY{p}{(}\PY{n}{tone\PYZus{}id}\PY{p}{)}\PY{p}{:}
+    \PY{n}{X} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{n}{N}\PY{o}{*}\PY{l+m+mi}{2}\PY{p}{,} \PY{n}{dtype}\PY{o}{=}\PY{n+nb}{complex}\PY{p}{)}
+    \PY{n}{x} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{n}{N}\PY{p}{)}
+    \PY{n}{findexs} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{rint}\PY{p}{(}\PY{n}{freqs}\PY{p}{[}\PY{n}{tone\PYZus{}id}\PY{p}{]}\PY{p}{)}\PY{o}{.}\PY{n}{astype}\PY{p}{(}\PY{n+nb}{int}\PY{p}{)} \PY{c+c1}{\PYZsh{} indexy koeficientu, na ktere se vlozi vypocitane moduly}
+    \PY{n}{X}\PY{p}{[}\PY{n}{findexs}\PY{p}{]} \PY{o}{=} \PY{n}{X}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{n}{findexs}\PY{p}{]}\PY{o}{=} \PY{n}{modules}\PY{p}{[}\PY{n}{tone\PYZus{}id}\PY{p}{]} \PY{c+c1}{\PYZsh{}\PYZhy{} 1j*phases[toneid]}
+    \PY{n}{xs\PYZus{}nn} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{real}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{fft}\PY{o}{.}\PY{n}{ifft}\PY{p}{(}\PY{n}{X}\PY{p}{,} \PY{n}{n}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+    \PY{n}{norm\PYZus{}xs} \PY{o}{=} \PY{n}{xs\PYZus{}nn}\PY{o}{/}\PY{n+nb}{max}\PY{p}{(}\PY{n}{xs\PYZus{}nn}\PY{p}{)} \PY{c+c1}{\PYZsh{} třeba ještě normalizovat...}
+    \PY{n}{xs} \PY{o}{=} \PY{n}{norm\PYZus{}xs}\PY{o}{*}\PY{n+nb}{max}\PY{p}{(}\PY{n}{xall}\PY{p}{[}\PY{n}{tone\PYZus{}id}\PY{p}{]}\PY{p}{)} \PY{c+c1}{\PYZsh{} a dostat na správnou výšku}
+    \PY{k}{return} \PY{n}{xs}\PY{p}{,} \PY{n}{X}
+
+\PY{n}{a\PYZus{}synt}\PY{p}{,} \PY{n}{Xa} \PY{o}{=} \PY{n}{get\PYZus{}synt}\PY{p}{(}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}
+\PY{n}{b\PYZus{}synt}\PY{p}{,} \PY{n}{Xb} \PY{o}{=} \PY{n}{get\PYZus{}synt}\PY{p}{(}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
+\PY{n}{c\PYZus{}synt}\PY{p}{,} \PY{n}{Xc} \PY{o}{=} \PY{n}{get\PYZus{}synt}\PY{p}{(}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{23}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Originální tón a}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{xall}\PY{p}{[}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{]}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Syntetizovaný tón a}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{a\PYZus{}synt}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{o}{*}\PY{l+m+mi}{30}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Originální tón b}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{xall}\PY{p}{[}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{]}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Syntetizovaný tón b}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{b\PYZus{}synt}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{o}{*}\PY{l+m+mi}{30}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Originální tón b}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{xall}\PY{p}{[}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{]}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Syntetizovaný tón c}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{display}\PY{p}{(}\PY{n}{Audio}\PY{p}{(}\PY{n}{c\PYZus{}synt}\PY{p}{,} \PY{n}{rate}\PY{o}{=}\PY{n}{Fs}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Originální tón a
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+Syntetizovaný tón a
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+------------------------------
+Originální tón b
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+Syntetizovaný tón b
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+------------------------------
+Originální tón b
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+Syntetizovaný tón c
+    \end{Verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+<IPython.lib.display.Audio object>
+    \end{Verbatim}
+
+    
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{24}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{fig}\PY{p}{,} \PY{p}{(}\PY{n}{a\PYZus{}plots}\PY{p}{,} \PY{n}{b\PYZus{}plots}\PY{p}{,} \PY{n}{c\PYZus{}plots}\PY{p}{)} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplots}\PY{p}{(}\PY{l+m+mi}{3}\PY{p}{,} \PY{l+m+mi}{1}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{5}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{,} \PY{l+m+mi}{4}\PY{o}{*}\PY{n}{plt\PYZus{}scale}\PY{p}{)}\PY{p}{)}
+\PY{k}{def} \PY{n+nf}{plot\PYZus{}tone\PYZus{}synt}\PY{p}{(}\PY{n}{tone}\PY{p}{,} \PY{n}{synt}\PY{p}{,} \PY{n+nb}{id}\PY{p}{,} \PY{n}{axis}\PY{p}{,} \PY{n}{zakladni\PYZus{}f}\PY{p}{,} \PY{n}{periods}\PY{o}{=}\PY{l+m+mi}{10}\PY{p}{,} \PY{n}{posun}\PY{o}{=}\PY{l+m+mi}{0}\PY{p}{)}\PY{p}{:}
+    \PY{c+c1}{\PYZsh{} compute n periods}
+    \PY{n}{T} \PY{o}{=} \PY{l+m+mi}{1}\PY{o}{/}\PY{n}{zakladni\PYZus{}f} \PY{c+c1}{\PYZsh{} in [seconds]}
+    \PY{n}{t} \PY{o}{=} \PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{n}{tone}\PY{o}{.}\PY{n}{size}\PY{p}{)} \PY{o}{/} \PY{n}{Fs}\PY{p}{)}
+
+    \PY{n}{axis}\PY{o}{.}\PY{n}{set\PYZus{}ylabel}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{magnituda}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{set\PYZus{}xlabel}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{čas [s]}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{set\PYZus{}xlim}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n}{periods}\PY{o}{*}\PY{n}{T}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t}\PY{p}{,} \PY{n}{tone}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{originální tón}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t}\PY{o}{+}\PY{n}{posun}\PY{p}{,} \PY{n}{synt}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{vygenerovaný tón}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{p}{)}
+    \PY{n}{axis}\PY{o}{.}\PY{n}{set\PYZus{}title}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{periods}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ period vygenerovaného a originálního tónu }\PY{l+s+si}{\PYZob{}}\PY{n+nb}{id}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} plotneme naše vygenerovane tony s manuálním posunem pro každý z nich}
+\PY{n}{synt\PYZus{}size} \PY{o}{=} \PY{n+nb}{int}\PY{p}{(}\PY{n}{a\PYZus{}synt}\PY{o}{.}\PY{n}{size}\PY{o}{/}\PY{l+m+mi}{2}\PY{p}{)}
+\PY{n}{plot\PYZus{}tone\PYZus{}synt}\PY{p}{(}\PY{n}{a}\PY{p}{,} \PY{n}{a\PYZus{}synt}\PY{p}{[}\PY{p}{:}\PY{n}{synt\PYZus{}size}\PY{p}{]}\PY{p}{,} \PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{a\PYZus{}plots}\PY{p}{,} \PY{n}{freqs}\PY{p}{[}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{]}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{posun}\PY{o}{=}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.0083}\PY{p}{)}
+\PY{n}{plot\PYZus{}tone\PYZus{}synt}\PY{p}{(}\PY{n}{b}\PY{p}{,} \PY{n}{b\PYZus{}synt}\PY{p}{[}\PY{p}{:}\PY{n}{synt\PYZus{}size}\PY{p}{]}\PY{p}{,} \PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{b\PYZus{}plots}\PY{p}{,} \PY{n}{freqs}\PY{p}{[}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{]}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{posun}\PY{o}{=}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.003}\PY{p}{)}
+\PY{n}{plot\PYZus{}tone\PYZus{}synt}\PY{p}{(}\PY{n}{c}\PY{p}{,} \PY{n}{c\PYZus{}synt}\PY{p}{[}\PY{p}{:}\PY{n}{synt\PYZus{}size}\PY{p}{]}\PY{p}{,} \PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{,} \PY{n}{c\PYZus{}plots}\PY{p}{,} \PY{n}{freqs}\PY{p}{[}\PY{n}{my\PYZus{}tones}\PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{]}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{posun}\PY{o}{=}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.003}\PY{p}{)}
+
+\PY{n}{fig}\PY{o}{.}\PY{n}{tight\PYZus{}layout}\PY{p}{(}\PY{p}{)}
+\PY{n}{fig}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{n}{img\PYZus{}gen\PYZus{}folder} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{original\PYZus{}tones\PYZus{}vs\PYZus{}generated\PYZus{}tones.png}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{proj_files/proj_36_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    Vygenerovaný tón je mnohem hladší, postrádá vysokofrekvenční detaily, i
+přesto si však zachovává velmi podobný tvar původnímu tónu.
+
+Vyhlazení je důsledkem redukovaného množství dat, které jsme pro syntézu
+použili.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{25}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} uložíme naše 1s tóny}
+\PY{k}{for} \PY{n}{orig\PYZus{}tone}\PY{p}{,} \PY{n}{orig\PYZus{}name} \PY{o+ow}{in} \PY{n+nb}{zip}\PY{p}{(}\PY{p}{[}\PY{n}{a\PYZus{}synt}\PY{p}{,} \PY{n}{b\PYZus{}synt}\PY{p}{,} \PY{n}{c\PYZus{}synt}\PY{p}{]}\PY{p}{,} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{a}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{b}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{c}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}\PY{p}{:}
+    \PY{n}{sf}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{audio\PYZus{}folder} \PY{o}{+} \PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{orig\PYZus{}name}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{.wav}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{orig\PYZus{}tone}\PY{p}{,} \PY{n}{Fs}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    Zdroje: -
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.ifft.html
+-
+https://www.fit.vutbr.cz/study/courses/ISS/public/NEW\_PRED/02\_spectral\_analysis\_1/
+-
+https://www.fit.vutbr.cz/study/courses/ISS/public/NEW\_PRED/03\_spectral\_analysis\_2/
+
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+\end{document}
