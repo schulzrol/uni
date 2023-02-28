@@ -36,10 +36,11 @@ def not_both_titles(names_string):
     # a name that is either preceded by [Pp]rof./[Dd]oc. and followed by Ph.D.
     # or other name with potential titles
     pat = re.compile(r'''
-                      (?<!doc\.)
-                      |
-                      (\w+\ \w+(,\ Ph\.D\.)?)\  
-                      ''', re.X)
+                    (?:(?:[Pp]rof\.|[Dd]oc\.)[^,]+,\sPh\.D\.,\s) # blocks out anything between Prof/Doc and Ph.D.
+                    |
+                    ((?:\w+\.\s)*(?:\w+\s\w+)(?:,\s\w+\.\w+\.)?)(?:,\s|$)
+                    ''', re.X)
+
     return [g1 for g1 in pat.findall(names_string) if g1]
 
 
