@@ -1,6 +1,7 @@
 - [x] Footnotes jsou klikatelne
 - [x] Citace ma male rozestupy mezi radky
 - [ ] Velikosti \Huge \Large atd. odpovida vzoru
+- [ ] Fixnout modry text s diakritikou v citaci
 - [ ] Footnotes na spravne straně
 - [ ] Latex -> \Latex
 - [ ] Odkazy na Sekce 2 a 3
