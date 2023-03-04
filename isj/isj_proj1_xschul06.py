@@ -38,7 +38,7 @@ def not_both_titles(names_string):
     pat = re.compile(r'''
                     (?:(?:[Pp]rof\.|[Dd]oc\.)[^,]+,\sPh\.D\.,\s) # blocks out anything between Prof/Doc and Ph.D.
                     |
-                    ((?:\w+\.\s)*(?:\w+\s\w+)(?:,\s\w+\.\w+\.)?)(?:,\s|$)
+                    ((?:\w+\.\s)*(?:\w+\s\w+)(?:,\s(?:\w+\.)+)*)(?:,\s|$) # (titul pred jmenem)* jmeno prijmeni (titul za jmenem), nebo konec
                     ''', re.X)
 
     return [g1 for g1 in pat.findall(names_string) if g1]
