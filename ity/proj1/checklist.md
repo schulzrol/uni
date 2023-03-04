@@ -1,5 +1,6 @@
-- [ ] Footnotes jsou klikatelne
-- [ ] Citace ma male rozestupy mezi radky
+- [x] Footnotes jsou klikatelne
+- [x] Citace ma male rozestupy mezi radky
 - [ ] Velikosti \Huge \Large atd. odpovida vzoru
 - [ ] Footnotes na spravne straně
 - [ ] Latex -> \Latex
+- [ ] Odkazy na Sekce 2 a 3
