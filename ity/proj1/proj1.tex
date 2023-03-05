@@ -7,9 +7,13 @@
 \usepackage[usenames,dvipsnames]{color}
 \usepackage[left=1.6cm,text={18cm, 24.7cm},top=1.5cm]{geometry}
 
+\newcommand*{\email}[1]{%
+    \href{mailto:#1}{#1}
+}
+
 \begin{document}
 \title{Typografie a publikování - 1. projekt}
-\author{Roland Schulz \\ xschul06@stud.fit.vutbr.cz}
+\author{Roland Schulz \\ \email{xschul06@stud.fit.vutbr.cz}}
 \date{}
 
 \maketitle
@@ -33,7 +37,7 @@ Smíšená sazba má o~něco volnější pravidla.
 Klasická hladká sazba se doplňuje o~další řezy písma pro zvýraznění důležitých pojmů.
 Existuje \uv{pravidlo}:
 \begin{quotation}
-Čím více \textbf{druhů}, \emph{řezů}, {\tiny velikostí}, {\color{green} barev} písma a {\color{blue} \textsc{jiných efektů}} \underline{použijeme}, {\color{red} tím profesionálněji} bude {\fontfamily{pzc}dokument} vypadat.
+Čím více \textbf{druhů}, \emph{řezů}, {\tiny velikostí}, {\color{green} barev} písma a {\color{blue} \textsc{jiných efektů}} \underline{použijeme}, {\color{red} tím profesionálněji} bude {\fontfamily{pzc}\selectfont dokument} vypadat.
 Čtenář tím bude \textbf{\Huge{vždy nadšen!}}
 \end{quotation}
 
@@ -42,7 +46,7 @@ Příliš časté zvýrazňování textových elementů a změny \small{velikost
 Dobře navržený dokument nemá obsahovat více než 4 řezy či druhy písma.
 Dobře navržený dokument je \underline{decentní, ne chaotický}.
 
-Důležitým znakem správně vysázeného dokumentu je konzistence - například \textbf{tučný řez} písma bude vyhrazen pouze pro klíčová slova, \emph{kurzíva} pouze pro doposud neznámé pojmy a nebude se to míchat.
+Důležitým znakem správně vysázeného dokumentu je \mbox{konzistence} -- například \textbf{tučný řez} písma bude vyhrazen pouze pro klíčová slova, \emph{kurzíva} pouze pro doposud neznámé pojmy a nebude se to míchat.
 Kurzíva nepůsobí tak rušivě a používá se častěji.
 V~\LaTeX u ji sázíme raději příkazem \verb|\emph{text}| než \verb|\textit{text}|.
 
@@ -78,7 +82,7 @@ Zvažte, zda je nelze seskupit.
 Česká sazba se oproti okolnímu světu v~některých aspektech mírně liší.
 Jednou z~odlišností je sazba uvozovek.
 Uvozovky se v~češtině používají převážně pro zobrazení přímé řeči, zvýraznění přezdívek a ironie.
-V~češtině se používají uvozovky typu \uv{9966} místo "anglických uvozovek".
+V~češtině se používají uvozovky typu \uv{9966} místo ''anglických'' uvozovek".
 Lze je sázet připravenými příkazy nebo při použití UTF-8 kódování i přímo.
 
 Ve smíšené sazbě se řez uvozovek řídí řezem prvního uvozovaného slova.
@@ -91,7 +95,7 @@ Abychom \LaTeX u zabránili v~sázení osamocených předložek, spojujeme je s~
 Tu sázíme pomocí znaku \verb|~| (vlnka, tilda).
 Pro systematické doplnění vlnek slouží volně šiřitelný program \emph{vlna} od pana Olšáka\footnote[2]{Viz \url{http://petr.olsak.net/ftp/olsak/vlna/}}, který je vhodné si v~rámci projektu vyzkoušet.
 
-Balíček fontenc slouží ke korektnímu kódovaní znaků s~diakritikou, aby bylo možno v~textu vyhledávat a kopírovat z~něj.
+Balíček \verb|fontenc| slouží ke korektnímu kódovaní znaků s~diakritikou, aby bylo možno v~textu vyhledávat a kopírovat z~něj.
 
 
 \section{Závěr}
