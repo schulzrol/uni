@@ -46,4 +46,22 @@ public class WallField implements Field {
     public void setMaze(Maze maze) {
         this.maze = maze;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        WallField wallField = (WallField) o;
+
+        if (row != wallField.row) return false;
+        return col == wallField.col;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = row;
+        result = 31 * result + col;
+        return result;
+    }
 }

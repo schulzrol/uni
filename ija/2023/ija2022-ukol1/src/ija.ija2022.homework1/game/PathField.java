@@ -26,7 +26,7 @@ public class PathField implements Field {
 
     @Override
     public boolean isEmpty() {
-        return this.objectOnTop == null;
+        return this.get() == null;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class PathField implements Field {
 
     @Override
     public boolean remove(MazeObject object) {
-        if (this.isEmpty() || this.objectOnTop != object) return false;
+        if (this.isEmpty() || this.get() != object) return false;
         this.objectOnTop = null;
         return true;
     }
@@ -52,5 +52,23 @@ public class PathField implements Field {
     @Override
     public void setMaze(Maze maze) {
         this.maze = maze;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PathField pathField = (PathField) o;
+
+        if (row != pathField.row) return false;
+        return col == pathField.col;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = row;
+        result = 31 * result + col;
+        return result;
     }
 }
