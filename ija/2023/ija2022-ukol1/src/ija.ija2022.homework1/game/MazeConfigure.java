@@ -6,17 +6,12 @@ import ija.ija2022.homework1.common.Maze;
 public class MazeConfigure {
     Field[][] linesAsFields;
     int rowCount;
-    int declaredRows, declaredCols;
     int rows, cols;
-    boolean canRead;
     boolean failed;
     public MazeConfigure(){
-        this.canRead = true;
         this.failed = false;
         this.linesAsFields = null;
         this.rowCount = 0;
-        this.declaredRows=0;
-        this.declaredCols=0;
         this.rows=0;
         this.cols=0;
     }
@@ -37,8 +32,6 @@ public class MazeConfigure {
     }
 
     public boolean processLine(String line){
-        // checks for valid length, etc.
-
         Field[] newRow = new Field[this.cols];
         // add left and right boundary walls
         newRow[0] = new WallField(this.rowCount, 0);
@@ -56,8 +49,6 @@ public class MazeConfigure {
     }
 
     public void startReading(int rows, int cols){
-        this.declaredRows = rows;
-        this.declaredCols = cols;
         this.rows = rows + 2;
         this.cols = cols + 2;
         this.linesAsFields = new Field[this.rows][this.rows];
@@ -75,7 +66,6 @@ public class MazeConfigure {
     }
 
     public boolean stopReading(){
-        this.canRead = false;
         this.linesAsFields[this.rows-1] = lineOfWalls(this.cols, this.rows-1);
         return true;
     }
