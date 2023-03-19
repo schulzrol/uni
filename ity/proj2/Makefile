@@ -22,4 +22,4 @@ diff:
 clean:
 	rm -f ${TRASH}
 	rm -f ${PAPER}
-	rm -rf ${DIFF_FILE}
+	rm -f ${DIFF_FILE}
