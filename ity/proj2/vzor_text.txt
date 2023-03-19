@@ -1,0 +1,16 @@
+Vysoké učení technické v Brně Fakulta informačních technologií Typografie a publikování 2. projekt Sazba dokumentů a matematických výrazů 2023 Jméno Příjmení (xlogin)
+
+Úvod
+V této úloze si vyzkoušíme sazbu titulní strany, matematických vzorců, prostředí a dalších textových struktur obvyklých pro technicky zaměřené texty například Definice nebo rovnice na straně. Pro vytvoření těchto odkazů používáme kombinace příkazů \label, \ref, \eqref a \pageref. Před odkazy patří nezlomitelná mezera. Pro zvýrazňování textu jsou zde několikrát použity příkazy \verb a \emph. Na titulní straně je použito prostředí titlepage a sázení nadpisu podle optického středu s využitím přesného zlatého řezu. Tento postup byl probírán na přednášce. Dále jsou na titulní straně použity čtyři různé velikosti písma a mezi dvojicemi řádků textu je použito odřádkování se zadanou relativní velikostí 0,5 em a 0,4 em (Nezapomeňte použít správný typ mezery mezi číslem a jednotkou.).
+
+Matematický text
+V této sekci se podíváme na sázení matematických symbolů a výrazů v plynulém textu pomocí prostředí math. Definice a věty sázíme pomocí příkazu \newtheorem s využitím balíku amsthm. Někdy je vhodné použít konstrukci ${}$ nebo \mbox{}, která říká, že (matematický) text nemá být zalomen. Zásobníkový automat (ZA) je definován jako sedmice tvaru, kde: je konečná množina vnitřních (řídicích) stavů, je konečná vstupní abeceda, je konečná zásobníková abeceda, je přechodová funkce, je počáteční stav, je startovací symbol zásobníku a je množina koncových stavů. Nechť je ZA. Konfigurací nazveme trojici, kde je aktuální stav vnitřního řízení, je dosud nezpracovaná část vstupního řetězce a je obsah zásobníku.
+
+Podsekce obsahující definici a větu
+Řetězec nad abecedou je přijat ZA jestliže pro nějaké a. Množina A je jazyk přijímaný ZA. Třída jazyků, které jsou přijímány ZA, odpovídá bezkontextovým jazykům.
+
+Rovnice
+Složitější matematické formulace sázíme mimo plynulý text pomocí prostředí displaymath. Lze umístit i několik výrazů na jeden řádek, ale pak je třeba tyto vhodně oddělit, například příkazem \quad. V rovnici jsou využity tři typy závorek s různou explicitně definovanou velikostí. Také nepřehlédněte, že nasledující tři rovnice mají zarovnaná rovnítka, a použijte k tomuto účelu vhodné prostředí. V této větě vidíme, jak vypadá implicitní vysázení limity v normálním odstavci textu. Podobně je to i s dalšími symboly jako či. S vynucením méně úsporné sazby příkazem \limits budou vzorce vysázeny v podobě a.
+
+Matice
+Pro sázení matic se velmi často používá prostředí array a závorky (\left, \right). Prostředí array lze úspěšně využít i jinde, například na pravé straně následující rovnice. Kombinační číslo na levé straně vysázejte pomocí příkazu \binom.
