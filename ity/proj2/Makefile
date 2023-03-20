@@ -1,4 +1,4 @@
-SRCS=$(wildcard *.tex)
+SRCS=proj2.tex
 PAPER=proj2.pdf
 SHELL=/bin/sh
 VZOR_PAPER=$(wildcard vzor-*.pdf)
