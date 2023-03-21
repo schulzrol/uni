@@ -21,19 +21,20 @@ def first_odd_or_even(numbers):
     0
     """
     
-    def is_even(n):
-        return (n%2 == 0)
+    def is_even(num):
+        return num%2 == 0
 
     # +1 even, -1 odd
     parity = sum([1 if is_even(num) else -1 for num in numbers])
-    if (parity == 0 or abs(parity) == len(numbers)):
+    if parity == 0 or abs(parity) == len(numbers):
         # Handles first RETURNS requirement
-        return 0;
+        return 0
     
-    if (parity > 0): # more even
+    if parity > 0: # more even
         return [num for num in numbers if not is_even(num)][0] # return first odd
-    else: # more odd
-        return [num for num in numbers if is_even(num)][0] # return first even
+
+    # more odd
+    return [num for num in numbers if is_even(num)][0] # return first even
 
 
 
