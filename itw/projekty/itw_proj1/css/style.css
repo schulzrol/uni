@@ -1,0 +1,360 @@
+/*
+ * Login: xschul06
+ *
+ * Doplnte sve reseni.
+ *
+ * Nezapomente pridat strucne hromadne komentare pro pravidla jednotlivych sekci
+ * a pro netrivialni useky kodu.
+ */
+:root {
+    --zakladni_seda: #363535;
+    --svetlejsi_seda: #888888;
+    --jemna_seda: #e8e7e7;
+    --vyrazna: black;
+    --vyrazna_inverzni: white;
+    --cervena_dekorace: #cc3636;
+    --svetlejsi_dekorace: #ffd0d0;
+    --modra_dekorace: blue;
+}
+
+* {
+    animation-duration: .5s;
+}
+
+.open *{
+    visibility: visible! important;
+}
+
+body {
+    /* TODO */
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins";
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+i {
+    color: var(--cervena_dekorace);
+}
+
+img {
+    opacity: .8;
+}
+
+p {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+h2 {
+    font-size: 32px;
+    /*letter-spacing: 0.4rem;*/
+}
+
+section {
+    /* TODO mozna padding */
+    margin-top: 60px;
+    margin-bottom: 80px;
+}
+
+.heading {
+    text-align: center;
+}
+
+.heading span {
+    text-transform: uppercase;
+    font-weight: bold;
+    color: var(--cervena_dekorace);
+}
+
+
+#header {
+    min-height: 400px;
+    height: 100vh;
+    background-image: url("../img/header.jpg");
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
+
+#header-menu {
+    max-width: 1000px;
+    margin-top: 10px;
+    background-color: var(--vyrazna_inverzni);
+    /* TODO */
+}
+
+#header-menu .contacts {
+    display: flex;
+    flex-flow: row-reverse;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+#header-menu .contacts span {
+    margin: 10px;
+}
+
+#header-menu a {
+    margin: 10px;
+    word-spacing: 10px;
+}
+
+#header-menu .logo {
+    font-size: 32px;
+    margin-left: 40px;
+    font-family: "Bebas Neue";
+}
+
+#header-menu .logo:first-letter {
+    color: var(--cervena_dekorace);
+}
+
+#header-menu nav {
+    font-size: 14px;
+    color: var(--svetlejsi_seda);
+    letter-spacing: .05em;
+    margin-right: 40px;
+}
+
+#header-menu nav ul {
+    display: flex;
+    list-style-type: none;
+    column-gap: 20px;
+}
+
+#tours-button {
+    position: relative;
+}
+#tours-button ul {
+    flex-direction: column;
+    position: absolute;
+    visibility: hidden;
+}
+
+#header-title {
+    min-height: 400px;
+    height: 80%;
+}
+
+#header-title p {
+    position: absolute;
+    display: flex;
+    flex-flow: column;
+    text-align: right;
+    bottom: 100px;
+    right: 50px;
+    text-shadow: 0 0 20px;
+    font-weight: bold;
+}
+
+#header-title p span:first-child {
+    font-size: 52px;
+    color: var(--vyrazna_inverzni);
+}
+
+#header-title p span {
+    font-size: 24px;
+    color: var(--cervena_dekorace);
+}
+
+#header-form {
+    background-color: var(--vyrazna_inverzni);
+    font-size: 14px;
+    padding: 15px;
+}
+
+#header-form form{
+    display: flex;;
+    row-gap: 10px;
+    flex-basis: 150px;
+}
+
+input, select {
+    background-color: var(--vyrazna_inverzni);
+}
+
+input[type="submit"] {
+    background-color: var(--cervena_dekorace);
+    color: var(--vyrazna_inverzni);
+}
+
+#header-form form input [type=date]{
+    min-width: 150px;
+}
+
+#header-form form input,
+#header-form form select {
+    min-width: 125px;
+    border-radius: 4px;
+    border-color: var(--svetlejsi_dekorace);
+}
+
+#about img {
+    width:40%;
+    padding: 20px;
+}
+
+/* Sections settings */
+
+section #about {
+    background-image: url("../img/meth.svg");
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
+
+section {
+    margin: auto;
+    min-width: 768px;
+    max-width: 1200px;
+}
+
+.heading span {
+    letter-spacing: 0.4rem;
+}
+ 
+#services .section-content {
+    display: flex;
+    flex-flow: row;
+}
+
+#services .section-content section-item {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 20px;
+}
+
+#services img {
+    height: 300px;
+}
+
+
+#tours .section-content .section-item {
+    border-bottom: var(--zakladni_seda) 1px dotted;
+    margin-top: 40px;
+}
+#tours .section-content .section-item:last-child {
+    border:none;
+}
+
+#tours div .section-content div .section-item img {
+    float:left;
+}
+
+#tours img {
+    float:right;
+    width: 40%;
+}
+
+.tour-props {
+    color: var(--cervena_dekorace);
+    display:table-row;
+}
+
+.tour-props > * {
+    border-right: var(--vyrazna) 1px;
+    border-right-style: solid;
+}
+
+.tour-props > *:last-child {
+    border: none;
+}
+
+.tour-props span {
+    display: inline-block;
+    padding-right: 0.5em;
+}
+
+.tour-stars:before {
+    content: "\f005 ";
+    font-family: "Font Awesome 6 Free";
+    padding-right: 0.5em;
+}
+
+.tour-duration:before {
+    content: "\f073";
+    font-family: "Font Awesome 6 Free";
+    padding-right: 0.5em;
+}
+
+.tour-duration {
+}
+
+.tour-price:before {
+    content: "\f15a";
+    font-family: "Font Awesome 6 Free";
+    padding-right: 0.5em;
+}
+
+#price .section-content {
+    height: 600px;
+}
+
+#price .section-item {
+    padding: 10px;
+    list-style-image: url("../img/crystal.svg");
+}
+
+#price .section-item li:hover {
+    list-style-image: url("../img/crystal-blue.svg");
+}
+
+/* Footer */
+
+footer {
+    background-color: var(--zakladni_seda);
+    color: var(--vyrazna_inverzni)
+}
+
+footer h2 {
+    letter-spacing: 0.2rem;
+}
+
+footer #summary {
+    max-width: 30%;
+}
+
+footer #links {
+    max-width: 20%;
+}
+
+footer #contact {
+    max-width: 50%;
+}
+
+footer #license {
+    margin: 20px 0;
+}
+
+#links ul{
+    list-style-type: "> ";
+}
+
+#links ul li::marker {
+    color: var(--cervena_dekorace);
+}
+
+#networks {
+    color: var(--jemna_seda);
+}
+
+#jesse {
+    right: 20px;
+    bottom: 10px;
+    padding: 15px 20px;
+}
+
+#heisenberg {
+    visibility: hidden;
+    position: absolute;
+    size: 300px 120px;
+    top: 80px;
+    border-radius: 20px;
+}
+
+#heisenberg img {
+    height: 80%;
+}

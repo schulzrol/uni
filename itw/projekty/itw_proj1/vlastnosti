@@ -1,0 +1,111 @@
+Všeobecné vlastnosti webové prezentace
+
+    šířka stránky se musí plynule přizpůsobit šířce okna prohlížeče:
+        minimální: 768px (při nižších velikostech je možné zobrazit horizontální scrollbar)
+        maximální: 1200px (při vyšších velikostech bude stránka zarovnána na střed okna prohlížeče)
+        nejedná se o responzivní dokument, který by byl optimalizovaný na různá zařízení; není proto potřebné (a tedy ani povolené) používat media queries
+    levý a pravý okraj stránky: zpravidla 10px
+    horní, spodní odsazení sekce: zpravidla 60px, 80px (mimo header a footer)
+    použitá písma:
+        Poppins - základní - věškerý text
+        Bebas Neue - logo
+        Font Awesome 6 Free - ikony
+        Font Awesome 6 Brands - ikony
+        pozn.: soubor index.html již obsahuje import příslušných písem z Google Fonts
+    základní velikosti písem:
+        běžný text v odstavcích:
+            velikost písma (menší): 16px
+            výška řádku: 1.5
+        nadpisy:
+            druhé úrovně (větší): 32px (2rem);
+                mezera mezi písmeny štítku u naspisu druhé úrovně: 0.4rem
+            třetí úrovně: implicitní;
+    základní použité barvy:
+        #363535: základní šedá
+        #888888: světlejší šedá
+        #e8e7e7: jemná šedá
+        black: výzazná
+        white: výrazná inverzní
+        #cc3636: dekorace
+        #ffd0d0: světlejší dekorace
+        blue: dekorace
+    doba animace: .5s
+    neprůhlednost obrázků: většinou .8
+    zvětšení obrázku při najetí myši: zpravidla o 10px na každou stranu
+
+
+    #header (záhlaví)
+        výška: velikost viewportu, ale minimálně 400px
+        #header-menu:
+            výška druhého řádku (logo, navigace): 80px
+            kontakty:
+                okraje: 10px
+                mezera mezi ikonkou a textem: .25rem
+            odkazy:
+                okraje, mezery: 10px
+        #header-title:
+            výška: 80%, minimálně 400px
+            písmo: 52px, 24px
+            odsazení zespodu a zprava: 100px a 50px (+ implicitní okraje odstavce)
+        #header-form:
+            písmo: 14px
+            okraje 15px
+            mezery: 10px
+            ideální šířka vstupů: 150px (flexibilě vyplní dostupné místo)
+            minimální šířka vstupů:
+                pro datum: 150px
+                ostatní: 125px
+            vycpávka vstupu: 10px
+            zaoblení vstupů: 4px
+    #about
+        obrázek:
+            šířka: 40%
+            vycpávka: 20px
+        text:
+            sířka: 60%
+    #services
+        minimální šíka sloupečku: 250px (pak je zalomeno)
+        mezera mezi sloupci: 20px
+        výška obrázků: 300px
+    #tours
+        umístění obrázku se pravidelně střídá (lichý, sudý)
+        vertikální okraj položky .section-item
+            horní: 40px
+            spodní: 20px
+        šířka obrázku: 40%
+        okraj obrázku: 20px
+        ikony: \f005, \f073, \f15a
+    #price
+        výška obsahu .section-content: 600px
+        vycpávka položky obsahu: 10px
+        velikost odrážky: 15px
+        neprůhlednost pozadí: .6
+            po najetí myši na sekci: .4
+    #clients
+        vertikální okraj položky .section-item: 40px`
+        maximální šířka položky .section-item: min + (max - min)/2
+            min - minimální šířka stránky: 768px
+            max - maximální šířka stránky: 1200px
+        velikost obrázku: 200px
+        velikost prázdné bubliny: 75px, 30px
+        mezery mezi bublinami: 30px a 35px
+        horní odsazení bubliny s textem: 100px
+    #footer
+        mezera mezi písmeny nadpisů druhé úrovně: 0.2rem
+        #summary
+            maximální šířka: 30%
+        #links
+            maximální šířka: 20%
+        #contact
+            maximální šířka: 50%
+        #license
+            vertkální okraje: 20px
+    #jesse
+        odsazení zprava: 20px
+        odsazení zespodu: 10px
+        vycpávka: 15px 20px
+    #heisenberg
+        velikost: 300px, 120px
+        odsazení zvrchu: 80px -> 40px
+        výška obrázku: 80%
+        zaoblení okrajů: 20px

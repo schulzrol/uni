@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zxx">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Crystal Palace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@100;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        var lastScroll = false;
+        window.addEventListener("load", () => {
+            window.addEventListener("scroll", () => {
+                if(window.scrollY > 0) {
+                    if(lastScroll === false) {
+                        document.documentElement.classList.toggle("scrolled");
+                        lastScroll = true;
+                    }
+                } else {
+                    if(lastScroll === true) {
+                        document.documentElement.classList.toggle("scrolled");
+                        lastScroll = false;
+                    }
+                }
+            })
+        });
+
+        function openToursMenu() {
+                document.getElementById("tours-button")?.classList.toggle("open");
+            }
+
+        function toast() {
+            document.getElementById("heisenberg")?.classList.toggle("open");
+
+            // disable button needs to be scheduled since we want to prevent default validation
+            setTimeout(() => {
+                document.querySelectorAll("input[type='submit']")?.forEach((btn) => btn.disabled = true);
+            }, 0);
+
+            // note: you could process the form here and call an async function to send the values to the server
+
+            setTimeout(() => {
+                document.getElementById("heisenberg")?.classList.toggle("open");
+                document.querySelectorAll("input[type='submit']")?.forEach((btn) => btn.disabled = null);
+            }, 2000);
+        }
+    </script>
+</head>
+<body>
+    <div id="heisenberg">
+        <img src="img/heisenberg.svg" alt="heisenberg">
+        <div>
+            <span><b>Say my name!</b></span>
+            <span>Request has been sent.</span>
+        </div>
+    </div>
+    <header id="header">
+        <div id="header-menu">
+            <div class="logo">
+                <a href="index.html">Crossroads Motel</a>
+            </div>
+            <div class="contacts">
+                <span class="phone"><i class="fas fa-phone-square-alt"></i>+52 541 141 423</span>
+                <span class="mail"><i class="fas fa-envelope-square"></i><a href="mailto:bettercall@ditrich.mx">bettercall@ditrich.mx</a></span>
+            </div>
+            <div class="networks">
+                <span class="twitter"><a href="https://www.youtube.com/watch?v=ZEob2KxxnGE"><i class="fab fa-twitter"></i></a></span>
+                <span class="facebook"><a href="https://www.youtube.com/watch?v=31Voz1H40zI"><i class="fab fa-facebook"></i></a></span>
+                <span class="instagram"><a href="https://www.youtube.com/watch?v=kAvvoToKmrM"><i class="fab fa-instagram"></i></a></span>
+                <span class="youtube"><a href="https://www.youtube.com/watch?v=LwsgYoahVVs"><i class="fab fa-youtube"></i></a></span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li id="tours-button">
+                        <a href="#" onclick="openToursMenu(); return false;">Tours</a>
+                        <ul>
+                            <li><a href="#tour1">Tour 1</a></li>
+                            <li><a href="#tour2">Tour 2</a></li>
+                            <li><a href="#tour3">Tour 3</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#price">Price</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div id="header-title">
+            <p>
+                <span>You are invited!</span>
+                <span>We know how to please you</span>
+            </p>
+        </div>
+        <div id="header-form">
+            <form method="post" onsubmit="toast(); return false;">
+                <select name="room">
+                    <option value="economy">Economy</option>
+                    <option value="business">Business</option>
+                    <option value="exclusive">Exclusive</option>
+                </select>
+                <input name="checkin" type="date" required>
+                <input name="checkout" type="date" required>
+                <input name="persons" type="number" placeholder="Persons" min="1" required>
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+    </header>
+    <main>
+        <section id="about">
+            <div class="heading">
+                <span>About</span>
+                <h2>Explore Top Destination</h2>
+            </div>
+            <img src="img/chilling.jpg" alt="">
+            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Omnis ut maiores excepturi culpa. Maxime nisi cupiditate libero eius unde vero veniam molestiae labore molestias, modi esse quaerat voluptatem fugit.</p>
+        </section>
+        <section id="services">
+            <div class="heading">
+                <span>Services</span>
+                <h2>Enjoy high-quality services</h2>
+            </div>
+            <div class="section-content">
+                <div class="section-item">
+                    <h3>Spacious accomodation</h3>
+                    <img src="img/accomodation.jpg" alt="">
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Omnis ut maiores excepturi culpa.</p>
+                </div>
+                <div class="section-item">
+                    <h3>Impeccable food</h3>
+                    <img src="img/food.jpg" alt="">
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Omnis ut maiores excepturi culpa.</p>
+                </div>
+                <div class="section-item">
+                    <h3>Unforgettable party</h3>
+                    <img src="img/birthday.jpg" alt="">
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Omnis ut maiores excepturi culpa.</p>
+                </div>
+                <div class="section-item">
+                    <h3>Friendly companion</h3>
+                    <img src="img/wendy.jpg" alt="">
+                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Omnis ut maiores excepturi culpa.</p>
+                </div>
+            </div>
+        </section>
+        <section id="tours">
+            <div class="heading">
+                <span>Tours</span>
+                <h2>Perfect tour packages</h2>
+            </div>
+            <div class="section-content">
+                <div id="tour1" class="section-item">
+                    <img src="img/hiking.jpg" alt="">
+                    <h3>Countryside Hiking</h3>
+                    <div class="tour-props">
+                        <span class="tour-stars">3.8</span>
+                        <span class="tour-duration">10 days</span>
+                        <span class="tour-price">0.041</span>
+                    </div>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Facilis beatae numquam iste, asperiores non deserunt adipisci illo, animi expedita suscipit cupiditate ipsa quia? Odio assumenda quisquam beatae. Obcaecati natus ipsum nam veniam, commodi necessitatibus illum, impedit excepturi voluptate eveniet sint, sit voluptatum quam. Earum voluptatem quasi impedit dignissimos tenetur non cumque perferendis dolorem, minima nemo recusandae ab rerum. Sed enim mollitia labore neque accusamus nesciunt. Magnam consequuntur ipsam libero placeat, distinctio consectetur laboriosam nihil minima, esse unde omnis, pariatur totam maxime deserunt ipsa atque nemo maiores soluta delectus. Quis vero repudiandae quam doloribus minima ex ipsa. Dolores eligendi adipisci quibusdam fugiat quaerat quo repudiandae modi? In eius suscipit tenetur. Laborum nesciunt consectetur nobis reprehenderit. Nesciunt accusamus a ad similique dicta!</p>
+                </div>
+                <div id="tour2" class="section-item">
+                    <img src="img/sightseeing.jpg" alt="">
+                    <h3>Sightseeing rides</h3>
+                    <div class="tour-props">
+                        <span class="tour-stars">4.5</span>
+                        <span class="tour-duration">2 days</span>
+                        <span class="tour-price">0.0021</span>
+                    </div>
+                    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Corrupti quae odit, quas sit obcaecati dolores quisquam quo dolor, eos tenetur inventore debitis dignissimos deserunt autem! Optio, esse? Magni veniam, accusamus culpa itaque voluptates, labore repellat nihil totam delectus, facilis vitae! Voluptates ullam delectus, quae molestiae commodi fuga minus, mollitia velit molestias minima ducimus saepe illo obcaecati. Consequuntur deleniti omnis eos.</p>
+                </div>
+                <div id="tour3" class="section-item">
+                    <img src="img/lab.jpg" alt="">
+                    <h3>Educational Expositions</h3>
+                    <div class="tour-props">
+                        <span class="tour-stars">4.9</span>
+                        <span class="tour-duration">1 day</span>
+                        <span class="tour-price">0.010</span>
+                    </div>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam cum consectetur a velit officia placeat magni quo facere reiciendis eum ipsum est ab et dignissimos enim molestias sapiente assumenda, nesciunt nam harum quas, pariatur obcaecati! Fuga vero alias veniam? Quae officia voluptas odio, assumenda sequi fugit minus saepe excepturi sit delectus numquam soluta cupiditate cumque, atque voluptates corrupti necessitatibus, tempora veniam totam deserunt. Ratione laboriosam dicta optio dolorem doloribus ut modi vel provident cum quaerat, commodi fuga fugit! Magni, excepturi provident ipsam quisquam repudiandae rerum laborum pariatur facere nesciunt delectus praesentium tempore est laudantium error aliquid nam expedita quae suscipit nemo quod ipsa! Porro accusantium atque eaque magni tenetur, quos nihil non ad illo, iure necessitatibus, aspernatur perferendis possimus delectus.</p>
+                </div>
+            </div>
+        </section>
+        <section id="price">
+            <div class="heading">
+                <span>Price</span>
+                <h2>Save your money</h2>
+            </div>
+            <div class="section-content">
+                <div class="section-item">
+                    <h3>Economy</h3>
+                    <span>$10</span>
+                    <ul>
+                        <li>pollo breakfast</li>
+                    </ul>
+                </div>
+                <div class="section-item">
+                    <h3>Business</h3>
+                    <span>$30</span>
+                    <ul>
+                        <li>pollo breakfast</li>
+                        <li>crystal dinner</li>
+                    </ul>
+                </div>
+                <div class="section-item">
+                    <h3>Exclusive</h3>
+                    <span>$50</span>
+                    <ul>
+                        <li>pollo breakfast</li>
+                        <li>crystal dinner</li>
+                        <li>friendly night companion</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <section id="clients">
+            <div class="heading">
+                <span>clients</span>
+                <h2>What say our clients</h2>
+            </div>
+            <div class="section-content">
+                <div class="section-item">
+                    <img src="img/tortuga.jpg" alt="senor tortuga">
+                    <blockquote>
+                        ¡El mejor viaje de mi vida!
+                    </blockquote>
+                </div>
+                <div class="section-item">
+                    <img src="img/burrito.jpg" alt="tuco">
+                    <blockquote>
+                        @#$×÷÷^ %&{@{ @&←↓^ ×÷#@!
+                    </blockquote>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div>
+            <section id="summary">
+                <h2>Crossroads Motel</h2>
+                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Saepe, at ut repudiandae, blanditiis odio natus pariatur sint iusto magnam, tempore incidunt! Cumque aspernatur, delectus ad necessitatibus ipsa veniam nulla nam?</p>
+                <h3>Follow us</h3>
+                <div class="networks">
+                    <span class="twitter"><a href="https://www.youtube.com/watch?v=WBqbj0q3U_M"><i class="fab fa-twitter"></i></a></span>
+                    <span class="facebook"><a href="https://www.youtube.com/watch?v=N723si1wAG8"><i class="fab fa-facebook"></i></a></span>
+                    <span class="instagram"><a href="https://www.youtube.com/watch?v=KXgt5q3YflE"><i class="fab fa-instagram"></i></a></span>
+                    <span class="youtube"><a href="https://www.youtube.com/watch?v=rRPQs_kM_nw" title="Honorable mention"><i class="fab fa-youtube"></i></a></span>
+                    <!-- Search for Gus final scene by yourself -->
+                </div>
+            </section>
+            <section id="links">
+                <h2>Links</h2>
+                <ul>
+                    <li><a href="">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#tours">Tours</a></li>
+                    <li><a href="#price">Price</a></li>
+                    <li><a href="#clients">Clients</a></li>
+                </ul>
+            </section>
+            <section id="contact">
+                <h2>Contact us</h2>
+                <div class="contacts">
+                    <span class="address"><i class="fas fa-map-marker-alt"></i>1001 Central Ave NE, Albuquerque</span>
+                    <span class="phone"><i class="fas fa-phone-square-alt"></i>+52 541 141 423</span>
+                    <span class="mail"><i class="fas fa-envelope-square"></i><a href="mailto:bettercall@ditrich.mx">bettercall@ditrich.mx</a></span>
+                </div>
+                <h3>Newsletter</h3>
+                <form method="post" onsubmit="toast(); return false;">
+                    <input name="email" type="email" required>
+                    <input type="submit" value="Sign up">
+                </form>
+            </section>
+        </div>
+        <div id="license">
+            <span>The contect is fictional. Used for educational purposes only.</span>
+            <span><a href="https://www.youtube.com/watch?v=uVWaPBlFXkA">ITW 2023</a></span>
+        </div>
+    </footer>
+    <a id="jesse" href="#" title="Yo bitch!"><i class="fa-solid fa-arrow-up"></i></a>
+</body>
+</html>
