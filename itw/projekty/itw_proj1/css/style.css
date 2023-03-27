@@ -771,7 +771,7 @@ footer form * {
     visibility: hidden;
     position: fixed;
     top: 80px;
-    right:50%;
+    right: calc(50% - 150px);
     border-radius: 20px;
     align-self: center;
     transition: visibility;
