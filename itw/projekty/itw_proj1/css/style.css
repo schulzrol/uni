@@ -19,6 +19,10 @@
 }
 
 
+.scrolled #jesse {
+    visibility: visible! important;
+}
+
 .open *{
     visibility: visible! important;
 }
@@ -52,11 +56,19 @@ img:hover{
     transform: scale(1.05);
 }
 
+.section-item h3 {
+    border-bottom: 2px solid transparent;
+}
+.section-item:hover h3 {
+    border-bottom-color: var(--cervena_dekorace);
+}
+
 p {
     font-size: 16px;
     line-height: 1.5;
     color: var(--zakladni_seda);
     text-align: justify;
+    margin:0;
 }
 
 h2 {
@@ -95,8 +107,9 @@ form * {
 }
 
 .heading span {
-    text-transform: uppercase;
+    letter-spacing: 0.4rem;
     font-weight: bold;
+    text-transform: uppercase;
     color: var(--cervena_dekorace);
 }
 
@@ -114,10 +127,10 @@ form * {
     box-shadow: 0 0 5px 5px var(--vyrazna_inverzni) inset;
 }
 
-header div .networks i {
+#header-menu .networks i {
     color: var(--zakladni_seda);
 }
-header i:hover {
+#header-menu i:hover {
     color: var(--cervena_dekorace);
 }
 
@@ -159,7 +172,8 @@ header i:hover {
 
 #header-menu .networks {
     grid-area: networks;
-    justify-self: end;
+    justify-self: flex-end;
+    align-self: center;
 }
 
 #header-menu .contacts span {
@@ -193,10 +207,6 @@ header i:hover {
     border-bottom: 2px solid var(--jemna_seda);
 }
 
-#header-menu .logo a:hover{
-    content: "The Crystal Palace";
-}
-
 #header-menu .logo:first-letter {
     color: var(--cervena_dekorace);
 }
@@ -221,14 +231,24 @@ header i:hover {
     margin: 0;
 }
 
-
 #tours-button {
     position: relative;
 }
 #tours-button ul {
     flex-direction: column;
+    row-gap: 10px;
     position: absolute;
     visibility: hidden;
+    background-color: var(--vyrazna_inverzni);
+    padding:10px;
+    width: max-content;
+    box-shadow: 0 0 5px 5px var(--vyrazna_inverzni);
+}
+
+#tours-button li::before{
+    content: ">";
+    padding-right: 5px;
+    color:var(--cervena_dekorace)
 }
 
 #header-title {
@@ -286,35 +306,50 @@ header i:hover {
 
 #about {
     display:grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 40% auto;
+    grid-template-rows: 1fr 1fr;
+    row-gap: 0;
+    column-gap: 0;
     grid-template-areas:
-        "left right";
-
+        "img head"
+        "img p";
+    grid-auto-flow: row;
     background-image: url("../img/meth.svg");
     background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
+    background-position: right;
+    background-size: 70%;
+
+    min-width: 768px;
+    max-width: 1200px;
+    margin:auto;
 }
 
-#about div .heading{
-    grid-area: right;
-    align-self: flex-start;
-}
-
-#about img {
-    width:40%;
-    padding: 20px;
-    grid-area: left;
-    justify-self: center;
+#about .heading{
+    grid-area: head;
     align-self: flex-end;
-    display:block;
+    justify-self: flex-start;
+    text-align: left;
+    height: fit-content;
+    background-color: var(--jemna_seda);
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px;
+}
+
+#about .heading * {
+    margin: 0;
+}
+#about img {
+    width:100%;
+    grid-area: img;
 }
 
 #about p {
-    grid-area: right;
-    justify-self: center;
-    align-self: center;
-    background-color: var(--svetlejsi_seda);
+    align-self: flex-start;
+    background-color: var(--jemna_seda);
+    grid-area: p;
+    padding: 20px;
+    padding-bottom: 15%;
 }
 
 /* Sections settings */
@@ -333,6 +368,9 @@ section {
     opacity: 1;
     transform: scale(1.05);
 }
+#services .section-item:hover h3 {
+    border-bottom-color: var(--cervena_dekorace);
+}
 
 section #about {
     background-image: url("../img/meth.svg");
@@ -340,22 +378,21 @@ section #about {
     background-size: 100%;
 }
 
-.heading span {
-    letter-spacing: 0.4rem;
-}
  
 #services {
     background-color: var(--jemna_seda);
 }
 #services .section-content {
     display: grid;
-    grid-template-columns: repeat(4, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr) minmax(250px, 1fr));
+    grid-auto-columns: 500px;
     grid-auto-flow: row;
     column-gap: 20px;
 }
 
 #services .section-item h3 {
     text-align: center;
+    border-bottom: 2px solid transparent;
 }
 
 #services img {
@@ -364,8 +401,12 @@ section #about {
     width: 100%;
 }
 
+#tours .section-item h3 {
+    border-bottom: 2px solid transparent;
+}
+
 #tours .section-item:hover h3 {
-    border-bottom: 2px solid var(--cervena_dekorace);
+    border-bottom-color: var(--cervena_dekorace);
 }
 
 #tours {
@@ -462,14 +503,14 @@ section #about {
 
 /* business */
 #price .section-item:nth-child(2){
-    top: 25%;
-    right: 20%;
+    top: 40%;
+    right: 35%;
 }
 
 /* exclusive */
 #price .section-item:nth-child(3){
-    bottom: 5%;
-    right: 5%;
+    bottom: 15%;
+    right: 25%;
 }
 
 #price .section-content {
@@ -494,12 +535,43 @@ section #about {
 
 #price .section-item {
     display:grid;
-    padding: 10px;
-    list-style-image: url("../img/crystal.svg");
+    justify-items: center;
+    align-items: center;
+    grid-template-columns: 2fr 1fr;
+    grid-template-areas: 
+        "type price"
+        "list list";
 }
 
-#price .section-item li:hover {
-    list-style-image: url("../img/crystal-blue.svg");
+#price li{
+    list-style: none;
+}
+
+#price li::before{
+    content: "";
+    width: 15px;
+    background: url("../img/crystal.svg") no-repeat left;
+    background-size: 15px;
+    padding: 0 1em;
+}
+
+#price .section-item:hover li::before {
+    background-image: url("../img/crystal-blue.svg");
+}
+
+#price .section-item h3 {
+    grid-area: type;
+}
+
+#price .section-item span {
+    grid-area: price;
+    width: fit-content;
+    visibility: hidden;
+    color: var(--modra_dekorace);
+    justify-self: flex-start;
+}
+#price .section-item:hover span {
+    visibility: visible;
 }
 
 #clients .section-content {
@@ -509,21 +581,45 @@ section #about {
     row-gap: 20px;
 }
 
+#clients .section-item ul {
+    grid-area: list;
+    grid-column: span 2;
+}
+
 #clients .section-item:nth-child(2){
     align-self: flex-start;
     flex-direction: row;
 }
 
 #clients .section-item {
+    position: relative;
     display:flex;
     flex-direction: row-reverse;
     column-gap: 200px;
     justify-content: center;
 }
 
+#clients .section-item:hover blockquote {
+    background-color: var(--cervena_dekorace);
+    color: var(--vyrazna_inverzni);
+}
+
 #clients blockquote {
+    position: relative;
+    transition: background-color var(--duration);
     background-color: var(--jemna_seda);
     text-align: center;
+    border: 0px solid transparent;
+    border-radius: 25px 40px 78px 105px;
+    height:fit-content;
+    padding: 15px;
+}
+
+#clients blockquote::before{
+    position: absolute;
+    content: "";
+    left: 50px;
+    background-color: var(--jemna_seda);
 }
 
 #clients .section-item img {
@@ -567,6 +663,7 @@ footer #summary {
 }
 
 footer #links {
+    justify-self: center;
 }
 
 footer #contact {
@@ -663,23 +760,43 @@ footer form * {
 }
 
 #heisenberg {
+    width:300px;
+    height: 120px;
+    display:grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-items: flex-start;
+    gap:0;
     opacity:0.8;
-    background-color: var(--modra_dekorace);
-    display: flex;
     visibility: hidden;
     position: fixed;
-    size: 300px 120px;
     top: 80px;
+    right:50%;
     border-radius: 20px;
     align-self: center;
     transition: visibility;
+    border: double 2px var(--vyrazna_inverzni);
+    margin:auto;
+    z-index: 99999;
+}
+
+#heisenberg * {
+    background-color: var(--modra_dekorace);
+}
+
+#heisenberg div * {
+    display: block;
+    padding-left: 5px;
 }
 
 #heisenberg img {
     height: 80%;
+    display: block;
+    justify-self: flex-end;
 }
 
 #jesse {
+    visibility: hidden;
     position: fixed;
     padding: 15px 20px;
     right: 20px;
