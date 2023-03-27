@@ -32,6 +32,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: "Poppins";
+    min-width: 768px;
 }
 
 a {
@@ -125,6 +126,7 @@ form * {
     /*background-size: 100%;*/
     background-size: cover;
     box-shadow: 0 0 5px 5px var(--vyrazna_inverzni) inset;
+    border-top: 75px solid var(--vyrazna_inverzni);
 }
 
 #header-menu .networks i {
@@ -132,14 +134,6 @@ form * {
 }
 #header-menu i:hover {
     color: var(--cervena_dekorace);
-}
-
-#header::before{
-    content:"";
-    display:block;
-    height: 100px;
-    background-color: var(--vyrazna_inverzni);
-    box-shadow: 0 0 5px 5px var(--vyrazna_inverzni);
 }
 
 #header-menu {
@@ -639,7 +633,7 @@ footer {
     padding-top: 20px;
 }
 
-footer div{
+footer > div{
     display: grid;
     min-width: 768px;
     max-width: 1200px;
