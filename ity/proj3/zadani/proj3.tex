@@ -1,0 +1,158 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[]{times}
+\usepackage[utf8]{inputenc}
+\usepackage[IL2]{fontenc}
+\usepackage[czech]{babel}
+\usepackage[]{alltt}
+\usepackage[hidelinks]{hyperref}
+\usepackage[]{dirtytalk}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage[left=2cm,text={17cm, 24cm},top=3cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[czech,longend,linesnumbered,algoruled,noline]{algorithm2e}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{graphicx}
+
+%FOR_DIFF_PURPOSES
+%\usepackage[]{xcolor}
+%\color{red}
+
+\newcommand*{\logictable}[7]{
+    \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+        \multicolumn{2}{|c|}{\multirow{2}{*}{$#1 #2 #3$}} & \multicolumn{4}{|c|}{$#3$} \\\cline{3-6}
+        \multicolumn{2}{|c|}{}                             & \textbf{P} & \textbf{O} & \textbf{X} & \textbf{N} \\\hline
+        \multirow{4}{*}{$#1$}& \textbf{P}                  & #4 \\
+                             & \textbf{O}                  & #5 \\
+                             & \textbf{X}                  & #6 \\
+                             & \textbf{N}                  & #7 \\\hline
+    \end{tabular}
+}
+
+\begin{document}
+\begin{titlepage}
+    \begin{center}
+        {\Huge \textsc{Vysoké učení technické v~Brně} \\[0.5em]} {\huge \textsc{Fakulta informačních technologií}} \\
+        \vspace{\stretch{0.382}}
+        {\LARGE Typografie a publikování\,--\,3. projekt \\[0.4em] Tabulky a obrázky }\\
+        \vspace{\stretch{0.612}}
+    \end{center}
+
+    {\Large \today \hfill Roland Schulz (xschul06)}
+    \thispagestyle{empty}
+\end{titlepage}
+
+\pagenumbering{arabic}
+
+\section{Úvodní strana}
+Název práce umístěte do zlatého řezu a nezapoměňte uvést \uv{dnešní} (today) datum a vaše jméno a přijmení.
+
+\section{Tabulky}
+Pro sázení tabulek můžeme použít buď prostředí \verb|tabbing| nebo prostředí \verb|tabular|.
+\subsection{Prostředí \texttt{tabbing}}
+Při použití \verb|tabbing| vypadá tabulka následovně:
+
+\begin{table}[ht]
+    \begin{tabbing}
+        Ovoce \= Cena \= Množství \\
+        Jablka \= 25,90 \= 3\,kg \\
+        Hrušky \= 27,40 \= 2,5\,kg \\ 
+        Vodní melouny \= 35,-- \= 1\,kus \kill
+    \end{tabbing}
+\end{table}
+Toto prostředí se dá také použít pro sázení algoritmů, ovšem vhodnější je použít prostředí \verb|algorithm| nebo \verb|algorithm2e| (viz sekce \ref{sec:algoritmy}).
+
+\subsection{Prostředí \texttt{tabular}}
+Další možností, jak vytvořit tabulku, je použít prostředí \verb|tabular|. Tabulky pak budou vypadat takto\footnote{Kdyby byl problem s \texttt{cline}, zkuste se podivat třeba sem: http://www.abclinuxu.cz/tex/poradna/show/325037.}
+\begin{table}[ht]
+    \centering
+    \catcode`\-=12
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \multirow{2}{*}{Měna} & \multicolumn{2}{c|}{Cena} \\\cline{2-3}
+                              & nákup & prodej  \\\hline
+                          EUR & 22,705 & 25,242 \\
+                          GBP & 25,931 & 28,828 \\
+                          USD & 21,347 & 23,732 \\\hline
+    \end{tabular}
+    \caption{Tabulka kurzů k dnešnímu dni}
+    \label{tab:kurzy}
+\end{table}
+
+\begin{table}[ht]
+    \catcode`\-=12
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        $A$ & $\neg A$ \\\hline
+        \textbf{P} & N \\\hline
+        \textbf{O} & O \\\hline
+        \textbf{X} & X \\\hline
+        \textbf{N} & P \\\hline
+    \end{tabular}
+    \smallskip
+    \logictable{A}{\land}{B}
+        {P & O & X & N}
+        {O & O & N & N}
+        {X & N & X & N}
+        {N & N & N & N}
+    \smallskip
+    \logictable{A}{\lor}{B}
+        {P & P & P & P}
+        {P & O & P & O}
+        {P & P & X & X}
+        {P & O & X & N}
+    \smallskip
+    \logictable{A}{\rightarrow}{B}
+        {P & O & X & N}
+        {P & O & P & O}
+        {P & P & X & X}
+        {P & P & P & P}
+
+    \caption{Protože Kleeneho trojhodnotová logika už je \uv{zastralá}, uvádíme si zde příklad čtyřhodnotové logiky}
+\end{table}
+
+\section{Algoritmy}
+\label{sec:algoritmy}
+
+Pokud budeme chtít vysázet algoritmus, můžeme použít prostředí \verb|algorithm|\footnote{} nebo \verb|algorithm2e|\footnote{}.
+Příklad použítí prostředí \verb|algorithm2e| viz \ref{alg:fastslam}
+
+\begin{algorithm}
+    \caption{F{\footnotesize AST}SLAM}
+    \label{alg:fastslam}
+    \KwIn{$(X_{t-1}, u_t, z_t)$}
+    \KwOut{$X_t$}
+    \vspace{0.5em}
+    $\overline{X_t} = X_t = 0$\;
+    \For{$k = 1$ to $M$}{
+        $x^{[k]}_t = \emph{sample\_motion\_model}(u_t, x^{[k]}_{t-1})$\;
+        $\omega^{[k]}_t = \emph{measurement\_model}(z_t, x^{[k]}_t, m_{t-1})$\;
+        $m^{[k]}_t = updated\_occupancy\_grid(z_t, x^{[k]}_t, m^{[k]_{t-1}})$\;
+        $\overline{X_t} = \overline{X_t} + \langle x^{[m]}_x, \omega^{[m]}_t \rangle$\;
+    }
+
+    \For{$k = 1$ to $M$}{
+        draw $i$ with probability $\approx \omega^{[i]}_t$\;
+        add $\langle x^{[k]_x, m^{[k]}_t}\rangle$ to $X_t$\;
+    }
+    \KwRet{$X_t$}
+
+\end{algorithm}
+
+\section{Obrázky}
+Do našich článků můžeme samozřejmě vkládat obrázky. Pokud je obrázkem fotografie, můžeme klidně použít bitmapový soubor.
+Pokud by to ale mělo být nějaké schéma nebo něco podobného, je dobrým zvykem takovýto obrázek vytvořit vektorově.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics{etiopan.eps}
+    \reflectbox{\includegraphics{etiopan.eps}}
+    \caption{Malý Etiopánek a jeho bratříček}
+\end{figure}
+
+
+\end{document}
