@@ -1,4 +1,5 @@
 \documentclass[a4paper,11pt]{article}
+\usepackage[left=2cm,text={17cm, 24cm},top=3cm]{geometry}
 \usepackage[]{times}
 \usepackage[utf8]{inputenc}
 \usepackage[IL2]{fontenc}
@@ -7,7 +8,6 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage[]{dirtytalk}
 \usepackage[usenames,dvipsnames]{color}
-\usepackage[left=2cm,text={17cm, 24cm},top=3cm]{geometry}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amsthm}
@@ -15,10 +15,15 @@
 \usepackage{multirow}
 \usepackage{multicol}
 \usepackage{graphicx}
+\usepackage{pdflscape}
+\usepackage{calc}
 
 %FOR_DIFF_PURPOSES
-%\usepackage[]{xcolor}
-%\color{red}
+\usepackage[]{xcolor}
+\color{red}
+
+\newcommand*{\mojettt}[1]{\ \texttt{#1}}
+\newcommand*{\mojetttext}[1]{\: \texttt{#1}\ }
 
 \newcommand*{\logictable}[7]{
     \begin{tabular}{|c|c|c|c|c|c|}
@@ -37,7 +42,7 @@
     \begin{center}
         {\Huge \textsc{Vysoké učení technické v~Brně} \\[0.5em]} {\huge \textsc{Fakulta informačních technologií}} \\
         \vspace{\stretch{0.382}}
-        {\LARGE Typografie a publikování\,--\,3. projekt \\[0.4em] Tabulky a obrázky }\\
+        {\LARGE Typografie a publikování\,--\,3. projekt \\[0.4em] {\Huge Tabulky a obrázky }}\\
         \vspace{\stretch{0.612}}
     \end{center}
 
@@ -51,29 +56,32 @@
 Název práce umístěte do zlatého řezu a nezapoměňte uvést \uv{dnešní} (today) datum a vaše jméno a přijmení.
 
 \section{Tabulky}
-Pro sázení tabulek můžeme použít buď prostředí \verb|tabbing| nebo prostředí \verb|tabular|.
-\subsection{Prostředí \texttt{tabbing}}
-Při použití \verb|tabbing| vypadá tabulka následovně:
-
+Pro sázení tabulek můžeme použít buď prostředí \mojetttext{tabbing} nebo prostředí \mojetttext{tabular}.
+\subsection{Prostředí \mojettt{tabbing}}
+Při použití \mojetttext{tabbing} vypadá tabulka následovně:
 \begin{table}[ht]
-    \begin{tabbing}
-        Ovoce \= Cena \= Množství \\
-        Jablka \= 25,90 \= 3\,kg \\
-        Hrušky \= 27,40 \= 2,5\,kg \\ 
-        Vodní melouny \= 35,-- \= 1\,kus \kill
-    \end{tabbing}
-\end{table}
-Toto prostředí se dá také použít pro sázení algoritmů, ovšem vhodnější je použít prostředí \verb|algorithm| nebo \verb|algorithm2e| (viz sekce \ref{sec:algoritmy}).
+\begin{tabbing}
+    Vodní melouny \quad\=\qquad 35,-- \= 1\,kus\kill
 
-\subsection{Prostředí \texttt{tabular}}
-Další možností, jak vytvořit tabulku, je použít prostředí \verb|tabular|. Tabulky pak budou vypadat takto\footnote{Kdyby byl problem s \texttt{cline}, zkuste se podivat třeba sem: http://www.abclinuxu.cz/tex/poradna/show/325037.}
+    Ovoce \> Cena \> Množství \\
+    Jablka \> 25,90 \> 3\,kg \\
+    Hrušky \> 27,40 \> 2,5\,kg \\ 
+    Vodní melouny \> 35,-- \> 1\,kus
+\end{tabbing}
+\end{table}
+
+\noindent Toto prostředí se dá také použít pro sázení algoritmů, ovšem vhodnější je použít prostředí \mojetttext{algorithm} nebo \mojetttext{algorithm2e} (viz sekce \ref{sec:algoritmy}).
+
+\subsection{Prostředí \mojettt{tabular}}
+Další možností, jak vytvořit tabulku, je použít prostředí \mojetttext{tabular}. Tabulky pak budou vypadat takto\footnote{Kdyby byl problem s \mojetttext{cline}, zkuste se podivat třeba sem: http://www.abclinuxu.cz/tex/poradna/show/325037.}
+
 \begin{table}[ht]
     \centering
     \catcode`\-=12
     \begin{tabular}{|c|c|c|}
         \hline
-        \multirow{2}{*}{Měna} & \multicolumn{2}{c|}{Cena} \\\cline{2-3}
-                              & nákup & prodej  \\\hline
+        \multirow{2}{*}{\textbf{Měna}} & \multicolumn{2}{c|}{\textbf{Cena}} \\\cline{2-3}
+                              & \textbf{nákup} & \textbf{prodej}  \\\hline
                           EUR & 22,705 & 25,242 \\
                           GBP & 25,931 & 28,828 \\
                           USD & 21,347 & 23,732 \\\hline
@@ -113,20 +121,25 @@ Další možností, jak vytvořit tabulku, je použít prostředí \verb|tabular
         {P & P & P & P}
 
     \caption{Protože Kleeneho trojhodnotová logika už je \uv{zastralá}, uvádíme si zde příklad čtyřhodnotové logiky}
+    \label{tab:logtable}
 \end{table}
 
 \section{Algoritmy}
 \label{sec:algoritmy}
 
-Pokud budeme chtít vysázet algoritmus, můžeme použít prostředí \verb|algorithm|\footnote{} nebo \verb|algorithm2e|\footnote{}.
-Příklad použítí prostředí \verb|algorithm2e| viz \ref{alg:fastslam}
+Pokud budeme chtít vysázet algoritmus, můžeme použít prostředí \mojetttext{algorithm}\footnote{Pro nápovědu, jak zacházet s prostředím \mojetttext{algorithm}, můžeme zkusit tuhle stránku:\\http://ftp.cstug.cz/pub/tex/CTAN/macros/latex/contrib/algorithms/algorithms.pdf} nebo \mojetttext{algorithm2e}\footnote{Pro \mojetttext{algorithm2e} zase tuhle: http://ftp.cstug.cz/pub/tex/CTAN/macros/latex/contrib/algorithm2e/doc/algorithm2e.pdf.}.
+Příklad použítí prostředí \mojetttext{algorithm2e} viz \ref{alg:fastslam}
 
 \begin{algorithm}
+    \SetNlSty{}{}{:}
+    \SetNlSkip{-1em}
     \caption{F{\footnotesize AST}SLAM}
     \label{alg:fastslam}
     \KwIn{$(X_{t-1}, u_t, z_t)$}
     \KwOut{$X_t$}
-    \vspace{0.5em}
+    \BlankLine
+    \Indp
+    \Indp
     $\overline{X_t} = X_t = 0$\;
     \For{$k = 1$ to $M$}{
         $x^{[k]}_t = \emph{sample\_motion\_model}(u_t, x^{[k]}_{t-1})$\;
@@ -149,10 +162,74 @@ Pokud by to ale mělo být nějaké schéma nebo něco podobného, je dobrým zv
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics{etiopan.eps}
-    \reflectbox{\includegraphics{etiopan.eps}}
+    \includegraphics[width=0.25\textwidth]{etiopan.eps}
+    \reflectbox{\includegraphics[width=0.25\textwidth]{etiopan.eps}}
     \caption{Malý Etiopánek a jeho bratříček}
+    \label{img:etiopianek}
 \end{figure}
 
+
+Rozdíl mezi vektorovým \dots
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{oniisan.eps}
+    \caption{Vektorový obrázek}
+    \label{img:vector}
+\end{figure}
+
+\noindent \dots a bitmapovým obrázkem
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{oniisan2.eps}
+    \caption{Bitmapový obrázek}
+    \label{img:bitmap}
+\end{figure}
+\noindent se projeví například při zvětšení.
+
+Odkazy (nejen ty) na obrázky \ref{img:etiopianek}, \ref{img:vector} a \ref{img:bitmap}, a na tabulky \ref{tab:kurzy} a \ref{tab:logtable} a také na algoritmus \ref{alg:fastslam} jsou udělány pomocí křížových odkazů.
+Pak je ovšem potřeba zdrojový soubor přeložit dvakrát.
+
+Vektorové obrázky lze vytvořit i přímo v \LaTeX u, například pomocí prostředí \mojetttext{picture}.
+
+\begin{landscape}
+\begin{figure}[p]
+    \centering
+    \framebox{
+    \begin{picture}(500, 250)
+        %slunce
+        \put(500pt-50pt, 250pt-50pt){\circle{50pt}}
+        \linethickness{1pt}
+        %leva stena
+        \put(75pt, 25pt){ \line(0, 1){100pt} } % |
+        \put(75pt+3pt, 25pt+100pt){\line(1,0){150pt}} % -
+
+        %rampa
+        \put(75pt+50, 25pt){\line(0,1){50pt}} % |
+        \put(75pt+50, 25pt+50pt){\line(1,0){100pt}} % -
+        \put(75pt+50pt+100pt, 25pt+50pt){\line(2,-1){100pt}} % \
+
+        % vecko
+        \put(75pt+100, 25pt+50pt){\line(-1,1){35pt}} % \
+        \put(75pt+100pt-35pt, 25pt+50pt+35pt){\line(1,0){275pt}} % -
+        \put(75pt+100pt-35pt+275pt, 25pt+50pt+35pt){\line(0,-1){35pt+50pt}} % |
+
+        %dvere
+        \put(75pt+100pt-35pt+275pt-50pt, 25pt+25pt){\oval(25,50)} % O
+
+        %strecha
+        \put(75pt+3pt+150pt, 25pt+100pt){\line(1,1){75pt}} % /
+        \put(75pt+3pt+150pt+75pt, 25pt+100pt+75){\line(1,-1){90pt}} % \
+
+        %silnice
+        \linethickness{5pt}
+        \put(25pt, 25pt){\line(1, 0){500pt-50pt}} % -
+
+    \end{picture}
+    }
+    \caption{Vektorový obrázek moderního bydlení vhodného pro 21. století. (Buď to vytvořte stejný obrázek, anebo nakreslete pomocí \mojetttext{picture} váš vlastní domov.)}
+    \label{img:domov}
+\end{figure}
+\end{landscape}
 
 \end{document}
