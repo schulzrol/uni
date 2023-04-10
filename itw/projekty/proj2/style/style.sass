@@ -1,0 +1,248 @@
+// Variables
+$section-logo-size: 2em
+$duration: 0.2s
+$bradius: 10px
+$projects-img-width: 75%
+$shadow: 0px 5px 10px 5px rgba(0,0,0,30%)
+
+@use 'color_palette'
+
+// General
+body
+    background-color: color_palette.$body-bg
+    margin:0
+    padding:0
+
+*
+    box-sizing: border-box
+    transition-duration: $duration
+    transition-timing-function: linear
+
+a
+    color: inherit
+    text-decoration: none
+
+ul
+    padding: 0
+    margin:0
+    list-style-type: none
+
+h1,h2,h3,h4,h5,h6
+    font-family: "Ubuntu", sans-serif
+    font-weight: bolder
+    margin: 0
+
+img
+    opacity: 0.7
+
+article
+    background-color: color_palette.$article-bg
+    min-height: 50vh
+    margin: 0
+    padding: 25px 0
+
+    h2
+        font-size: 2em
+
+    h2,h3
+        text-align: center
+    &:hover
+        h2
+            text-decoration: underline 2px color_palette.$accent-warm
+    
+.icon
+    font-size: $section-logo-size
+    text-align: center
+
+section
+    background-color: color_palette.$section-bg
+    background-blend-mode: soft-light
+    box-shadow: $shadow
+    border-radius: $bradius
+
+    h3
+        font-size: 1.5em
+
+.socials
+    display: flex
+    font-size: 3em
+    color: color_palette.$accent-cold
+    
+    li
+        flex-grow: 1
+        margin: 10px
+        &:hover
+            color: color_palette.$accent-warm
+    span
+        display: none
+
+.bold
+    font-weight: bold
+
+
+// Section Specific
+#menu
+    width: 100%
+    color: color_palette.$top-bar-text-color
+    font-size: 1.2em
+    z-index: 999
+    font-family: "Ubuntu", sans-serif
+    position: sticky
+    top:0
+    background-color: color_palette.$top-bar-color
+    margin: 0 auto
+nav
+    display: grid
+    width: 50%
+    grid-template-areas: "logo navbuttons"
+    grid-template-columns: auto auto
+    margin: 0 auto
+    a
+        margin-left: auto
+        display: inline-block
+        box-sizing: border-box
+        padding: 1em
+        border-bottom: 2px solid color_palette.$top-bar-color
+        &:hover
+            border-bottom-color: color_palette.$hover-border-color
+
+    .navbuttons
+        grid-area: navbuttons
+        justify-self: right
+    .navbuttons > :last-child
+        background: color_palette.$accent-warm
+        color: color_palette.$top-bar-color
+        font-weight: bold
+        border-bottom-color: color_palette.$accent-warm
+        &:hover
+            border-bottom-color: color_palette.$accent-cold
+        
+
+.logo
+    grid-area: logo
+    justify-self: left
+    margin-right: auto
+    a:first-child
+        text-decoration: bold
+header
+    #about
+        display: grid
+        grid-template-areas: "heading img" "summary img" "socials img"
+        grid-template-columns: 1fr 1fr
+        align-items: baseline
+        justify-items: right
+        column-gap: 3rem
+        margin: 0 auto
+        padding: 40px 0
+        width:50%
+
+        h2
+            grid-area: heading
+            align-self: flex-end
+            justify-self: flex-end
+        img
+            justify-self: left
+            align-self: center
+            width:250px
+            grid-area: img
+            background: linear-gradient(-90deg, color_palette.$accent-cold 5%, #fc7945 70%, color_palette.$accent-warm 100%)
+            border-radius: 50% 25%
+            border: 5px solid white
+            box-shadow: $shadow
+            transform: scaleX(-1)
+            opacity:1
+            object-fit: contain
+        section
+            grid-area: summary
+            box-shadow: none
+            text-align: right
+        .socials
+            grid-area: socials
+            justify-self: right
+            align-self: flex-start
+
+#projects
+    > *
+        max-width: 75%
+        margin-left: auto
+        margin-right: auto
+
+    display: flex
+    background-color: color_palette.$accent-cold
+    flex-direction: column
+    color: white
+    
+    h3
+        grid-area: heading
+    
+    .content
+        display: grid
+        grid-auto-flow: column
+        grid-auto-columns: 1fr
+        justify-content: space-around
+
+    a
+        grid-area: img
+
+    img
+        display: block
+        width: $projects-img-width
+        margin: 0 auto
+
+    section
+        padding: 20px
+        margin: 10px
+        justify-items: center
+        display: grid
+        grid-template-areas: "heading" "desc" "img"
+        box-shadow: $shadow
+        transition-property: background-color padding
+        background: linear-gradient(0deg, color_palette.$accent-cold 0%, rgba(226,149,120,1) 100%)
+        &:hover
+            img
+                opacity: 1
+
+#experience
+    section
+        width: 50%
+        margin: 50px auto
+        display: flex
+        flex-direction: row
+        column-gap: 0px
+        > * 
+            padding: 15px
+
+        hgroup
+            text-align: center
+            border-right: 2px dotted color_palette.$accent-cold-op
+            p
+                width: max-content
+                font-family: "Ubuntu", sans-serif
+
+#skills
+    .present::before
+        font-family: "Font Awesome 6 Free"
+
+.contacts
+    font-family: "Ubuntu", sans-serif
+    li
+        padding: 0.3em
+        &:hover
+            color: black
+            text-decoration: underline
+            i
+                color: color_palette.$accent-warm
+    i
+        margin-left: 1em
+
+footer
+    display: grid
+    background-color: color_palette.$footer-bg
+    .socials
+        flex-direction: column
+    
+    .contacts
+        li
+            direction: rtl
+        i
+            margin:0 1em 0 0
