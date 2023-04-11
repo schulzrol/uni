@@ -30,12 +30,12 @@
                 <a href="./index.html"><span class="bold">Roland</span> <span>Schulz</span></a>
             </div>
             <div class="navbuttons">
-                <a href="#about">About me</a>
-                <a href="#experience">Experience</a>
-                <a href="#projects">Projects</a>
-                <a href="#skills">Skills</a>
-                <a href="#education">Education</a>
-                <a href="#hire">Hire</a>
+                   <a href="#about">About me</a><!--
+                --><a href="#experience">Experience</a><!--
+                --><a href="#projects">Projects</a><!--
+                --><a href="#skills">Skills</a><!--
+                --><a href="#education">Education</a><!--
+                --><a href="#hire">Contact</a>
             </div>
         </nav>
     </div>
@@ -45,7 +45,7 @@
             <a href="#about"><h2>About me</h2></a>
             <section>
                 <p>
-                   Lorem ipsum dolor sit, amet consectetur adipisicing elit. Cum vero fugit aspernatur quidem quis optio sint saepe ut voluptas temporibus impedit unde excepturi dignissimos, fugiat eaque nisi amet porro ad. 
+                   Lorem ipsum dolor sit, amet consectetur adipisicing elit. Cum vero fugit aspernatur <strong>quidem quis</strong> optio sint saepe ut voluptas temporibus impedit unde excepturi dignissimos, fugiat eaque nisi amet porro ad. 
                 </p>
                 <ul class="contacts">
                     <li class="phone"><a href="tel:+420-734-534-411">+420 734 534 411<i class="fas fa-phone-square-alt"></i></a></li>
@@ -64,8 +64,7 @@
     <main>
         <!-- work experience-->
         <article id="experience">
-            <div class="icon">🛠️</div>
-            <h2>Experience</h2>
+            <a href="#experience"><h2>Experience</h2></a>
             <div class="content">
                 <section>
                     <hgroup>
@@ -73,7 +72,8 @@
                         <p>07.2020 &ndash; 12.2022</p>
                     </hgroup>
                     <div class="summary">
-                        <p>lorem ipsum dolor sit amet consectetur adipisicing elit. doloremque tempora ut voluptatum consequuntur ratione libero dolore facilis, corrupti iure quas ducimus obcaecati itaque odit laborum nemo blanditiis suscipit, facere accusamus!</p>
+                        <p>lorem ipsum dolor sit amet <strong>consectetur adipisicing elit</strong>. doloremque tempora ut voluptatum consequuntur ratione libero dolore facilis, corrupti iure quas ducimus obcaecati itaque odit laborum nemo blanditiis suscipit, facere accusamus!</p>
+                        <p>lorem ipsum dolor sit amet consectetur adipisicing elit. doloremque tempora ut voluptatum consequuntur ratione libero dolore facilis, <strong>corrupti iure quas ducimus obcaecati itaque</strong> odit laborum nemo blanditiis suscipit, facere accusamus!</p>
                     </div>
                 </section>
 
@@ -83,7 +83,12 @@
                         <p>06.2016 &ndash; 09.2016</p>
                     </hgroup>
                     <div class="summary">
-                        <p>lorem ipsum dolor sit amet consectetur adipisicing elit. doloremque tempora ut voluptatum consequuntur ratione libero dolore facilis, corrupti iure quas ducimus obcaecati itaque odit laborum nemo blanditiis suscipit, facere accusamus!</p>
+                        <p>lorem ipsum dolor sit amet consectetur adipisicing elit. doloremque <strong>tempora ut voluptatum consequuntur ratione libero</strong> dolore facilis, corrupti iure quas ducimus obcaecati itaque odit laborum nemo blanditiis suscipit, facere accusamus!</p>
+                        <ul>
+                            <li>Lorem Ipsum</li>
+                            <li>Dolor Sit</li>
+                            <li>Amet</li>
+                        </ul>
                     </div>
                 </section>
             </div>
@@ -91,43 +96,50 @@
 
         <!-- projects i've worked on-->
         <article id="projects">
-            <div class="icon">🏗️️</div>
-            <h2>Projects</h2>
+            <a href="#projects"><h2>Projects</h2></a>
             <div class="content">
                 <section>
-                    <h3>BubbleCalc</h3>
-                    <ul>
-                        <li>Lorem Ipsum</li>
-                        <li>Dolor Sit Amet!</li>
-                        <li>Up to 5 people</li>
-                    </ul>
-                    <a target="_blank" href="https://gitlab.com/bublinky/bc"><img src="img/bubblecalc.png" alt="screenshot z kalkulacky"/></a>
+                    <hgroup>
+                        <a target="_blank" href="https://gitlab.com/bublinky/bc"><h3>BubbleCalc</h3></a>
+                        <p>Lorem ipsum dolor sit amet</p>
+                    </hgroup>
+                    <img src="img/bubblecalc.png" alt="screenshot z kalkulacky"/></a>
                 </section>
 
                 <section>
-                    <h3>Vizualizace Zpoždění Vozidel IDS-JMK </h3>
-                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ab suscipit sed velit? Dolorem, cupiditate iusto, ipsum unde rem explicabo molestias, earum deleniti quaerat vitae provident voluptates non exercitationem accusantium sit?</p>
-                    <a target="_blank" href="https://github.com/schullzroll/mapa.idsjmk-history-visualization"><img src="img/visidsjmk.png" alt="snimek z videa"/></a>
-                </section>
-            
-                <section>
-                    <h3>bfci</h3>
-                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ab suscipit sed velit? Dolorem, cupiditate iusto, ipsum unde rem explicabo molestias, earum deleniti quaerat vitae provident voluptates non exercitationem accusantium sit?</p>
-                    <a target="_blank" href="https://github.com/schullzroll/bfci"><img src="img/brainfuck.png" alt="logo brainfuck"/></a>
+                    <hgroup>
+                        <a target="_blank" href="https://github.com/schullzroll/mapa.idsjmk-history-visualization"><h3>Vizualizace Zpoždění Vozidel IDS-JMK </h3></a>
+                        <p>Amet consectetur adipisicing elit</p>
+                    </hgroup>
+                    <img src="img/visidsjmk.png" alt="snimek z videa"/></a>
                 </section>
 
                 <section>
-                    <h3>Advent Of Code 2023</h3>
-                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ab suscipit sed velit? Dolorem, cupiditate iusto, ipsum unde rem explicabo molestias, earum deleniti quaerat vitae provident voluptates non exercitationem accusantium sit?</p>
-                    <a target="_blank" href="https://github.com/schullzroll/aoc"><img src="img/aoc.png" alt="logo advent of code"/></a>
+                    <hgroup>
+                        <a target="_blank" href=""><h3>Projekt 123</h3></a>
+                        <p>Lorem ipsum dolor sit suscipit sed velit</p>
+                    </hgroup>
+                </section>
+
+                <section>
+                    <hgroup>
+                        <a target="_blank" href=""><h3>Projekt 456</h3></a>
+                        <p>Lorem ipsum dolor sit suscipit sed velit</p>
+                    </hgroup>
+                </section>
+
+                <section>
+                    <hgroup>
+                        <a target="_blank" href=""><h3>Advent Of Code 2023</h3></a>
+                        <p>Arum deleniti quaerat vitae provident voluptates non exercitationem accusantium sit</p>
+                    </hgroup>
                 </section>
             </div>
         </article>
 
         <!-- skills -->
         <article id="skills">
-            <div class="icon">⭐️️</div>
-            <h2>Skills</h2>
+            <a href="#skills"><h2>Skills</h2></a>
             <div class="content">
                 <section>
                     <h3>soft skills</h3>
@@ -149,8 +161,7 @@
 
         <!-- education -->
         <article id="education">
-            <div class="icon">👨‍🎓</div>
-            <h2>Formal Education</h2>
+            <a href="#education"><h2>Formal Education</h2></a>
             <div class="content">
                 <section class="bc_degree">
                     <h3>Bachelors Degree</h3>
@@ -175,7 +186,7 @@
             </ul>
         </section>
         <section id="hire">
-            <h2>Contact</h2>
+            <a href="#hire"><h2>Contact</h2></a>
                 <ul class="contacts">
                     <li class="phone"><a href="tel:+420-734-534-411">+420 734 534 411<i class="fas fa-phone-square-alt"></i></a></li>
                     <li class="mail"><a href="mailto:xschul06@fit.vutbr.cz">xschul06@fit.vutbr.cz<i class="fas fa-envelope-square"></i></a></li>
