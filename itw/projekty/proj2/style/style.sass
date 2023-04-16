@@ -1,4 +1,5 @@
-@use 'color_palette'
+
+@use "color_palette"
 
 // Variables
 $section-logo-size: 2em
@@ -16,7 +17,7 @@ body
     background-color: color_palette.$body-bg
     margin:0
     padding:0
-    font-family: sans-serif
+    font-family: "Ubuntu", sans-serif
 
 *
     box-sizing: border-box
@@ -36,7 +37,7 @@ ul
 
 h1,h2,h3,h4,h5,h6
     text-decoration: underline 2px transparent
-    font-family: "Ubuntu", sans-serif
+    font-family: 'Red Hat Display', sans-serif
     font-weight: bolder
     margin: 0
 
@@ -117,7 +118,6 @@ nav
     align-items: baseline
     margin: 0 auto
     a
-        transition-property: background
         margin-left: auto
         display: inline-block
         box-sizing: border-box
@@ -147,8 +147,8 @@ nav
     grid-area: logo
     justify-self: left
     margin-right: auto
-    a:first-child
-        text-decoration: bold
+    font-family: 'Red Hat Display', sans-serif
+
 header
     #about
         display: grid

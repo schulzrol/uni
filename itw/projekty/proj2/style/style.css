@@ -2,7 +2,7 @@ body {
   background-color: hsl(260, 18%, 97%);
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
+  font-family: "Ubuntu", sans-serif;
 }
 
 * {
@@ -27,7 +27,7 @@ ul {
 
 h1, h2, h3, h4, h5, h6 {
   text-decoration: underline 2px transparent;
-  font-family: "Ubuntu", sans-serif;
+  font-family: "Red Hat Display", sans-serif;
   font-weight: bolder;
   margin: 0;
 }
@@ -41,7 +41,7 @@ article:hover h2, header:hover h2 {
 }
 article h2, article h3, header h2, header h3 {
   text-align: center;
-  color: rgb(54, 61, 86);
+  color: #363d56;
 }
 
 article {
@@ -74,7 +74,7 @@ section h3 {
 .socials {
   display: flex;
   font-size: 3em;
-  color: rgb(54, 61, 86);
+  color: #363d56;
 }
 .socials li {
   flex-grow: 1;
@@ -102,7 +102,7 @@ section h3 {
   font-family: "Ubuntu", sans-serif;
   position: sticky;
   top: 0;
-  background-color: rgb(54, 61, 86);
+  background-color: #363d56;
   margin: 0 auto;
   box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.5);
 }
@@ -116,12 +116,11 @@ nav {
   margin: 0 auto;
 }
 nav a {
-  transition-property: background;
   margin-left: auto;
   display: inline-block;
   box-sizing: border-box;
   padding: 0.5em;
-  border-bottom: 2px solid rgb(54, 61, 86);
+  border-bottom: 2px solid #363d56;
 }
 nav a:hover {
   background: linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
@@ -134,13 +133,13 @@ nav .navbuttons {
   justify-self: right;
 }
 nav .navbuttons > :last-child {
-  color: rgb(54, 61, 86);
+  color: #363d56;
   background: linear-gradient(-90deg, #fc7945 50%, rgb(252, 174, 69) 100%);
   font-weight: bold;
   border-radius: 10px;
 }
 nav .navbuttons > :last-child:hover {
-  border-bottom-color: rgb(54, 61, 86);
+  border-bottom-color: #363d56;
   box-shadow: inset 0px 0px 10px 2px rgba(0, 0, 0, 0.35);
 }
 
@@ -149,9 +148,7 @@ nav .navbuttons > :last-child:hover {
   grid-area: logo;
   justify-self: left;
   margin-right: auto;
-}
-.logo a:first-child {
-  text-decoration: bold;
+  font-family: "Red Hat Display", sans-serif;
 }
 
 header #about {
@@ -175,7 +172,7 @@ header #about img {
   align-self: center;
   width: 250px;
   grid-area: img;
-  background: linear-gradient(-90deg, rgb(54, 61, 86) 5%, #fc7945 70%, rgb(252, 174, 69) 100%);
+  background: linear-gradient(-90deg, #363d56 5%, #fc7945 70%, rgb(252, 174, 69) 100%);
   border-radius: 50% 25%;
   border: 5px solid white;
   box-shadow: 0px 5px 10px 5px rgba(0, 0, 0, 0.3);
@@ -247,11 +244,11 @@ header #about .socials {
   display: grid;
   grid-template-areas: "img" "heading";
   grid-template-rows: auto 1fr;
-  background: rgb(54, 61, 86);
+  background: #363d56;
   box-shadow: none;
 }
 #projects section:hover {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(0, 0, 0, 0) 100%), rgb(54, 61, 86);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(0, 0, 0, 0) 100%), #363d56;
 }
 #projects section:hover img {
   opacity: 1;
@@ -312,7 +309,7 @@ header #about .socials {
 
 footer {
   display: grid;
-  background-color: rgb(54, 61, 86);
+  background-color: #363d56;
 }
 footer .socials {
   flex-direction: column;
