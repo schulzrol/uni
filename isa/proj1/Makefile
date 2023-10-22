@@ -1,38 +1,50 @@
+# Compiler and flags
 CC = g++
-CFLAGS = -Wall -ggdb -pedantic -std=c++11
-INCLUDES = -I./$(SOURCES_DIR)
-SOURCES_DIR=./src
-SERVER_SOURCES_DIR=$(SOURCES_DIR)/server
-CLIENT_SOURCES_DIR=$(SOURCES_DIR)/client
+CFLAGS = -Wall -std=c++11 -I./src -ggdb
 
-CLIENT_SOURCES=$(CLIENT_SOURCES_DIR)/*.cpp
-SERVER_SOURCES=$(SERVER_SOURCES_DIR)/*.cpp
+# Directories
+SRC_DIR = src
+OBJ_DIR = ./build
+BIN_DIR = .
 
-BUILD_DIR=.
+# Source files
+CLIENT_SRCS = $(wildcard $(SRC_DIR)/client/*.cpp)
+SERVER_SRCS = $(wildcard $(SRC_DIR)/server/*.cpp)
+SHARED_SRCS = $(wildcard $(SRC_DIR)/shared/*.cpp)
 
-CLIENT_TARGET=$(BUILD_DIR)/tftp-client
-SERVER_TARGET=$(BUILD_DIR)/tftp-server
+# Object files
+CLIENT_OBJS = $(patsubst $(SRC_DIR)/client/%.cpp,$(OBJ_DIR)/client/%.o,$(CLIENT_SRCS))
+SERVER_OBJS = $(patsubst $(SRC_DIR)/server/%.cpp,$(OBJ_DIR)/server/%.o,$(SERVER_SRCS))
+SHARED_OBJS = $(patsubst $(SRC_DIR)/shared/%.cpp,$(OBJ_DIR)/shared/%.o,$(SHARED_SRCS))
+
+# Executables
+CLIENT_EXE = $(BIN_DIR)/tftp-client
+SERVER_EXE = $(BIN_DIR)/tftp-server
 
 .PHONY: all clean
-# ---
 
-all: $(CLIENT_TARGET) $(SERVER_TARGET)
+all: $(CLIENT_EXE) $(SERVER_EXE)
 
-$(CLIENT_TARGET): $(CLIENT_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(CLIENT_TARGET) $(CLIENT_SOURCES)
+$(CLIENT_EXE): $(CLIENT_OBJS) $(SHARED_OBJS)
+	$(CC) $(CFLAGS) $^ -o $@
 
-$(SERVER_TARGET): $(SERVER_SOURCES)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(SERVER_TARGET) $(SERVER_SOURCES)
+$(SERVER_EXE): $(SERVER_OBJS) $(SHARED_OBJS)
+	$(CC) $(CFLAGS) $^ -o $@
 
-# ---
-RM = rm -f
+$(OBJ_DIR)/client/%.o: $(SRC_DIR)/client/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/server/%.o: $(SRC_DIR)/server/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/shared/%.o: $(SRC_DIR)/shared/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
 clean:
-	$(RM) $(BUILD_DIR)/*.o 
-	$(RM) $(CLIENT_TARGET)
-	$(RM) $(SERVER_TARGET)
+	rm -rf $(CLIENT_OBJS) $(SERVER_OBJS) $(SHARED_OBJS) $(CLIENT_EXE) $(SERVER_EXE)
 
-# Makefile debugging
-#------------------------------------------------------------------------------
-# prints all variables in makefile for makefile debugging
-debug :
-	$(foreach v, $(.VARIABLES), $(info $(v) = $($(v))))
+# Ensure that the output directories exist
+$(shell mkdir -p $(OBJ_DIR)/client)
+$(shell mkdir -p $(OBJ_DIR)/server)
+$(shell mkdir -p $(OBJ_DIR)/shared)
+$(shell mkdir -p $(BIN_DIR))
