@@ -33,21 +33,123 @@
 #define OLED_CS    5
 #define OLED_RESET 17
 
-//void setup() {
-//  Serial.begin(9600);
-//  Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
-//
-//  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-//  if(!display.begin(SSD1306_SWITCHCAPVCC)) {
-//    Serial.println(F("SSD1306 allocation failed"));
-//    for(;;); // Don't proceed, loop forever
-//  }
-//
-//  display.fillScreen(WHITE);
-//  display.clearDisplay();
-//  display.fillScreen(WHITE);
-//  display.display();
-//}
+#define debounce_delay 300
 
-//void loop() {
-//}
+#define rotationButton 26
+#define menuButton 25
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
+
+typedef enum menuState {mainMenu, kmphMenu, mphMenu, distanceMenu} stateT;
+stateT nextState[] = {kmphMenu, mphMenu, distanceMenu, mainMenu};
+int menuState = menuState::mainMenu;
+int rotations = 0;
+
+volatile bool rotated = false;
+volatile bool menuChange = false;
+volatile unsigned long lastRotationTime = 0; // Variable to store the last rotation time in milliseconds.
+volatile unsigned long timeDifference = 0; // Variable to store the time difference between the last two rotations in milliseconds.
+
+void rotationHandler(){
+    delayMicroseconds(debounce_delay);
+    if (digitalRead(rotationButton) == LOW) {
+        rotated = true;
+        unsigned long currentTime = millis();
+        timeDifference = currentTime - lastRotationTime;
+        lastRotationTime = currentTime; // Update the last rotation time
+    }
+}
+
+void menuHandler(){
+    delayMicroseconds(debounce_delay);
+    if (digitalRead(menuButton) == LOW) {
+        menuChange = true;
+    }
+}
+
+void showMenu() {
+    switch (menuState) {
+        case mainMenu:
+            display.clearDisplay();
+            display.setCursor(0,0);
+            display.setTextSize(1);
+            display.setTextColor(SSD1306_WHITE);
+            display.println("Main Menu");
+            display.display();
+            
+            break;
+        case kmphMenu:
+            display.clearDisplay();
+            display.setCursor(0,0);
+            display.setTextSize(1);
+            display.setTextColor(SSD1306_WHITE);
+            double kmph = getSpeedKmph(RPMFromTimeDifference(timeDifference), 20);
+            display.println("kmph Menu");
+            display.display();
+            break;
+        case mphMenu:
+            display.clearDisplay();
+            display.setCursor(0,0);
+            display.setTextSize(1);
+            display.setTextColor(SSD1306_WHITE);
+            display.println("mph Menu");
+            display.display();
+            break;
+        case distanceMenu:
+            display.clearDisplay();
+            display.setCursor(0,0);
+            display.setTextSize(1);
+            display.setTextColor(SSD1306_WHITE);
+            display.println("distance Menu");
+            display.display();
+            break;
+    }
+}
+
+double RPMFromTimeDifference(unsigned long timeDifferenceMillis) {
+    return 60000.0 / timeDifferenceMillis; // 60000 milliseconds in a minute
+}
+
+double KmphToMph(double kmph) {
+    return kmph * 0.621371; // 1 kmph = 0.621371 mph
+}
+
+double getSpeedKmph(double RPM, double wheelDiameterCm) {
+    return (RPM * wheelDiameterCm * PI * 60) / 100000; // 100000 cm in a km and 60 minutes in an hour
+}
+
+void setup() {
+  Serial.begin(9600);
+
+  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if(!display.begin(SSD1306_SWITCHCAPVCC)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+
+    pinMode(menuButton, INPUT_PULLUP );
+    pinMode(rotationButton, INPUT_PULLUP );
+    attachInterrupt(digitalPinToInterrupt(rotationButton), rotationHandler, FALLING);
+    attachInterrupt(digitalPinToInterrupt(menuButton), menuHandler, FALLING);
+
+  display.clearDisplay();
+  display.display();
+}
+
+
+void loop() {
+    showMenu();
+
+    if (rotated) {
+        rotated = false;
+        rotations++;
+        Serial.println("rotations: " + String(rotations));
+        Serial.println("rotation time: " + String(timeDifference/1000.0) + "s");
+    }
+
+    if (menuChange) {
+        menuChange = false;
+        menuState = nextState[menuState];
+        Serial.println("menu: " + String(menuState));
+    }
+}
