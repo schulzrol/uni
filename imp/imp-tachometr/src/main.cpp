@@ -2,9 +2,13 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Preferences.h>
+
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
+
+hw_timer_t *refreshDisplayTimer = NULL;
 
 // Declaration for SSD1306 display connected using software SPI (default case):
 #define OLED_MOSI  23
@@ -13,31 +17,33 @@
 #define OLED_CS    5
 #define OLED_RESET 17
 
+#define FLAG_VAL 0x42
+
 #define diameter 50 //in cm
 
 #define debounce_delay_millis 20
 #define debounce_delay_micros debounce_delay_millis * 1000
 
-#define LONG_BUTTON_PRESS_MILLIS 500
+#define LONG_BUTTON_PRESS_MILLIS 2000
 
 #define rotationButton 26
 #define menuButton 25
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
-typedef enum menuState {kmphMenu, mphMenu, distanceMenu} stateT;
-stateT nextState[] = {mphMenu, distanceMenu, kmphMenu};
+typedef enum menuState {kmphMenu, mphMenu, distanceMenu, RPMMenu} stateT;
+stateT nextState[] = {mphMenu, distanceMenu, RPMMenu, kmphMenu};
 int menuState = menuState::kmphMenu;
 int rotations = 0;
-
-double distance = 0;
+auto prefs = Preferences();
+volatile double distance = 0;
 volatile bool eraseDistance = false;
 volatile bool rotated = false;
 volatile bool menuChange = false;
 
 volatile unsigned long lastMenuPressTime = 0; // Variable to store the last menu press time in milliseconds.
 volatile unsigned long lastRotationTime = 0; // Variable to store the last rotation time in milliseconds.
-volatile unsigned long timeDifference = INT_MAX; // Variable to store the time difference between the last two rotations in milliseconds.
+volatile unsigned long lastRotationTimeDifference = UINT_MAX;
 
 double wheelCircumference(double d) {
     return d * PI;
@@ -59,22 +65,27 @@ void rotationHandler(){
     unsigned long currentTime = millis();
     delayMicroseconds(debounce_delay_micros);
     if (digitalRead(rotationButton) == LOW) {
+        rotations++;
         rotated = true;
-        timeDifference = currentTime - lastRotationTime;
+        distance += wheelCircumference(diameter);
+        lastRotationTimeDifference = currentTime - lastRotationTime;
         lastRotationTime = currentTime; // Update the last rotation time
     }
 }
+
+void menuPressHandler();
 
 void menuReleaseHandler(){
     unsigned long releaseTime = millis();
     delayMicroseconds(debounce_delay_micros);
     if (digitalRead(menuButton) == HIGH) {
-        bool wasLongPress = (releaseTime - lastMenuPressTime) < LONG_BUTTON_PRESS_MILLIS;
+        bool wasLongPress = (releaseTime - lastMenuPressTime) >= LONG_BUTTON_PRESS_MILLIS;
         if (wasLongPress && (menuState == distanceMenu)){
+            distance = 0;
             eraseDistance = true;
         }
         else {
-            menuChange = true;
+            menuState = nextState[menuState];
         }
         attachInterrupt(digitalPinToInterrupt(menuButton), menuPressHandler, FALLING);
     }
@@ -90,15 +101,24 @@ void menuPressHandler(){
     }
 }
 
+unsigned int max(unsigned int a, unsigned int b){
+    return a > b ? a : b;
+}
+
 void showMenu() {
+    unsigned long currentTime = millis();
+    unsigned long sinceLastRotation = currentTime - lastRotationTime;
+
+    unsigned long timeDifference = max(lastRotationTimeDifference, sinceLastRotation);
+    double RPM = RPMFromTimeDifference(timeDifference);
     switch (menuState) {
         case kmphMenu: {
             display.clearDisplay();
             display.setCursor(0,0);
             display.setTextSize(2);
             display.setTextColor(SSD1306_WHITE);
-            double kmph = getSpeedKmph(RPMFromTimeDifference(timeDifference), diameter);
-            display.println(String(kmph) + " km/h");
+            double kmph = getSpeedKmph(RPM, diameter);
+            display.printf("%3.1f km/h", kmph);
             display.display();
             break;
         }
@@ -107,8 +127,8 @@ void showMenu() {
             display.setCursor(0,0);
             display.setTextSize(2);
             display.setTextColor(SSD1306_WHITE);
-            double mph = KmphToMph(getSpeedKmph(RPMFromTimeDifference(timeDifference), diameter));
-            display.println(String(mph) + " m/h");
+            double mph = KmphToMph(getSpeedKmph(RPM, diameter));
+            display.printf("%3.1f m/h", mph);
             display.display();
             break;
         }
@@ -117,15 +137,46 @@ void showMenu() {
             display.setCursor(0,0);
             display.setTextSize(2);
             display.setTextColor(SSD1306_WHITE);
-            display.println(String(distance / 100) + " m"); // 100 cm in a meter
+            display.printf("%.2f m", distance/100);
+            display.display();
+            break;
+        }
+
+        case RPMMenu: {
+            display.clearDisplay();
+            display.setCursor(0,0);
+            display.setTextSize(2);
+            display.setTextColor(SSD1306_WHITE);
+            display.printf("%.2f RPM", RPM);
             display.display();
             break;
         }
     }
 }
 
+void initDataFromPersistent(){
+    bool success = prefs.begin("distance", false);
+    if (!success) {
+        Serial.println("Failed to open preferences");
+        for(;;); // Don't proceed, loop forever
+    }
+    if (prefs.isKey("distance")) {
+        Serial.println("Found distance key");
+        distance = prefs.getDouble("distance", 0);
+    }
+    else {
+        Serial.println("Did not find distance key");
+        prefs.putDouble("distance", 0);
+    }
+}
+
+void saveDataToPersistent(){
+    prefs.putDouble("distance", distance);
+}
+
 void setup() {
   Serial.begin(9600);
+  initDataFromPersistent();
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC)) {
@@ -133,36 +184,27 @@ void setup() {
     for(;;); // Don't proceed, loop forever
   }
 
-    pinMode(menuButton, INPUT_PULLUP );
-    pinMode(rotationButton, INPUT_PULLUP );
+    Serial.println(String(getSpeedKmph(60, diameter)));
+
+    pinMode(rotationButton, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(rotationButton), rotationHandler, FALLING);
+
+    pinMode(menuButton, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(menuButton), menuPressHandler, FALLING);
+
+  refreshDisplayTimer = timerBegin(0, 80, true);
+  timerAttachInterrupt(refreshDisplayTimer, &showMenu, true);
+  timerAlarmWrite(refreshDisplayTimer, 1000*1000, true); // Alarm for 500ms
+  timerAlarmEnable(refreshDisplayTimer);
 
   display.clearDisplay();
   display.display();
 }
 
-
-void loop() {
-    showMenu();
-
-    if (eraseDistance) {
-        eraseDistance = false;
-        distance = 0;
-        Serial.println("distance: " + String(distance));
-    }
-
-    if (rotated) {
+void loop(){
+    if (rotated || eraseDistance) {
+        saveDataToPersistent();
         rotated = false;
-        rotations++;
-        distance += wheelCircumference(diameter);
-        Serial.println("rotations: " + String(rotations));
-        Serial.println("rotation time: " + String(timeDifference/1000.0) + "s");
-    }
-
-    if (menuChange) {
-        menuChange = false;
-        menuState = nextState[menuState];
-        Serial.println("menu: " + String(menuState));
+        eraseDistance = false;
     }
 }
