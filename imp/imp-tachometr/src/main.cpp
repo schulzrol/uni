@@ -263,7 +263,7 @@ void eraseDistanceHandler(){
 }
 
 void adminPageHandler(){
-    server.send(200, "text/html", "<h1>Speedo Admin</h1><p>Traveled " + String(distance/100) + " meters. </p><p><a href=\"/erase_distance\">Erase distance</a></p>");
+    server.send(200, "text/html", "<h1>Tachometr Admin</h1><p>Traveled " + String(distance/100) + " meters. </p><p><a href=\"/erase_distance\">Erase distance</a></p>");
 }
 
 void setup() {
