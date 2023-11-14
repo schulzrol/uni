@@ -1,4 +1,4 @@
-#include "RRQPacket.h"
+#include "RRQPacket.hpp"
 
 RRQPacket::RRQPacket(string filename, string mode){
     this->filename = filename;

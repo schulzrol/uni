@@ -1,0 +1,24 @@
+
+#include "PacketFactory.hpp"
+
+Packet* PacketFactory::createPacket(const char* data, size_t data_length = DATA_LENGTH_BYTES) {
+    // read the opcode from the first two bytes of the data in network byte order (big endian)
+    unsigned short opcode = ntohs(*(unsigned short*)data);
+    switch(opcode) {
+        case 1:
+            return new RRQPacket(data);
+        case 2:
+            return new WRQPacket(data);
+        case 3:
+            return new DATAPacket(data, data_length);
+        /*
+        TODO: implement the rest of the packet types
+        case 4:
+            return new ACKPacket(data);
+        case 5:
+            return new ERRORPacket(data);
+        */
+        default:
+            throw invalid_argument("Unknown opcode");
+    }
+}

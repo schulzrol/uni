@@ -1,7 +1,7 @@
 #ifndef WRQPACKET_H
 #define WRQPACKET_H
 
-#include "RRQPacket.h"
+#include "RRQPacket.hpp"
 
 class WRQPacket : public RRQPacket {
     public:

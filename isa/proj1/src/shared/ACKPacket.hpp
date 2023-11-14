@@ -3,7 +3,7 @@
 
 #include <string>
 #include "definitions.h"
-#include "Packet.h"
+#include "Packet.hpp"
 
 #define ACK_PACKET_LENGTH_BYTES 4
 

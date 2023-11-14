@@ -1,6 +1,8 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
+#define SERVER_PORT 69
+
 #define BITS_IN_BYTE 8
 
 #define BLOCK_LENGTH_BYTES 512

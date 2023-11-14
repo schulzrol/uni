@@ -5,11 +5,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) Launch",
+            "name": "(lldb) Client",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/tftp-client",
             "args": ["-h", "localhost", "-p", "69", "-f", "test.txt", "-t", "testout.txt"],
+            "stopAtEntry": false,
+            "cwd": ".",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "(lldb) Server",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/tftp-server",
+            "args": ["-p", "69", "testdir"],
             "stopAtEntry": false,
             "cwd": ".",
             "environment": [],

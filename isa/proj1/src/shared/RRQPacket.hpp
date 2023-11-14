@@ -2,7 +2,7 @@
 #define RRQPACKET_H
 
 #include "definitions.h"
-#include "Packet.h"
+#include "Packet.hpp"
 #include <string>
 
 using namespace std;
