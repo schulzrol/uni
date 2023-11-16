@@ -7,6 +7,7 @@
 #include "WRQPacket.hpp"
 #include "DATAPacket.hpp"
 #include "ACKPacket.hpp"
+#include "ERRORPacket.hpp"
 #include <string>
 #include <exception>
 

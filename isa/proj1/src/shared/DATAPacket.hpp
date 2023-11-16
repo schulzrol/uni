@@ -10,17 +10,21 @@
 class DATAPacket : public Packet {
 
     short int block_number;
-    char* data;
+    string data;
     size_t block_size;
+    tftp_mode mode;
     public:
-        DATAPacket(short int block_number, const char* data, size_t block_size);
+        DATAPacket(short int block_number, const char* data, tftp_mode mode, size_t block_size);
         DATAPacket(const char* data, size_t block_size);
         short int getBlockNumber();
-        char* getData();
+        string getData();
+        tftp_mode getMode();
+        void setMode(tftp_mode mode);
+        string getDataEncoded(tftp_mode mode);
         void setBlockNumber(short int block_number);
         void setData(const char* data, size_t block_size);
         unsigned short getOpcode();
-        char* toByteStream();
+        string toByteStream();
         size_t blockSizeBytes();
         size_t maxSizeBytes();
 };

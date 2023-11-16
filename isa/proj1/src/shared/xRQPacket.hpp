@@ -14,11 +14,11 @@ class xRQPacket : public Packet {
     public:
         xRQPacket(unsigned short opcode, string filename, string mode);
         xRQPacket(unsigned short opcode, const char* data);
-        const char* getFilename();
-        const char* getMode();
+        string getFilename();
+        string getMode();
         void setFilename(const char* filename);
         void setMode(const char* mode);
-        char* toByteStream();
+        string toByteStream();
         unsigned short getOpcode();
         size_t getLength();
         static size_t maxSizeBytes();

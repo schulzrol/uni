@@ -94,9 +94,12 @@ void handleChildPacket(char* buffer,
 
     cout << "Received packet from assigned client" << endl;
     // expect it to be a request packet
-    Packet* packet = PacketFactory::createPacket(buffer, n, RRQPacket::maxSizeBytes());
-    if (NULL == packet) {
+    Packet* packet;
+    try {
+        packet = PacketFactory::createPacket(buffer, n, RRQPacket::maxSizeBytes());
+    } catch (runtime_error& e) {
         cout << "Invalid packet received" << endl;
+        cout << e.what() << endl;
         size_t r = sendto(child_fd, "Error", 6, 0, (struct sockaddr *)&assigned_client, length); // send the answer
         if (r == -1){
             cout << "Error sending packet to assigned client" << endl;
@@ -106,26 +109,36 @@ void handleChildPacket(char* buffer,
         }
         return;
     }
-    RRQPacket* rrq_packet = (RRQPacket*)packet;
-    WRQPacket* wrq_packet = (WRQPacket*)packet;
-    switch (packet->getOpcode()){
-        case OPCODE_RRQ: // RRQ
-            cout << "RRQ packet received" << endl;
-            break;
-        case OPCODE_WRQ: // WRQ
-            cout << "WRQ packet received" << endl;
-            break;
-        default:
-            cout << "Unknown first packet received" << endl;
-            break;
-    }
+
+    cout << "Sending packet back. Next lines analyze this packet." << endl;
     // just send the packet back to the assigned client
-    size_t r = sendto(child_fd, packet->toByteStream(), packet->getLength(), 0, (struct sockaddr *)&assigned_client, length); // send the answer
+    size_t r = sendto(child_fd, packet->toByteStream().c_str(), packet->getLength(), 0, (struct sockaddr *)&assigned_client, length); // send the answer
     if (r == -1){
         cout << "Error sending packet to assigned client" << endl;
     }
     if (r < packet->getLength()){
         cout << "Not all bytes sent to assigned client" << endl;
+    }
+
+    RRQPacket* rrq_packet = static_cast<RRQPacket*>(packet);
+    WRQPacket* wrq_packet = static_cast<WRQPacket*>(packet);
+    switch (packet->getOpcode()) {
+        case RRQ:
+            cout << "RRQ packet received" << endl;
+            cout << "Filename: " << rrq_packet->getFilename() << endl;
+            cout << "Mode: " << rrq_packet->getMode() << endl;
+            delete rrq_packet;
+            break;
+        case WRQ:
+            cout << "WRQ packet received" << endl;
+            cout << "Filename: " << wrq_packet->getFilename() << endl;
+            cout << "Mode: " << wrq_packet->getMode() << endl;
+            delete wrq_packet;
+            break;
+        default:
+            cout << "Unknown first packet received" << endl;
+            delete packet;
+            break;
     }
 }
 

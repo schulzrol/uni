@@ -12,20 +12,13 @@
 
 #define OPCODE_LENGTH_BYTES 2
 
-#define OPCODE_RRQ 1  //read request
-#define OPCODE_WRQ 2  //write request
-#define OPCODE_DATA 3 //data
-#define OPCODE_ACK 4  //acknowledgement
-#define OPCODE_ERR 5  //error
-#define OPCODE_OACK 6 //option acknowledgement
-
-enum tftp_opcode {
-    RRQ = 1,
-    WRQ = 2,
-    DATA = 3,
-    ACK = 4,
-    ERR = 5,
-    OACK = 6,
+enum tftp_opcode : unsigned short {
+    RRQ = 1,    //read request 
+    WRQ = 2,    //write request
+    DATA = 3,   //data
+    ACK = 4,    //acknowledgement
+    ERR = 5,    //error
+    OACK = 6    //option acknowledgement
 };
 
 // muze byt kombinace velkych a malych pismen -> udelej vsechno na lowercase
@@ -38,7 +31,6 @@ enum tftp_opcode {
 enum tftp_mode {
     netascii,
     octet,
-    mail
 };
 
 #define BLOCK_NUMBER_LENGTH_BYTES 2

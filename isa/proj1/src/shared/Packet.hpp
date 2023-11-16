@@ -9,8 +9,9 @@ using namespace std;
 
 class Packet {
     public:
+        virtual ~Packet();
         virtual unsigned short getOpcode();
-        virtual char* toByteStream();
+        virtual string toByteStream();
         virtual size_t getLength();
         size_t maxSizeBytes();
 };

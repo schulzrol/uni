@@ -17,11 +17,12 @@ xRQPacket::xRQPacket(unsigned short opcode, const char *data) {
     this->filename = string(data + OPCODE_LENGTH_BYTES);
     this->mode = string(data + OPCODE_LENGTH_BYTES + this->filename.length() + 1); // +1 for null terminated string
 }
-const char *xRQPacket::getFilename() {
-    return this->filename.c_str();
+
+string xRQPacket::getFilename() {
+    return this->filename;
 }
-const char *xRQPacket::getMode() {
-    return this->mode.c_str();
+string xRQPacket::getMode() {
+    return this->mode;
 }
 void xRQPacket::setFilename(const char *filename) {
     this->filename = filename;
@@ -32,17 +33,17 @@ void xRQPacket::setMode(const char *mode) {
 unsigned short xRQPacket::getOpcode() {
     return this->opcode;
 }
-char *xRQPacket::toByteStream() {
-    char *data = new char[OPCODE_LENGTH_BYTES + strlen(this->getFilename()) + 1 + strlen(this->getMode()) + 1]; // +1s for null terminated strings
+string xRQPacket::toByteStream() {
     unsigned short opcode = this->getOpcode();
-    data[0] = opcode >> 8;
-    data[1] = opcode;
-    memcpy(data + OPCODE_LENGTH_BYTES, this->getFilename(), strlen(this->getFilename()) + 1);                           // +1 for null terminated string
-    memcpy(data + OPCODE_LENGTH_BYTES + strlen(this->getFilename()) + 1, this->getMode(), strlen(this->getMode()) + 1); // +1s for null terminated string
-    return data;
+    string packet(2, '\0');
+    packet[0] = static_cast<char>(opcode >> 8);
+    packet[1] = static_cast<char>(opcode);
+    packet += this->getFilename() + '\0';
+    packet += this->getMode() + '\0';
+    return packet;
 }
 size_t xRQPacket::getLength() {
-    return OPCODE_LENGTH_BYTES + strlen(this->getFilename()) + 1 + strlen(this->getMode()) + 1; // +1s for null terminated strings
+    return OPCODE_LENGTH_BYTES + this->getFilename().length() + 1 + this->getMode().length() + 1; // +1s for null terminated strings
 }
 size_t xRQPacket::maxSizeBytes() {
     return 512;

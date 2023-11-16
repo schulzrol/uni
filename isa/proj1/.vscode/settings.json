@@ -7,6 +7,8 @@
         "stdexcept": "cpp",
         "new": "cpp",
         "map": "cpp",
-        "istream": "cpp"
+        "istream": "cpp",
+        "__config": "cpp",
+        "iostream": "cpp"
     }
 }

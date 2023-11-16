@@ -137,7 +137,7 @@ int main(int argc, char** argv){
     //while ((msg_size = read(STDIN_FILENO, buffer, 1024)) > 0) {
     assigned_server_process = server;
     while (1) { 
-        i = sendto(sock, packet->toByteStream(), packet->getLength(), 0, (const sockaddr*)& assigned_server_process, sizeof(server)); // send data to the server
+        i = sendto(sock, packet->toByteStream().c_str(), packet->getLength(), 0, (const sockaddr*)& assigned_server_process, sizeof(server)); // send data to the server
         if (i == -1)                         // check if data was sent correctly
             err(1, "send() failed");
         else if (i != packet->getLength())
@@ -151,16 +151,20 @@ int main(int argc, char** argv){
         else if (i > 0) {
             // port of assigned server process
             int port = ntohs(assigned_server_process.sin_port);
+            Packet* returnPacket;
             printf("* UDP packet received from %s, port %d\n", inet_ntoa(assigned_server_process.sin_addr), port);
-            Packet* returnPacket = PacketFactory::createPacket(buffer, i, WRQPacket::maxSizeBytes());
-            if (returnPacket == NULL) {
-                printf("* Packet is NULL\n");
-                cout << "Packet bytes: " << buffer << endl;
+            try {
+                returnPacket = PacketFactory::createPacket(buffer, i, WRQPacket::maxSizeBytes());
+            } catch (runtime_error& e) {
+                cout << e.what() << endl;
                 continue;
             }
             printf("* Packet opcode: %d\n", returnPacket->getOpcode());
             printf("* Packet length: %zu\n", returnPacket->getLength());
-            cout << "Packet bytes: " << returnPacket->toByteStream() << endl;
+            for(char c : returnPacket->toByteStream()){
+                cout << hex << (int)c << " ";
+            }
+            delete returnPacket;
             printf("%.*s", i, buffer); // print the answer
         }
     }
