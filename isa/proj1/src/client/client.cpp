@@ -8,6 +8,7 @@
 #include "shared/error_codes.h"
 #include "shared/WRQPacket.hpp"
 #include "shared/RRQPacket.hpp"
+#include "shared/PacketFactory.hpp"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -108,10 +109,10 @@ void printBytes(char* bytes, size_t length){
 int main(int argc, char** argv){
     auto config = Config(argc, argv);
     int sock; // socket descriptor
-    int msg_size, i;
-    struct sockaddr_in server, from; // address structures of the server and the client
+    int i;
+    struct sockaddr_in assigned_server_process, from;
+    struct sockaddr_in server; // address structures of the server and the client
     struct hostent *servent;         // network host entry required by gethostbyname()
-    socklen_t len, fromlen;
     char buffer[1024];
 
     memset(&server, 0, sizeof(server)); // erase the server structure
@@ -129,52 +130,42 @@ int main(int argc, char** argv){
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1) // create a client socket
         err(1, "socket() failed\n");
 
-    printf("* Server socket created\n");
+    printf("* Client socket created\n");
 
-    len = sizeof(server);
-    fromlen = sizeof(from);
-
-    printf("* Creating a connected UDP socket using connect()\n");
-    // create a connected UDP socket
-    if (connect(sock, (struct sockaddr *)&server, sizeof(server)) == -1)
-        err(1, "connect() failed");
-
+    WRQPacket* packet = new WRQPacket("test.txt", "netascii");
     // send data to the server
-    while ((msg_size = read(STDIN_FILENO, buffer, 1024)) > 0)
-    // read input data from STDIN (console) until end-of-line (Enter) is pressed
-    // when end-of-file (CTRL-D) is received, n == 0
-    {
-        i = send(sock, buffer, msg_size, 0); // send data to the server
+    //while ((msg_size = read(STDIN_FILENO, buffer, 1024)) > 0) {
+    assigned_server_process = server;
+    while (1) { 
+        i = sendto(sock, packet->toByteStream(), packet->getLength(), 0, (const sockaddr*)& assigned_server_process, sizeof(server)); // send data to the server
         if (i == -1)                         // check if data was sent correctly
             err(1, "send() failed");
-        else if (i != msg_size)
+        else if (i != packet->getLength())
             err(1, "send(): buffer written partially");
 
-        // obtain the local IP address and port using getsockname()
-        if (getsockname(sock, (struct sockaddr *)&from, &len) == -1)
-            err(1, "getsockname() failed");
-
-        printf("* Data sent from %s, port %d (%d) to %s, port %d (%d)\n", inet_ntoa(from.sin_addr), ntohs(from.sin_port), from.sin_port, inet_ntoa(server.sin_addr), ntohs(server.sin_port), server.sin_port);
-
         // read the answer from the server
-        if ((i = recv(sock, buffer, 1024, 0)) == -1)
+        socklen_t length = sizeof(assigned_server_process);
+        if ((i = recvfrom(sock, buffer, 1024, 0, (sockaddr*) &assigned_server_process, &length)) == -1) {
             err(1, "recv() failed");
-        else if (i > 0)
-        {
-            // obtain the remote IP adddress and port from the server (cf. recfrom())
-            if (getpeername(sock, (struct sockaddr *)&from, &fromlen) != 0)
-                err(1, "getpeername() failed\n");
-
-            printf("* UDP packet received from %s, port %d\n", inet_ntoa(from.sin_addr), ntohs(from.sin_port));
+        }
+        else if (i > 0) {
+            // port of assigned server process
+            int port = ntohs(assigned_server_process.sin_port);
+            printf("* UDP packet received from %s, port %d\n", inet_ntoa(assigned_server_process.sin_addr), port);
+            Packet* returnPacket = PacketFactory::createPacket(buffer, i, WRQPacket::maxSizeBytes());
+            if (returnPacket == NULL) {
+                printf("* Packet is NULL\n");
+                cout << "Packet bytes: " << buffer << endl;
+                continue;
+            }
+            printf("* Packet opcode: %d\n", returnPacket->getOpcode());
+            printf("* Packet length: %zu\n", returnPacket->getLength());
+            cout << "Packet bytes: " << returnPacket->toByteStream() << endl;
             printf("%.*s", i, buffer); // print the answer
         }
     }
-    // reading data until end-of-file (CTRL-D)
 
-    if (msg_size == -1)
-        err(1, "reading failed");
     close(sock);
     printf("* Closing the client socket ...\n");
-    return 0;
     return 0;
 }

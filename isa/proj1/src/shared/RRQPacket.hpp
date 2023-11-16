@@ -2,24 +2,15 @@
 #define RRQPACKET_H
 
 #include "definitions.h"
-#include "Packet.hpp"
+#include "xRQPacket.hpp"
 #include <string>
 
 using namespace std;
 
-class RRQPacket : public Packet {
-    string filename;
-    string mode;
+class RRQPacket : public xRQPacket {
     public:
         RRQPacket(string filename, string mode);
         RRQPacket(const char* data);
-        const char* getFilename();
-        const char* getMode();
-        void setFilename(const char* filename);
-        void setMode(const char* mode);
-        char* toByteStream();
-        unsigned short getOpcode();
-        size_t getLength();
 };
 
 #endif

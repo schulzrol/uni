@@ -1,7 +1,7 @@
 
 #include "PacketFactory.hpp"
 
-Packet* PacketFactory::createPacket(const char* data, size_t data_length = DATA_LENGTH_BYTES) {
+Packet* PacketFactory::createPacket(const char* data, size_t data_len, size_t block_size=DEFAULT_BLOCK_SIZE_BYTES) {
     // read the opcode from the first two bytes of the data in network byte order (big endian)
     unsigned short opcode = ntohs(*(unsigned short*)data);
     switch(opcode) {
@@ -10,7 +10,7 @@ Packet* PacketFactory::createPacket(const char* data, size_t data_length = DATA_
         case 2:
             return new WRQPacket(data);
         case 3:
-            return new DATAPacket(data, data_length);
+            return new DATAPacket(data, block_size);
         /*
         TODO: implement the rest of the packet types
         case 4:
@@ -19,6 +19,6 @@ Packet* PacketFactory::createPacket(const char* data, size_t data_length = DATA_
             return new ERRORPacket(data);
         */
         default:
-            throw invalid_argument("Unknown opcode");
+            return NULL;
     }
 }

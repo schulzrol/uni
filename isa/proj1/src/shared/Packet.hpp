@@ -11,6 +11,8 @@ class Packet {
     public:
         virtual unsigned short getOpcode();
         virtual char* toByteStream();
+        virtual size_t getLength();
+        size_t maxSizeBytes();
 };
 
 #endif

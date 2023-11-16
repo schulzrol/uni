@@ -5,6 +5,8 @@
         "string_view": "cpp",
         "vector": "cpp",
         "stdexcept": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "map": "cpp",
+        "istream": "cpp"
     }
 }

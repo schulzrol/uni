@@ -14,7 +14,7 @@ using namespace std;
 
 class PacketFactory {
     public:
-        static Packet* createPacket(const char* data, size_t data_length);
+        static Packet* createPacket(const char* data, size_t data_length, size_t block_size);
 };
 
 #endif
