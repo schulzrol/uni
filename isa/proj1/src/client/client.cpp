@@ -4,6 +4,8 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <fstream>
+#include <iostream>
 
 #include "shared/error_codes.h"
 #include "shared/WRQPacket.hpp"
@@ -89,6 +91,143 @@ class Config {
         }
 };
 
+
+bool handleSendToReturn(ssize_t n, size_t length){
+    if (n == -1) {
+        err(1, "send() failed");
+        return false;
+    }
+    else if (n != length) {
+        err(1, "send(): buffer written partially");
+        return false;
+    }
+    return true;
+}
+
+bool handleRecvFromReturn(ssize_t n){
+    if (n == -1){
+        err(1, "recvfrom() failed");
+        return false;
+    }
+    return true;
+}
+
+void sendFile(int socket, string filepath, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES){
+    ssize_t n;
+    sockaddr_in assigned_server_process;
+    FILE* input = stdin;
+    if (!filepath.empty()){
+        input = fopen(filepath.c_str(), "rb");
+        if (input == NULL){
+            cout << "Error opening file " << filepath << endl;
+            return;
+        }
+    }
+    
+    // how to read from file
+    const size_t buflen = block_size*2;
+    char buffer[buflen];
+    size_t msg_size;
+    socklen_t length = sizeof(assigned_server_process);
+    // send write request to the server
+    cout << "Sending WRQ" << endl;
+    WRQPacket wrq(dest_filepath, mode);
+    {
+        n = sendto(socket, wrq.toByteStream().c_str(), wrq.getLength(), 0, (const sockaddr*)& server, sizeof(server)); // send data to the server
+        if (!handleSendToReturn(n, wrq.getLength())){
+            // TODO try again or timeout
+            cout << "Error sending WRQ" << endl;
+            return;
+        }
+    }
+    // TODO add check that TID is the same as when sending
+    // wait for ACK with block number 0
+    cout << "Waiting for ACK" << endl;
+    {
+        n = recvfrom(socket, buffer, buflen, 0,(sockaddr*) &assigned_server_process, &length);
+        if (!handleRecvFromReturn(n)){
+            // TODO try again or timeout
+            cout << "Error receiving ACK" << endl;
+            return;
+        }
+        try {
+            ACKPacket ack = ACKPacket(buffer);
+            if (ack.getBlockNumber() != 0){
+                // TODO try again or timeout
+                cout << "Invalid ACK block number" << endl;
+                return;
+            }
+            cout << "Received ACK " << ack.getBlockNumber() << endl;
+        } catch (runtime_error& e) {
+            cout << e.what() << endl;
+            return;
+        }
+    }
+
+    // keep sending data packets until the end of the file
+    cout << "Starting to send data packets" << endl;
+    // TODO what if file is empty?
+    unsigned short block_number = 1;
+    while((msg_size = fread(buffer, 1, block_size, input)) > 0) {
+        // send data packet
+        DATAPacket datap(block_number, buffer, mode, msg_size);
+        {
+            if (datap.getLength() < block_size){
+                cout << "Sending last DATAPacket with block number " << datap.getBlockNumber() << endl;
+            } else {
+                cout << "Sending DATAPacket with block number "<< datap.getBlockNumber() << endl;
+            }
+            n = sendto(socket, datap.toByteStream().c_str(), datap.getLength(), 0, (const sockaddr *)&assigned_server_process, length); // send data to the server
+            if (!handleSendToReturn(n, datap.getLength())){
+                // TODO try again or timeout
+                cout << "Error sending DATAPacket" << endl;
+                return;
+            }
+        }
+        // expect ACK with block number block_number
+        {
+            if (datap.getLength() < block_size){
+                cout << "Waiting for last ACK with block number " << datap.getBlockNumber() << endl;
+            } else {
+            cout << "Waiting for ACK with block number "<< datap.getBlockNumber() << endl;
+            }
+            n = recvfrom(socket, buffer, buflen, 0,(sockaddr*) &assigned_server_process, &length);
+            if (!handleRecvFromReturn(n)){
+                // TODO try again or timeout
+                cout << "Error receiving ACK" << endl;
+                return;
+            }
+            // TODO add check that TID is the same as when sending
+
+            try {
+                ACKPacket ack = ACKPacket(buffer);
+                if (ack.getBlockNumber() != datap.getBlockNumber()){
+                    // TODO try again or timeout
+                    cout << "Invalid ACK block number" << endl;
+                    return;
+                }
+                cout << "Received ACK " << ack.getBlockNumber() << endl;
+            } catch (runtime_error& e) {
+                cout << e.what() << endl;
+                return;
+            }
+        }
+        // get ready for next block
+        cout << "Sending next block" << endl;
+        block_number++;
+    }
+
+    if (ferror(input)){
+        cout << "Error reading file" << endl;
+        return;
+    }
+    if (input != stdin){
+        fclose(input);
+    }
+    cout << "File sent" << endl;
+}
+
+
 /**
 Initial Connection Protocol for reading a file
 
@@ -109,11 +248,8 @@ void printBytes(char* bytes, size_t length){
 int main(int argc, char** argv){
     auto config = Config(argc, argv);
     int sock; // socket descriptor
-    int i;
-    struct sockaddr_in assigned_server_process, from;
     struct sockaddr_in server; // address structures of the server and the client
     struct hostent *servent;         // network host entry required by gethostbyname()
-    char buffer[1024];
 
     memset(&server, 0, sizeof(server)); // erase the server structure
     server.sin_family = AF_INET;
@@ -130,44 +266,7 @@ int main(int argc, char** argv){
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1) // create a client socket
         err(1, "socket() failed\n");
 
-    printf("* Client socket created\n");
-
-    WRQPacket* packet = new WRQPacket("test.txt", "netascii");
-    // send data to the server
-    //while ((msg_size = read(STDIN_FILENO, buffer, 1024)) > 0) {
-    assigned_server_process = server;
-    while (1) { 
-        i = sendto(sock, packet->toByteStream().c_str(), packet->getLength(), 0, (const sockaddr*)& assigned_server_process, sizeof(server)); // send data to the server
-        if (i == -1)                         // check if data was sent correctly
-            err(1, "send() failed");
-        else if (i != packet->getLength())
-            err(1, "send(): buffer written partially");
-
-        // read the answer from the server
-        socklen_t length = sizeof(assigned_server_process);
-        if ((i = recvfrom(sock, buffer, 1024, 0, (sockaddr*) &assigned_server_process, &length)) == -1) {
-            err(1, "recv() failed");
-        }
-        else if (i > 0) {
-            // port of assigned server process
-            int port = ntohs(assigned_server_process.sin_port);
-            Packet* returnPacket;
-            printf("* UDP packet received from %s, port %d\n", inet_ntoa(assigned_server_process.sin_addr), port);
-            try {
-                returnPacket = PacketFactory::createPacket(buffer, i, WRQPacket::maxSizeBytes());
-            } catch (runtime_error& e) {
-                cout << e.what() << endl;
-                continue;
-            }
-            printf("* Packet opcode: %d\n", returnPacket->getOpcode());
-            printf("* Packet length: %zu\n", returnPacket->getLength());
-            for(char c : returnPacket->toByteStream()){
-                cout << hex << (int)c << " ";
-            }
-            delete returnPacket;
-            printf("%.*s", i, buffer); // print the answer
-        }
-    }
+    sendFile(sock, config.filepath, config.dest_filepath, server, tftp_mode::octet);
 
     close(sock);
     printf("* Closing the client socket ...\n");

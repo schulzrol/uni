@@ -15,6 +15,7 @@ datum: 15.10.2023
 - [ ] Podpora pro hostname na klientovi (i serveru?)
 - [ ] Nutno kontrolovat v serveru i clientu TIDs (porty)
 - [ ] Zprovoznit option v paketech podle RFC
+- [ ] fread potencialne neposila prazdne radky (radky jen s newline)
 - [ ] Zprovoznit timeouty a retry podle RFC
     - jak bude fungovat timeout na klientovi? (vzdyt to je jen jeden proces) asi https://stackoverflow.com/a/39841004/8354587
     A: timeout bude vždy v child procesu, který bude čekat na ACK nebo v klientovi, který bude čekat na DATA nebo ACK

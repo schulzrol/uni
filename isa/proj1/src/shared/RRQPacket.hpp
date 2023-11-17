@@ -10,6 +10,7 @@ using namespace std;
 class RRQPacket : public xRQPacket {
     public:
         RRQPacket(string filename, string mode);
+        RRQPacket(string filename, tftp_mode mode);
         RRQPacket(const char* data);
 };
 

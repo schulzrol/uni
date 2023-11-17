@@ -4,9 +4,25 @@ using namespace std;
 
 xRQPacket::xRQPacket(unsigned short opcode, string filename, string mode) {
     this->filename = filename;
+    // TODO: check if mode is valid and turn to lowercase
     this->mode = mode;
     this->opcode = opcode;
 }
+
+xRQPacket::xRQPacket(unsigned short opcode, string filename, tftp_mode mode) {
+    this->filename = filename;
+    this->opcode = opcode;
+    // TODO create a common function for this
+    switch(mode) {
+        case netascii:
+            this->mode = "netascii";
+            break;
+        case octet:
+            this->mode = "octet";
+            break;
+    }
+}
+
 xRQPacket::xRQPacket(unsigned short opcode, const char *data) {
     unsigned short gotOpcode = (unsigned short)data[1];
     if (data[0] != 0 || (gotOpcode != opcode))
@@ -23,6 +39,16 @@ string xRQPacket::getFilename() {
 }
 string xRQPacket::getMode() {
     return this->mode;
+}
+
+tftp_mode xRQPacket::getModeEnum() {
+    if (this->mode == "netascii") {
+        return netascii;
+    } else if (this->mode == "octet") {
+        return octet;
+    } else {
+        throw runtime_error("Unsupported mode");
+    }
 }
 void xRQPacket::setFilename(const char *filename) {
     this->filename = filename;

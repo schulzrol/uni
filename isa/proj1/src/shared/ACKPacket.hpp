@@ -4,14 +4,16 @@
 #include <string>
 #include "definitions.h"
 #include "Packet.hpp"
+#include "DATAPacket.hpp"
 
 #define ACK_PACKET_LENGTH_BYTES 4
 
 class ACKPacket : public Packet {
-    short int block_number;
+    unsigned short block_number;
     public:
-        ACKPacket(short int block_number);
+        ACKPacket(unsigned short block_number);
         ACKPacket(const char* data);
+        ACKPacket(DATAPacket data_packet);
         short int getBlockNumber();
         void setBlockNumber(short int block_number);
         unsigned short getOpcode();

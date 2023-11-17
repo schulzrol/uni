@@ -19,33 +19,51 @@ string to_octet(const string data){
     return data;
 }
 
+string from_octet(const string data){
+    return data;
+}
+
+string from_netascii(const string data){
+    string decoded_data;
+    for(char ch : data) {
+        if(ch == '\r') {
+            continue;
+        }
+        else {
+            decoded_data.push_back(ch);
+        }
+    }
+    return decoded_data;
+}
+
 tftp_mode get_mode(const string mode) {
     if(mode == "netascii") {
         return netascii;
     } else if(mode == "octet") {
         return octet;
     } else {
-        throw "Unsupported mode";
+        throw runtime_error("Unsupported mode " + mode);
     }
 }
 
-DATAPacket::DATAPacket(short int block_number, const char *data, tftp_mode mode, size_t block_size = DEFAULT_BLOCK_SIZE_BYTES) {
+DATAPacket::DATAPacket(unsigned short block_number, const char *data, tftp_mode mode, size_t block_size = DEFAULT_BLOCK_SIZE_BYTES) {
     this->block_number = block_number;
     this->data = string(data, block_size);
     this->block_size = block_size;
     this->mode = mode;
 };
-DATAPacket::DATAPacket(const char *data, size_t block_size = DEFAULT_BLOCK_SIZE_BYTES) {
+DATAPacket::DATAPacket(const char *data, tftp_mode mode, size_t block_size = DEFAULT_BLOCK_SIZE_BYTES) {
     if (data[0] != 0 || data[1] != this->getOpcode()) {
-        throw "Invalid opcode";
+        throw runtime_error("Invalid opcode");
     }
+
     this->block_number = (data[2] << 8) + data[3];
-    this->data = string(data + 4, block_size);
     this->block_size = block_size;
-    // +1 for null terminated string, +4 for opcode and block number
-    this->mode = get_mode(string(data + 4 + this->data.length() + 1));
+    this->mode = mode;
+    this->data = string(data + 4, block_size);
+    this->data = this->getDataDecoded(mode);
 }
-short int DATAPacket::getBlockNumber() {
+unsigned short DATAPacket::getBlockNumber() {
     return this->block_number;
 }
 string DATAPacket::getData() {
@@ -59,11 +77,22 @@ string DATAPacket::getDataEncoded(tftp_mode mode) {
         case octet:
             return to_octet(this->getData());
         default:
-            throw "Unsupported mode";
+            throw runtime_error("Unsupported mode");
     }
 }
 
-void DATAPacket::setBlockNumber(short int block_number) {
+string DATAPacket::getDataDecoded(tftp_mode mode) {
+    switch(mode) {
+        case netascii:
+            return from_netascii(this->getData());
+        case octet:
+            return from_octet(this->getData());
+        default:
+            throw runtime_error("Unsupported mode");
+    }
+}
+
+void DATAPacket::setBlockNumber(unsigned short block_number) {
     this->block_number = block_number;
 }
 void DATAPacket::setData(const char *data, size_t block_size = DEFAULT_BLOCK_SIZE_BYTES) {
@@ -105,4 +134,8 @@ size_t DATAPacket::blockSizeBytes() {
 
 size_t DATAPacket::maxSizeBytes() {
     return OPCODE_LENGTH_BYTES + BLOCK_NUMBER_LENGTH_BYTES + this->block_size;
+}
+
+size_t DATAPacket::getLength() {
+    return OPCODE_LENGTH_BYTES + BLOCK_NUMBER_LENGTH_BYTES + this->getData().length();
 }

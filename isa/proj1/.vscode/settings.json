@@ -9,6 +9,8 @@
         "map": "cpp",
         "istream": "cpp",
         "__config": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "ios": "cpp",
+        "exception": "cpp"
     }
 }
