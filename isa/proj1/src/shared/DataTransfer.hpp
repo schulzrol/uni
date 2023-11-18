@@ -13,14 +13,15 @@ using namespace std;
 
 class DataTransfer {
     int my_socket;
-    struct sockaddr_in partner_addr;
-    size_t partner_size;
     tftp_mode transfer_mode;
     unsigned short block_size;
     public:
-        DataTransfer(int my_socket, struct sockaddr_in partner_addr, tftp_mode transfer_mode, unsigned short block_size = DEFAULT_BLOCK_SIZE_BYTES);
-        int uploadFile(FILE* from=stdin);
-        int downloadFile(FILE* to=stdout);
+        DataTransfer(int my_socket, tftp_mode transfer_mode, unsigned short block_size = DEFAULT_BLOCK_SIZE_BYTES);
+        int uploadFile(FILE* from=stdin, bool skip_first_ack_receive=false, const sockaddr_in* partner_addr=NULL, const socklen_t* partner_size = NULL);
+        int downloadFile(FILE* to, bool skip_first_data_receive=false, const sockaddr_in* partner_addr=NULL, const socklen_t* partner_size = NULL);
 };
+
+bool handleRecvFromReturn(ssize_t n);
+bool handleSendToReturn(ssize_t n, size_t length);
 
 #endif

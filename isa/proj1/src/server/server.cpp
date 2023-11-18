@@ -2,6 +2,7 @@
 // Created by Roland Schulz on 15.10.2023.
 //
 #include <iostream>
+#include <cerrno>
 #include <err.h>
 #include <map>
 #include <string>
@@ -17,8 +18,7 @@
 #include "shared/PacketFactory.hpp"
 #include "shared/RRQPacket.hpp"
 #include "shared/WRQPacket.hpp"
-
-using namespace std;
+#include "shared/DataTransfer.hpp"
 
 void getHelp(){
     auto help = "\
@@ -70,107 +70,9 @@ class Config{
         }
 };
 
-
-enum child_state {
-    before_first_packet,
-    reading,
-    writing,
-    exiting,
-};
-
-
-Packet* handleChildPacket(const char* buffer,
-                       size_t n,
-                       int child_fd,
-                       const struct sockaddr_in from,
-                       const struct sockaddr_in assigned_client,
-                       socklen_t length,
-                       tftp_mode* mode,
-                       child_state* state) {
-    unsigned short block_number = 0;
-    // check if packet is from assigned client
-    if (from.sin_port != assigned_client.sin_port){
-        cout << "Received packet from unknown client. Send back error to unknown client." << endl;
-        cout << "Assigned client port: " << assigned_client.sin_port << endl;
-        cout << "Received packet from port: " << from.sin_port << endl;
-        // TODO send error packet
-        size_t r = sendto(child_fd, "Error", 6, 0, (struct sockaddr *)&assigned_client, length); // send the answer
-        if (r == -1){
-            cout << "Error sending packet to assigned client" << endl;
-        }
-        if (r < 6){
-            cout << "Not all bytes sent to assigned client" << endl;
-        }
-        return;
-    }
-
-    cout << "Received packet from assigned client" << endl;
-
-    Packet* packet;
-    try {
-        packet = PacketFactory::createPacket(buffer, n, *mode);
-    } catch (runtime_error& e) {
-        cout << "Error creating packet from buffer: " << e.what() << endl;
-        // TODO send error packet
-        return;
-    }
-    
-    switch (packet->getOpcode()) {
-        case RRQ: {
-            cout << "Received RRQ packet" << endl;
-            RRQPacket* rrq_packet = (RRQPacket*)packet;
-            cout << "RRQ packet filename: " << rrq_packet->getFilename() << endl;
-            cout << "RRQ packet mode: " << rrq_packet->getMode() << endl;
-            *mode = rrq_packet->getModeEnum();
-            delete rrq_packet;
-            break;
-        }
-        case WRQ: {
-            cout << "Received WRQ packet" << endl;
-            WRQPacket* wrq_packet = (WRQPacket*)packet;
-            cout << "WRQ packet filename: " << wrq_packet->getFilename() << endl;
-            cout << "WRQ packet mode: " << wrq_packet->getMode() << endl;
-            *mode = wrq_packet->getModeEnum();
-            
-            delete wrq_packet;
-            break;
-        }
-        case DATA: {
-            cout << "Received DATA packet" << endl;
-            DATAPacket* data_packet = (DATAPacket*)packet;
-            cout << "DATA packet block number: " << data_packet->getBlockNumber() << endl;
-            cout << "DATA packet data: " << data_packet->getData() << endl;
-            block_number = data_packet->getBlockNumber();
-            if (data_packet->getData().length() < DEFAULT_BLOCK_SIZE_BYTES){
-                cout << "Received last DATA packet of length " << data_packet->getData().length() << "/" << DEFAULT_BLOCK_SIZE_BYTES << " bytes" << endl;
-                *state = exiting;
-            }
-            delete data_packet;
-            break;
-        }
-    }
-    
-    ACKPacket ack = ACKPacket(block_number);
-    {
-        size_t r = sendto(child_fd, ack.toByteStream().c_str(), ack.getLength(), 0, (struct sockaddr *)&assigned_client, length); // send the answer
-        if (r == -1)
-        {
-            // TODO send error packet
-            cout << "Error sending packet to assigned client" << endl;
-        }
-        if (r < ack.getLength())
-        {
-            // TODO send error packet?
-            cout << "Not all bytes sent to assigned client" << endl;
-        }
-        cout << "Sent ACK with block number: " << ack.getBlockNumber() << endl;
-    }
-}
-
 /**
  * @brief Main for child process to server a client
  * 
- * @param child_process return value of fork()
  * @param config server configuration
  * @param client address of the client
  * @return int 0 if success
@@ -178,25 +80,14 @@ Packet* handleChildPacket(const char* buffer,
 void child_main(int* child_process,
                Config config,
                const struct sockaddr_in assigned_client,
-               map<int, int> client_process_port,
                const struct sockaddr_in parent,
                const char* first_packet_buffer,
                const size_t first_packet_len
                ) {
     *child_process = 0;
-    socklen_t length = sizeof(assigned_client);
-    size_t n;
-    const size_t bufsize = 1024;
-    struct sockaddr_in from;
-    bool first_packet_received = (first_packet_buffer != NULL);
-    char first_packet_buffer_copy[first_packet_len];
-    if (!memcpy(first_packet_buffer_copy, first_packet_buffer, first_packet_len)) {
-        cout << "Error copying first packet buffer" << endl;
-        return;
-    }
-    char buffer[bufsize];       // receiving buffer
     if ((*child_process = fork()) == 0) {
         // bind to a random port
+        socklen_t length = sizeof(assigned_client);
         struct sockaddr_in child_server;
         int child_fd;
         child_server.sin_family = AF_INET;                // set IPv4 addressing
@@ -210,15 +101,79 @@ void child_main(int* child_process,
         }
         int child_port = ntohs(child_server.sin_port);
         cout << "Child port: " << child_port << endl;
-        tftp_mode mode = netascii;
-        bool child_exit = false;
-        child_state state = before_first_packet;
-        if (first_packet_received){
-            handleChildPacket(first_packet_buffer_copy, first_packet_len, child_fd, assigned_client, assigned_client, length, &mode, &state);
+
+        Packet* first_packet;
+        try {
+            first_packet = PacketFactory::createPacket(first_packet_buffer, first_packet_len, tftp_mode::octet);
+        } catch (runtime_error& e) {
+            cout << "Error creating packet from buffer: " << e.what() << endl;
+            // TODO send error packet
+            return;
         }
-        while ((state != exiting) && (n = recvfrom(child_fd, buffer, bufsize, 0, (struct sockaddr *)&from, &length)) >= 0) {
-            handleChildPacket(buffer, n, child_fd, from, assigned_client, length, &mode, &state);
+        switch (first_packet->getOpcode()){
+            case RRQ: {
+                RRQPacket* rrq = (RRQPacket*)first_packet;
+                DataTransfer dt = DataTransfer(child_fd, rrq->getModeEnum());
+                string filename = config.root_dirpath + "/" + rrq->getFilename();
+                delete rrq;
+
+                FILE* f = fopen(filename.c_str(), "rb");
+                if (f == NULL) {
+                    cout << "Error opening file \'" << filename << "\' for reading: " << strerror(errno) << endl;
+                    switch(errno) {
+                        case EACCES:
+                            break;
+                        case EISDIR:
+                            break;
+                        case ENOENT:
+                            break;
+                        case ENOTDIR:
+                            break;
+                        default:
+                            break;
+                    }
+                    close(child_fd);
+                    exit(1);
+                }
+                dt.uploadFile(f, true, &assigned_client, &length);
+                fclose(f);
+                break;
+            }
+            case WRQ: {
+                WRQPacket* wrq = (WRQPacket*)first_packet;
+                DataTransfer dt = DataTransfer(child_fd, wrq->getModeEnum());
+                string filename = config.root_dirpath + "/" + wrq->getFilename();
+                delete wrq;
+
+                FILE* f = fopen(filename.c_str(), "wxb");
+                if (f == NULL) {
+                    cout << "Error opening file \'" << filename << "\' for writing: " << strerror(errno) << endl;
+                    switch (errno) {
+                        case EACCES:
+                            break;
+                        case EEXIST:
+                            break;
+                        case EISDIR:
+                            break;
+                        case ENOENT:
+                            break;
+                        case ENOTDIR:
+                            break;
+                        default:
+                            break;
+                    }
+                    close(child_fd);
+                    exit(1);
+                }
+                dt.downloadFile(f, true, &assigned_client, &length);
+                fclose(f);
+                break;
+            }
+            default:
+                cout << "Unknown packet opcode" << endl;
+                break;
         }
+
         cout << "Child process exiting" << endl;
         close(child_fd);
         exit(0);
@@ -258,7 +213,7 @@ int main(int argc, char** argv) {
         if (!child_process_running) {
             cout << "Creating new child process for client port: " << client_port << endl;
             int child_pid = 0;
-            child_main(&child_pid, config, client, client_process_port, server, buffer, n);
+            child_main(&child_pid, config, client, server, buffer, n);
             if (child_pid != -1){
                 cout << "Child process created: " << child_pid << endl;
                 client_process_port[client_port] = child_pid;

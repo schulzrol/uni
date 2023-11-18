@@ -12,9 +12,9 @@ Packet* PacketFactory::createPacket(const char* data, size_t data_len, tftp_mode
             return new WRQPacket(data);
         case DATA:
             return new DATAPacket(data, mode, block_size);
-        /*
         case ACK:
-            return ACKPacket(data);
+            return new ACKPacket(data);
+        /*
         case ERR:
             return ERRORPacket(data);
         */

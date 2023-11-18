@@ -1,0 +1,25 @@
+https://datatracker.ietf.org/doc/html/rfc1123#page-44
+      4.2.4  TFTP REQUIREMENTS SUMMARY
+
+                                                 |        | | | |S| |
+                                                 |        | | | |H| |F
+                                                 |        | | | |O|M|o
+                                                 |        | |S| |U|U|o
+                                                 |        | |H| |L|S|t
+                                                 |        |M|O| |D|T|n
+                                                 |        |U|U|M| | |o
+                                                 |        |S|L|A|N|N|t
+                                                 |        |T|D|Y|O|O|t
+FEATURE                                          |SECTION | | | |T|T|e
+-------------------------------------------------|--------|-|-|-|-|-|--
+Fix Sorcerer's Apprentice Syndrome               |4.2.3.1 |x| | | | |
+Transfer modes:                                  |        | | | | | |
+  netascii                                       |RFC-783 |x| | | | |
+  octet                                          |RFC-783 |x| | | | |
+  mail                                           |4.2.2.1 | | | |x| |
+  extensions                                     |4.2.3.3 | | |x| | |
+Use adaptive timeout                             |4.2.3.2 |x| | | | |
+Configurable access control                      |4.2.3.4 | |x| | | |
+Silently ignore broadcast request                |4.2.3.5 | |x| | | |
+-------------------------------------------------|--------|-|-|-|-|-|--
+-------------------------------------------------|--------|-|-|-|-|-|--

@@ -95,120 +95,28 @@ class Config {
 
 void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES){
     ssize_t n;
-    sockaddr_in assigned_server_process;
-    FILE* input = stdin;
-    // how to read from file
-    const size_t buflen = block_size*2;
-    char buffer[buflen];
-    size_t msg_size;
-    socklen_t length = sizeof(assigned_server_process);
+    // Initiate connection
     // send write request to the server
     cout << "Sending WRQ" << endl;
     WRQPacket wrq(dest_filepath, mode);
     {
         n = sendto(socket, wrq.toByteStream().c_str(), wrq.getLength(), 0, (const sockaddr*)& server, sizeof(server)); // send data to the server
         if (!handleSendToReturn(n, wrq.getLength())){
-            // TODO try again or timeout
+            // TODO try again
             cout << "Error sending WRQ" << endl;
             return;
         }
     }
-    // TODO add check that TID is the same as when sending
-    // wait for ACK with block number 0
-    cout << "Waiting for ACK" << endl;
-    {
-        n = recvfrom(socket, buffer, buflen, 0,(sockaddr*) &assigned_server_process, &length);
-        if (!handleRecvFromReturn(n)){
-            // TODO try again or timeout
-            cout << "Error receiving ACK" << endl;
-            return;
-        }
-        try {
-            ACKPacket ack = ACKPacket(buffer);
-            if (ack.getBlockNumber() != 0){
-                // TODO try again or timeout
-                cout << "Invalid ACK block number" << endl;
-                return;
-            }
-            cout << "Received ACK " << ack.getBlockNumber() << endl;
-        } catch (runtime_error& e) {
-            cout << e.what() << endl;
-            return;
-        }
-    }
-
-    // keep sending data packets until the end of the file
-    cout << "Starting to send data packets" << endl;
-    // TODO what if file is empty?
-    unsigned short block_number = 1;
-    while((msg_size = fread(buffer, 1, block_size, input)) > 0) {
-        // send data packet
-        DATAPacket datap(block_number, buffer, mode, msg_size);
-        {
-            if (datap.getLength() < block_size){
-                cout << "Sending last DATAPacket with block number " << datap.getBlockNumber() << endl;
-            } else {
-                cout << "Sending DATAPacket with block number "<< datap.getBlockNumber() << endl;
-            }
-            n = sendto(socket, datap.toByteStream().c_str(), datap.getLength(), 0, (const sockaddr *)&assigned_server_process, length); // send data to the server
-            if (!handleSendToReturn(n, datap.getLength())){
-                // TODO try again or timeout
-                cout << "Error sending DATAPacket" << endl;
-                return;
-            }
-        }
-        // expect ACK with block number block_number
-        {
-            if (datap.getLength() < block_size){
-                cout << "Waiting for last ACK with block number " << datap.getBlockNumber() << endl;
-            } else {
-            cout << "Waiting for ACK with block number "<< datap.getBlockNumber() << endl;
-            }
-            n = recvfrom(socket, buffer, buflen, 0,(sockaddr*) &assigned_server_process, &length);
-            if (!handleRecvFromReturn(n)){
-                // TODO try again or timeout
-                cout << "Error receiving ACK" << endl;
-                return;
-            }
-            // TODO add check that TID is the same as when sending
-
-            try {
-                ACKPacket ack = ACKPacket(buffer);
-                if (ack.getBlockNumber() != datap.getBlockNumber()){
-                    // TODO try again or timeout
-                    cout << "Invalid ACK block number" << endl;
-                    return;
-                }
-                cout << "Received ACK " << ack.getBlockNumber() << endl;
-            } catch (runtime_error& e) {
-                cout << e.what() << endl;
-                return;
-            }
-        }
-        // get ready for next block
-        cout << "Sending next block" << endl;
-        block_number++;
-    }
-
-    if (ferror(input)){
-        cout << "Error reading file" << endl;
-        return;
-    }
-    cout << "File sent" << endl;
+    DataTransfer dt(socket, mode, block_size);
+    dt.uploadFile(stdin);
+    cout << "Upload finished" << endl;
 }
 
-
-void download(int socket, string filepath, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES){
+void download(int socket, string save_to_file, string file_on_remote, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES){
     ssize_t n;
-    sockaddr_in assigned_server_process;
-    FILE* output = stdout;
-    // how to read from file
-    const size_t buflen = block_size*2;
-    char buffer[buflen];
-    socklen_t length = sizeof(assigned_server_process);
-    // send write request to the server
+    // send read request to the server
     cout << "Sending RRQ" << endl;
-    RRQPacket rrq(dest_filepath, mode);
+    RRQPacket rrq(file_on_remote, mode);
     {
         n = sendto(socket, rrq.toByteStream().c_str(), rrq.getLength(), 0, (const sockaddr*)& server, sizeof(server)); // send data to the server
         if (!handleSendToReturn(n, rrq.getLength())){
@@ -217,57 +125,15 @@ void download(int socket, string filepath, string dest_filepath, struct sockaddr
             return;
         }
     }
-    // keep receiving data packets until their length is less than block_size
-    bool receivedLastDataPacket = false;
-    unsigned short block_number = 0;
-    do {
-        // Todo timeout
-        // Receive packet
-        {
-            n = recvfrom(socket, buffer, buflen, 0,(sockaddr*) &assigned_server_process, &length);
-            if (!handleRecvFromReturn(n)){
-                // TODO try again or timeout
-                cout << "Error receiving ACK" << endl;
-                return;
-            }
-        }
-        // TODO may also receive an error packet and timeout
-        // expect data packet (TODO what if its not a data packet?)
-        DATAPacket datap = DATAPacket(buffer, rrq.getModeEnum(), n-4); // -4 because of opcode and block number
-        // Check the block number
-        {
-            if (datap.getBlockNumber() != block_number){
-                // TODO try again or timeout
-                cout << "Invalid DATAPacket block number" << endl;
-                return;
-            }
-        }
-        // Check the length of the received block of data
-        {
-            if (datap.getLength() < block_size){
-                cout << "Received last DATAPacket with block number " << datap.getBlockNumber() << endl;
-                receivedLastDataPacket = true;
-            } else {
-                cout << "Received DATAPacket with block number "<< datap.getBlockNumber() << endl;
-            }
-        }
-        cout << "Writing to file" << endl;
-        // Write data to file
-        fwrite(datap.getData().c_str(), 1, datap.getData().size(), output);
-        // Send back ACK
-        ACKPacket ack = ACKPacket(block_number);
-        {
-            n = sendto(socket, ack.toByteStream().c_str(), ack.getLength(), 0, (struct sockaddr *)&assigned_server_process, length); // send the answer
-            if (!handleSendToReturn(n, ack.getLength())){
-                // TODO try again or timeout
-                cout << "Error sending ACK" << endl;
-                return;
-            }
-            cout << "Sent ACK with block number: " << ack.getBlockNumber() << endl;
-        }
-        // Get ready for next block
-        block_number++;
-    } while(!receivedLastDataPacket);
+
+    FILE* f = fopen(save_to_file.c_str(), "wb");
+    if (f == NULL) {
+        cout << "Error opening file \'" << save_to_file << "\' for writing: " << strerror(errno) << endl;
+    }
+    DataTransfer dt(socket, mode, block_size);
+    dt.downloadFile(f);
+    fclose(f);
+    cout << "Download finished" << endl;
 }
 
 /**
@@ -292,7 +158,7 @@ int main(int argc, char** argv){
     int sock; // socket descriptor
     struct sockaddr_in server; // address structures of the server and the client
     struct hostent *servent;         // network host entry required by gethostbyname()
-
+    tftp_mode default_mode = tftp_mode::octet;
     memset(&server, 0, sizeof(server)); // erase the server structure
     server.sin_family = AF_INET;
 
@@ -309,10 +175,9 @@ int main(int argc, char** argv){
         err(1, "socket() failed\n");
 
     if (config.filepath.empty()){
-        upload(sock, config.dest_filepath, server, tftp_mode::octet);
+        upload(sock, config.dest_filepath, server, default_mode);
     } else {
-        // TODO download
-        download(sock, config.filepath, config.dest_filepath, server, tftp_mode::octet);
+        download(sock, config.dest_filepath, config.filepath, server, default_mode);
     }
 
     close(sock);
