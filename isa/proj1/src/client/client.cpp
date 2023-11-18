@@ -5,12 +5,12 @@
 #include <map>
 #include <string>
 #include <fstream>
-#include <iostream>
 
 #include "shared/error_codes.h"
 #include "shared/WRQPacket.hpp"
 #include "shared/RRQPacket.hpp"
 #include "shared/PacketFactory.hpp"
+#include "shared/DataTransfer.hpp"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -19,6 +19,7 @@
 #include <err.h>
 #include <arpa/inet.h>
 
+
 using namespace std;
 
 void getHelp(){
@@ -26,7 +27,7 @@ void getHelp(){
 tftp-client -h hostname [-p dest_port] [-f filepath] -t dest_filepath \n\
     -h IP adresa/doménový název vzdáleného serveru \n\
     -p port vzdáleného serveru, pokud není specifikován předpokládá se výchozí dle specifikace (69)\n\
-    -f cesta ke stahovanému souboru na serveru (download), pokud není specifikován používá se obsah stdin (upload) \n\
+    -f cesta ke stahovanému souboru na serveru (pro download), pokud není specifikován používá se obsah stdin (pro upload) \n\
     -t cesta, pod kterou bude soubor na vzdáleném serveru/lokálně uložen";
     cout << help << endl;
 }
@@ -92,38 +93,10 @@ class Config {
 };
 
 
-bool handleSendToReturn(ssize_t n, size_t length){
-    if (n == -1) {
-        err(1, "send() failed");
-        return false;
-    }
-    else if (n != length) {
-        err(1, "send(): buffer written partially");
-        return false;
-    }
-    return true;
-}
-
-bool handleRecvFromReturn(ssize_t n){
-    if (n == -1){
-        err(1, "recvfrom() failed");
-        return false;
-    }
-    return true;
-}
-
-void sendFile(int socket, string filepath, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES){
+void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES){
     ssize_t n;
     sockaddr_in assigned_server_process;
     FILE* input = stdin;
-    if (!filepath.empty()){
-        input = fopen(filepath.c_str(), "rb");
-        if (input == NULL){
-            cout << "Error opening file " << filepath << endl;
-            return;
-        }
-    }
-    
     // how to read from file
     const size_t buflen = block_size*2;
     char buffer[buflen];
@@ -221,12 +194,81 @@ void sendFile(int socket, string filepath, string dest_filepath, struct sockaddr
         cout << "Error reading file" << endl;
         return;
     }
-    if (input != stdin){
-        fclose(input);
-    }
     cout << "File sent" << endl;
 }
 
+
+void download(int socket, string filepath, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES){
+    ssize_t n;
+    sockaddr_in assigned_server_process;
+    FILE* output = stdout;
+    // how to read from file
+    const size_t buflen = block_size*2;
+    char buffer[buflen];
+    socklen_t length = sizeof(assigned_server_process);
+    // send write request to the server
+    cout << "Sending RRQ" << endl;
+    RRQPacket rrq(dest_filepath, mode);
+    {
+        n = sendto(socket, rrq.toByteStream().c_str(), rrq.getLength(), 0, (const sockaddr*)& server, sizeof(server)); // send data to the server
+        if (!handleSendToReturn(n, rrq.getLength())){
+            // TODO try again or timeout
+            cout << "Error sending WRQ" << endl;
+            return;
+        }
+    }
+    // keep receiving data packets until their length is less than block_size
+    bool receivedLastDataPacket = false;
+    unsigned short block_number = 0;
+    do {
+        // Todo timeout
+        // Receive packet
+        {
+            n = recvfrom(socket, buffer, buflen, 0,(sockaddr*) &assigned_server_process, &length);
+            if (!handleRecvFromReturn(n)){
+                // TODO try again or timeout
+                cout << "Error receiving ACK" << endl;
+                return;
+            }
+        }
+        // TODO may also receive an error packet and timeout
+        // expect data packet (TODO what if its not a data packet?)
+        DATAPacket datap = DATAPacket(buffer, rrq.getModeEnum(), n-4); // -4 because of opcode and block number
+        // Check the block number
+        {
+            if (datap.getBlockNumber() != block_number){
+                // TODO try again or timeout
+                cout << "Invalid DATAPacket block number" << endl;
+                return;
+            }
+        }
+        // Check the length of the received block of data
+        {
+            if (datap.getLength() < block_size){
+                cout << "Received last DATAPacket with block number " << datap.getBlockNumber() << endl;
+                receivedLastDataPacket = true;
+            } else {
+                cout << "Received DATAPacket with block number "<< datap.getBlockNumber() << endl;
+            }
+        }
+        cout << "Writing to file" << endl;
+        // Write data to file
+        fwrite(datap.getData().c_str(), 1, datap.getData().size(), output);
+        // Send back ACK
+        ACKPacket ack = ACKPacket(block_number);
+        {
+            n = sendto(socket, ack.toByteStream().c_str(), ack.getLength(), 0, (struct sockaddr *)&assigned_server_process, length); // send the answer
+            if (!handleSendToReturn(n, ack.getLength())){
+                // TODO try again or timeout
+                cout << "Error sending ACK" << endl;
+                return;
+            }
+            cout << "Sent ACK with block number: " << ack.getBlockNumber() << endl;
+        }
+        // Get ready for next block
+        block_number++;
+    } while(!receivedLastDataPacket);
+}
 
 /**
 Initial Connection Protocol for reading a file
@@ -266,7 +308,12 @@ int main(int argc, char** argv){
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1) // create a client socket
         err(1, "socket() failed\n");
 
-    sendFile(sock, config.filepath, config.dest_filepath, server, tftp_mode::octet);
+    if (config.filepath.empty()){
+        upload(sock, config.dest_filepath, server, tftp_mode::octet);
+    } else {
+        // TODO download
+        download(sock, config.filepath, config.dest_filepath, server, tftp_mode::octet);
+    }
 
     close(sock);
     printf("* Closing the client socket ...\n");

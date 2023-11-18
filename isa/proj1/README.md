@@ -11,6 +11,7 @@ datum: 15.10.2023
 - [.] Udělat packety tak, aby se daly jednoduše instanciovat z bufferu ideálně i s kontrolou validity v nějaké funkci
     - vyreseno skrz virtualni destuktor a paket factory
     - neozkouseno ve valgrindu
+- [ ] Kontrola netascii a octet - udelat ji case insensitive
 - [ ] První ACK na RRQ/WRQ musí přijít už od child procesu a po celou dobu jen od child procesu
 - [ ] Podpora pro hostname na klientovi (i serveru?)
 - [ ] Nutno kontrolovat v serveru i clientu TIDs (porty)

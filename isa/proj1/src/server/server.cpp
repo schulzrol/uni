@@ -71,14 +71,22 @@ class Config{
 };
 
 
-void handleChildPacket(const char* buffer,
+enum child_state {
+    before_first_packet,
+    reading,
+    writing,
+    exiting,
+};
+
+
+Packet* handleChildPacket(const char* buffer,
                        size_t n,
                        int child_fd,
                        const struct sockaddr_in from,
                        const struct sockaddr_in assigned_client,
                        socklen_t length,
                        tftp_mode* mode,
-                       bool* child_exit) {
+                       child_state* state) {
     unsigned short block_number = 0;
     // check if packet is from assigned client
     if (from.sin_port != assigned_client.sin_port){
@@ -123,6 +131,7 @@ void handleChildPacket(const char* buffer,
             cout << "WRQ packet filename: " << wrq_packet->getFilename() << endl;
             cout << "WRQ packet mode: " << wrq_packet->getMode() << endl;
             *mode = wrq_packet->getModeEnum();
+            
             delete wrq_packet;
             break;
         }
@@ -134,7 +143,7 @@ void handleChildPacket(const char* buffer,
             block_number = data_packet->getBlockNumber();
             if (data_packet->getData().length() < DEFAULT_BLOCK_SIZE_BYTES){
                 cout << "Received last DATA packet of length " << data_packet->getData().length() << "/" << DEFAULT_BLOCK_SIZE_BYTES << " bytes" << endl;
-                *child_exit = true;
+                *state = exiting;
             }
             delete data_packet;
             break;
@@ -203,11 +212,12 @@ void child_main(int* child_process,
         cout << "Child port: " << child_port << endl;
         tftp_mode mode = netascii;
         bool child_exit = false;
+        child_state state = before_first_packet;
         if (first_packet_received){
-            handleChildPacket(first_packet_buffer_copy, first_packet_len, child_fd, assigned_client, assigned_client, length, &mode, &child_exit);
+            handleChildPacket(first_packet_buffer_copy, first_packet_len, child_fd, assigned_client, assigned_client, length, &mode, &state);
         }
-        while ((!child_exit) && (n = recvfrom(child_fd, buffer, bufsize, 0, (struct sockaddr *)&from, &length)) >= 0) {
-            handleChildPacket(buffer, n, child_fd, from, assigned_client, length, &mode, &child_exit);
+        while ((state != exiting) && (n = recvfrom(child_fd, buffer, bufsize, 0, (struct sockaddr *)&from, &length)) >= 0) {
+            handleChildPacket(buffer, n, child_fd, from, assigned_client, length, &mode, &state);
         }
         cout << "Child process exiting" << endl;
         close(child_fd);

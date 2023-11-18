@@ -54,6 +54,8 @@ enum tftp_mode {
 // if the data field is exactly 512 bytes long, it signals that there is probably more data to come
 #define DATA_FIELD_LENGTH_MAX = BLOCK_LENGTH_BYTES
 
+#define DEFAULT_BLOCK_SIZE_BYTES 512
+
 
 // ACK packet
 // 2 bytes     2 bytes

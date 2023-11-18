@@ -5,8 +5,6 @@
 #include "definitions.h"
 #include "Packet.hpp"
 
-#define DEFAULT_BLOCK_SIZE_BYTES 512
-
 class DATAPacket : public Packet {
     unsigned short block_number;
     string data;
