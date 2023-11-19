@@ -14,10 +14,8 @@ Packet* PacketFactory::createPacket(const char* data, size_t data_len, tftp_mode
             return new DATAPacket(data, mode, block_size);
         case ACK:
             return new ACKPacket(data);
-        /*
         case ERR:
-            return ERRORPacket(data);
-        */
+            return new ERRORPacket(data);
         default:
             throw runtime_error("Unsupported opcode");
     }

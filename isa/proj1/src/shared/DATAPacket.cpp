@@ -57,7 +57,7 @@ DATAPacket::DATAPacket(const char *data, tftp_mode mode, size_t block_size = DEF
         throw runtime_error("Invalid opcode");
     }
 
-    this->block_number = (data[2] << 8) + data[3];
+    this->block_number = ntohs(*(unsigned short*)(data + 2));
     this->block_size = block_size;
     this->mode = mode;
     this->data = string(data + 4, block_size);

@@ -19,6 +19,7 @@
 #include "shared/RRQPacket.hpp"
 #include "shared/WRQPacket.hpp"
 #include "shared/DataTransfer.hpp"
+#include "shared/ERRORPacket.hpp"
 
 void getHelp(){
     auto help = "\
@@ -70,6 +71,22 @@ class Config{
         }
 };
 
+FILE* handleFileOpen(string filename,
+                     string mode,
+                     ERRORPacket* ep,
+                     ssize_t* n,
+                     int child_fd,
+                     const struct sockaddr_in assigned_client,
+                     socklen_t* length)
+                     {
+    FILE *f = fopen(filename.c_str(), mode.c_str());
+    if (f == NULL) {
+        cout << "Error opening file \'" << filename << "\' for reading: " << strerror(errno) << endl;
+        handleErrnoFeedback(errno, ep, n, child_fd, assigned_client, length);
+    }
+    return f;
+}
+
 /**
  * @brief Main for child process to server a client
  * 
@@ -86,9 +103,11 @@ void child_main(int* child_process,
                ) {
     *child_process = 0;
     if ((*child_process = fork()) == 0) {
+        ERRORPacket ep(NOT_DEFINED);
         // bind to a random port
         socklen_t length = sizeof(assigned_client);
         struct sockaddr_in child_server;
+        ssize_t n;
         int child_fd;
         child_server.sin_family = AF_INET;                // set IPv4 addressing
         child_server.sin_addr.s_addr = htonl(INADDR_ANY); // the server listens to any interface
@@ -107,7 +126,8 @@ void child_main(int* child_process,
             first_packet = PacketFactory::createPacket(first_packet_buffer, first_packet_len, tftp_mode::octet);
         } catch (runtime_error& e) {
             cout << "Error creating packet from buffer: " << e.what() << endl;
-            // TODO send error packet
+            ep.setErrorCode(ILLEGAL_OPERATION);
+            sendPacket(&n, child_fd, &ep, assigned_client, length);
             return;
         }
         switch (first_packet->getOpcode()){
@@ -117,21 +137,9 @@ void child_main(int* child_process,
                 string filename = config.root_dirpath + "/" + rrq->getFilename();
                 delete rrq;
 
-                FILE* f = fopen(filename.c_str(), "rb");
+                FILE* f = handleFileOpen(filename, "rb", &ep, &n, child_fd, assigned_client, &length);
                 if (f == NULL) {
-                    cout << "Error opening file \'" << filename << "\' for reading: " << strerror(errno) << endl;
-                    switch(errno) {
-                        case EACCES:
-                            break;
-                        case EISDIR:
-                            break;
-                        case ENOENT:
-                            break;
-                        case ENOTDIR:
-                            break;
-                        default:
-                            break;
-                    }
+                    cout << "Child process exiting" << endl;
                     close(child_fd);
                     exit(1);
                 }
@@ -145,23 +153,9 @@ void child_main(int* child_process,
                 string filename = config.root_dirpath + "/" + wrq->getFilename();
                 delete wrq;
 
-                FILE* f = fopen(filename.c_str(), "wxb");
+                FILE* f = handleFileOpen(filename, "wxb", &ep, &n, child_fd, assigned_client, &length);
                 if (f == NULL) {
-                    cout << "Error opening file \'" << filename << "\' for writing: " << strerror(errno) << endl;
-                    switch (errno) {
-                        case EACCES:
-                            break;
-                        case EEXIST:
-                            break;
-                        case EISDIR:
-                            break;
-                        case ENOENT:
-                            break;
-                        case ENOTDIR:
-                            break;
-                        default:
-                            break;
-                    }
+                    cout << "Child process exiting" << endl;
                     close(child_fd);
                     exit(1);
                 }
@@ -170,6 +164,8 @@ void child_main(int* child_process,
                 break;
             }
             default:
+                ep.setErrorCode(ILLEGAL_OPERATION);
+                sendPacket(&n, child_fd, &ep, assigned_client, length);
                 cout << "Unknown packet opcode" << endl;
                 break;
         }
@@ -185,10 +181,11 @@ int main(int argc, char** argv) {
     auto config = Config(argc, argv);
     int fd;                    // an incoming socket descriptor
     struct sockaddr_in server; // server's address structure
-    size_t n;
+    ssize_t n;
     char buffer[1024];       // receiving buffer
     struct sockaddr_in client; // client's address structure
     socklen_t length;
+    ERRORPacket ep(NOT_DEFINED);
     map<int, int> client_process_port; // client -> child process port mapping
 
     server.sin_family = AF_INET;                // set IPv4 addressing
@@ -223,13 +220,8 @@ int main(int argc, char** argv) {
             // child process was already created yet client still sends a packet to the server instead of to the child process
             // send back error
             cout << "Child process already running for client port: " << client_port << endl;
-            size_t r = sendto(fd, "Error", 6, 0, (struct sockaddr *)&client, length); // send the answer
-            if (r == -1){
-                cout << "Error sending packet to assigned client" << endl;
-            }
-            if (r < 6){
-                cout << "Not all bytes sent to assigned client" << endl;
-            }
+            ep.setErrorCode(ILLEGAL_OPERATION);
+            sendPacket(&n, fd, &ep, client, length);
         }
     }
     printf("* Closing the socket\n");

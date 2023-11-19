@@ -2,6 +2,46 @@
 
 #include <err.h>
 
+void handleErrnoFeedback(int errno_copy,
+                         ERRORPacket *ep,
+                         ssize_t *n,
+                         int child_fd,
+                         const struct sockaddr_in assigned_client,
+                         socklen_t *length)
+{
+    switch (errno_copy) {
+        case ENOSPC:
+            ep->setErrorCode(DISK_FULL);
+            sendPacket(n, child_fd, ep, assigned_client, *length);
+            break;
+        case EEXIST:
+            ep->setErrorCode(FILE_ALREADY_EXISTS);
+            sendPacket(n, child_fd, ep, assigned_client, *length);
+            break;
+        case EACCES:
+            ep->setErrorCode(ACCESS_VIOLATION);
+            sendPacket(n, child_fd, ep, assigned_client, *length);
+            break;
+        case EISDIR:
+            ep->setErrorCode(FILE_NOT_FOUND);
+            sendPacket(n, child_fd, ep, assigned_client, *length);
+            break;
+        case ENOENT:
+            ep->setErrorCode(FILE_NOT_FOUND);
+            sendPacket(n, child_fd, ep, assigned_client, *length);
+            break;
+        case ENOTDIR:
+            ep->setErrorCode(FILE_NOT_FOUND);
+            sendPacket(n, child_fd, ep, assigned_client, *length);
+            break;
+        default:
+            ep->setErrorCode(NOT_DEFINED);
+            ep->setErrorMessage(strerror(errno_copy));
+            sendPacket(n, child_fd, ep, assigned_client, *length);
+            break;
+    }
+}
+
 // partner_addr co mi dal pro me nic neznamena, protoze kdo ti posila zjistis az z prvni prijmute zpravy
 DataTransfer::DataTransfer(int my_socket, tftp_mode transfer_mode, unsigned short block_size) {
     this->my_socket = my_socket;
@@ -115,6 +155,7 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
     sockaddr_in reference_addr = (reference_address_already_set) ? *partner_addr : from_addr; // set to from_addr because it will be overwritten
     socklen_t reference_addr_size = (reference_address_already_set) ? *partner_size : from_size; // set to from_size because it will be overwritten
     char buffer[buflen];
+    ERRORPacket ep(NOT_DEFINED);
     bool receivedLastDataPacket = false;
     unsigned short block_number = (skip_first_data_receive) ? 0 : 1;
     do {
@@ -131,8 +172,10 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
                     cout << "Error receiving DATAPacket" << endl;
                     continue;
                 case 2:
-                    // TODO send back error and go back to waiting for my packet
+                    ep.setErrorCode(UNKNOWN_TID);
+                    sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
                     cout << "Received DATAPacket from unexpected TID" << endl;
+                    ep.setErrorCode(NOT_DEFINED);
                     continue;
                 default:
                     return 1;
@@ -153,6 +196,8 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
                     cout << "Received ERROR packet" << endl;
                     return 1;
                 default:
+                    ep.setErrorCode(ILLEGAL_OPERATION);
+                    sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
                     cout << "Received unexpected packet" << endl;
                     delete packet;
                     continue;
@@ -168,7 +213,8 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
             // Check the block number
             if (dp->getBlockNumber() != block_number)
             {
-                // TODO try again or timeout, or send back error and go back to waiting for my expected packet
+                ep.setErrorCode(ILLEGAL_OPERATION);
+                sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
                 cout << "Invalid DATAPacket block number " << dp->getBlockNumber() << " expected " << block_number << endl;
                 continue;
             }
@@ -185,9 +231,9 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
             cout << "Writing to file" << endl;
             // Write data to file
             w = fwrite(dp->getData().c_str(), 1, dp->getData().size(), to);
-            if (w != dp->getData().size())
-            {
+            if (w != dp->getData().size()) {
                 cout << "Error writing to file" << endl;
+                handleErrnoFeedback(errno, &ep, &n, this->my_socket, from_addr, &from_size);
                 return 1;
             }
             delete dp; // TODO if memory becomes an issue, ditch packetfactory and use a switch statement to create packet objects in static memory
@@ -249,6 +295,7 @@ int DataTransfer::uploadFile(FILE* from, bool skip_first_ack_receive, const sock
     bool sentLastDataPacket = false;
     bool file_sent = false;
     ACKPacket* ack = NULL;
+    ERRORPacket ep(NOT_DEFINED);
     unsigned short block_number = 0;
     while (!file_sent) {
         // Receive an ACK
@@ -264,8 +311,11 @@ int DataTransfer::uploadFile(FILE* from, bool skip_first_ack_receive, const sock
                     cout << "Error receiving ACKPacket" << endl;
                     continue;
                 case 2:
-                    // TODO send back error and go back to waiting for my packet
+                    // TODO send to sender back error and go back to waiting for my packet
+                    ep.setErrorCode(UNKNOWN_TID);
+                    sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
                     cout << "Received ACKPacket from unexpected TID" << endl;
+                    ep.setErrorCode(NOT_DEFINED);
                     continue;
                 default:
                     return 1;
@@ -279,7 +329,8 @@ int DataTransfer::uploadFile(FILE* from, bool skip_first_ack_receive, const sock
                 case tftp_opcode::ACK:
                     ack = (ACKPacket *)packet;
                     if (ack->getBlockNumber() != block_number) {
-                        // TODO try again or timeout
+                        ep.setErrorCode(ILLEGAL_OPERATION);
+                        sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
                         cout << "Invalid ACK block number" << endl;
                         continue;
                     }
@@ -294,7 +345,8 @@ int DataTransfer::uploadFile(FILE* from, bool skip_first_ack_receive, const sock
                     cout << "Received ERROR packet" << endl;
                     return 1;
                 default:
-                    cout << "Received unexpected packet" << endl;
+                    ep.setErrorCode(ILLEGAL_OPERATION);
+                    sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
                     delete packet;
                     continue;
                 }

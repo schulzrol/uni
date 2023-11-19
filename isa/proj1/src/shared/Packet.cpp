@@ -17,7 +17,8 @@ size_t Packet::getLength()
 
 size_t Packet::maxSizeBytes()
 {
-    throw runtime_error("Not implemented");
+    // maximum UDP payload size
+    return 65507;
 }
 
 Packet::~Packet() { }

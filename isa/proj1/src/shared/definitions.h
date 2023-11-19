@@ -71,17 +71,6 @@ enum tftp_mode {
 // -----------------------------------------
 
 #define ERROR_CODE_LENGTH_BYTES 2
-// overit, ze je tohle vsechno a ze je to spravne
-enum ERROR_CODES {
-    NOT_DEFINED = 0,
-    FILE_NOT_FOUND = 1,
-    ACCESS_VIOLATION = 2,
-    DISK_FULL = 3,
-    ILLEGAL_OPERATION = 4,
-    UNKNOWN_TID = 5,
-    FILE_ALREADY_EXISTS = 6,
-    NO_SUCH_USER = 7
-};
 
 
 
