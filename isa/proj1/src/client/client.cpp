@@ -152,7 +152,7 @@ class Config {
 };
 
 
-void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES, bool blksize_option = false){
+void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES, bool blksize_option = false, unsigned short myport = 0){
     ssize_t n;
     // Initiate connection
     // send write request to the server
@@ -169,7 +169,7 @@ void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mo
             return;
         }
     }
-    DataTransfer dt(socket, mode, blksize_option, block_size, 1);
+    DataTransfer dt(socket, mode, blksize_option, block_size, 1, myport);
     dt.last_sent = wrq.toByteStream();
     dt.last_sent_n = n;
     socklen_t length = sizeof(server);
@@ -177,7 +177,7 @@ void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mo
     std::cout << "Upload finished" << endl;
 }
 
-void download(int socket, string save_to_file, string file_on_remote, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES, bool blksize_option = false){
+void download(int socket, string save_to_file, string file_on_remote, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES, bool blksize_option = false, unsigned short myport = 0){
     ssize_t n;
     // send read request to the server
     std::cout << "Sending RRQ" << endl;
@@ -198,7 +198,7 @@ void download(int socket, string save_to_file, string file_on_remote, struct soc
     if (f == NULL) {
         std::cout << "Error opening file \'" << save_to_file << "\' for writing: " << strerror(errno) << endl;
     }
-    DataTransfer dt(socket, mode, blksize_option, block_size, 1);
+    DataTransfer dt(socket, mode, blksize_option, block_size, 1, myport);
     dt.last_sent = rrq.toByteStream();
     dt.last_sent_n = n;
     socklen_t length = sizeof(server);
@@ -217,7 +217,7 @@ void printBytes(char* bytes, size_t length){
 int main(int argc, char** argv){
     auto config = Config(argc, argv);
     int sock; // socket descriptor
-    struct sockaddr_in server; // address structures of the server and the client
+    struct sockaddr_in server;      // address structures of the server and the client
     struct hostent *servent;         // network host entry required by gethostbyname()
     tftp_mode default_mode = tftp_mode::octet;
     memset(&server, 0, sizeof(server)); // erase the server structure
@@ -232,18 +232,32 @@ int main(int argc, char** argv){
 
     server.sin_port = htons(config.dest_port); // server port (network byte order)
 
+    struct sockaddr_in client;
+    client.sin_family = AF_INET;                // set IPv4 addressing
+    client.sin_addr.s_addr = htonl(INADDR_ANY); // the server listens to any interface
+    client.sin_port = htons(0);     // the server listens on this port (random)
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1) // create a client socket
         err(1, "socket() failed\n");
 
+    if ((::bind(sock, (struct sockaddr *)&client, sizeof(client))) == -1) { // binding with the port
+        err(1, "bind() failed");
+    }
+    // get my port
+    unsigned short myport;
+    socklen_t myport_len = sizeof(client);
+    if (getsockname(sock, (struct sockaddr *)&client, &myport_len) == -1){
+        err(1, "getsockname() failed");
+    }
+    myport = ntohs(client.sin_port);
+    std::cout << "my port: " << myport << endl;
     int block_size = DEFAULT_BLOCK_SIZE_BYTES;
     if (!config.block_size.empty()){
         block_size = stoi(config.block_size);
     }
-
     if (config.filepath.empty()){
-        upload(sock, config.dest_filepath, server, default_mode, block_size, !config.block_size.empty());
+        upload(sock, config.dest_filepath, server, default_mode, block_size, !config.block_size.empty(), myport);
     } else {
-        download(sock, config.dest_filepath, config.filepath, server, default_mode, block_size, !config.block_size.empty());
+        download(sock, config.dest_filepath, config.filepath, server, default_mode, block_size, !config.block_size.empty(), myport);
     }
 
     close(sock);

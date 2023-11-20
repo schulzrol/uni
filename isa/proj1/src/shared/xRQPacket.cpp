@@ -115,3 +115,16 @@ size_t xRQPacket::getLength() {
 size_t xRQPacket::maxSizeBytes() {
     return 512;
 }
+
+string xRQPacket::log(string ip, unsigned short srcport, unsigned short dstport) {
+    // RRQ {SRC_IP}:{SRC_PORT} "{FILEPATH}" {MODE} {$OPTS}
+    // WRQ {SRC_IP}:{SRC_PORT} "{FILEPATH}" {MODE} {$OPTS}
+    string log;
+    log += (this->getOpcode() == RRQ ? "RRQ" : "WRQ");
+    log += " ";
+    log += ip + ":" + to_string(srcport);
+    log += " \"" + this->getFilename() + "\"";
+    log += " " + this->getMode();
+    log += " " + logOptions(this->getOptions());
+    return log;
+}

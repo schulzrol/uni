@@ -46,3 +46,8 @@ size_t ACKPacket::getLength(){
 size_t ACKPacket::maxSizeBytes(){
     return ACK_PACKET_LENGTH_BYTES;
 }
+
+string ACKPacket::log(string ip, unsigned short srcport, unsigned short dstport){
+    // ACK {SRC_IP}:{SRC_PORT} {BLOCK_ID}
+    return "ACK " + ip + ":" + to_string(srcport) + " " + to_string(this->block_number);
+}

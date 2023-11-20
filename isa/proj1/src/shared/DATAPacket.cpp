@@ -139,3 +139,8 @@ size_t DATAPacket::maxSizeBytes() {
 size_t DATAPacket::getLength() {
     return OPCODE_LENGTH_BYTES + BLOCK_NUMBER_LENGTH_BYTES + this->getData().length();
 }
+
+string DATAPacket::log(string ip, unsigned short srcport, unsigned short dstport) {
+    // DATA {SRC_IP}:{SRC_PORT}:{DST_PORT} {BLOCK_ID}
+    return "DATA " + ip + ":" + to_string(srcport) + ":" + to_string(dstport) + " " + to_string(this->block_number);
+}

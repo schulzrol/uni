@@ -13,6 +13,7 @@ class Packet {
         virtual unsigned short getOpcode();
         virtual string toByteStream();
         virtual size_t getLength();
+        virtual string log(string ip, unsigned short srcport, unsigned short dstport);
         size_t maxSizeBytes();
 };
 

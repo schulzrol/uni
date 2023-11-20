@@ -1,6 +1,9 @@
 #include "DataTransfer.hpp"
 
 #include <err.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 bool reserveSpaceForFile(FILE* f, size_t n){
     int r = 1;
@@ -54,7 +57,7 @@ void handleErrnoFeedback(int errno_copy,
 }
 
 // partner_addr co mi dal pro me nic neznamena, protoze kdo ti posila zjistis az z prvni prijmute zpravy
-DataTransfer::DataTransfer(int my_socket, tftp_mode transfer_mode, bool usedOptions, unsigned short block_size, int timeout_s) {
+DataTransfer::DataTransfer(int my_socket, tftp_mode transfer_mode, bool usedOptions, unsigned short block_size, int timeout_s, unsigned short myport) {
     this->my_socket = my_socket;
     this->transfer_mode = transfer_mode;
     this->block_size = block_size;
@@ -64,6 +67,7 @@ DataTransfer::DataTransfer(int my_socket, tftp_mode transfer_mode, bool usedOpti
     this->max_retries = 5-1;
     this->last_sent = "";
     this->last_sent_n = 0;
+    this->myport = myport;
 }
 
 bool handleSendToReturn(ssize_t n, size_t length){
@@ -187,7 +191,7 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
     size_t w;
     bool havent_already_handled_oack = !skip_first_data_receive;
     bool havent_already_sent_oack = skip_first_data_receive;
-    const size_t buflen = max(1024, this->block_size * 2);
+    const size_t buflen = max(1024, this->block_size + 4);
     sockaddr_in from_addr;
     socklen_t from_size = sizeof(from_addr);
     bool reference_address_already_set = (partner_addr != NULL && partner_size != NULL);
@@ -245,6 +249,10 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
             try
             {
                 packet = PacketFactory::createPacket(buffer, n, this->transfer_mode);
+                string ip = inet_ntoa(from_addr.sin_addr);
+                unsigned short srcport = ntohs(from_addr.sin_port);
+                unsigned short dstport = this->myport;
+                std::cerr << packet->log(ip, srcport, dstport) << endl;
                 switch (packet->getOpcode())
                 {
                 case tftp_opcode::DATA:
@@ -471,6 +479,10 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
                 try
                 {
                     packet = PacketFactory::createPacket(buffer, n, this->transfer_mode);
+                    string ip = inet_ntoa(from_addr.sin_addr);
+                    unsigned short srcport = ntohs(from_addr.sin_port);
+                    unsigned short dstport = this->myport;
+                    std::cerr << packet->log(ip, srcport, dstport) << endl;
                     switch (packet->getOpcode())
                     {
                     case tftp_opcode::ACK:

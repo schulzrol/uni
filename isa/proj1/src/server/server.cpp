@@ -152,12 +152,20 @@ void child_main(int* child_process,
         if ((::bind(child_fd, (struct sockaddr *)&child_server, sizeof(child_server))) == -1) { // binding with the port
             err(1, "bind() failed");
         }
+        
+        socklen_t myport_len = sizeof(child_server);
+        if (getsockname(child_fd, (struct sockaddr *)&child_server, &myport_len) == -1){
+            err(1, "getsockname() failed");
+        }
         int child_port = ntohs(child_server.sin_port);
         std::cout << "Child port: " << child_port << endl;
 
         Packet* first_packet;
         try {
             first_packet = PacketFactory::createPacket(first_packet_buffer, first_packet_len, tftp_mode::octet);
+            string ip = inet_ntoa(assigned_client.sin_addr);
+            unsigned short srcport = ntohs(assigned_client.sin_port);
+            std::cerr << first_packet->log(ip, srcport, child_port) << endl;
         } catch (runtime_error& e) {
             std::cout << "Error creating packet from buffer: " << e.what() << endl;
             ep.setErrorCode(ILLEGAL_OPERATION);
@@ -181,7 +189,7 @@ void child_main(int* child_process,
                         return;
                     }
                 }
-                DataTransfer dt = DataTransfer(child_fd, rrq->getModeEnum(), usedOptions, blksize, 5);
+                DataTransfer dt = DataTransfer(child_fd, rrq->getModeEnum(), usedOptions, blksize, 5, child_port);
                 string filename = config.root_dirpath + "/" + rrq->getFilename();
                 delete rrq;
 
@@ -202,7 +210,7 @@ void child_main(int* child_process,
                 if (mapContainsValidBlksizeOption(options, &blksize, 65535)){
                     usedOptions = true;
                 }
-                DataTransfer dt = DataTransfer(child_fd, wrq->getModeEnum(), usedOptions, blksize, 5);
+                DataTransfer dt = DataTransfer(child_fd, wrq->getModeEnum(), usedOptions, blksize, 5, child_port);
                 string filename = config.root_dirpath + "/" + wrq->getFilename();
                 delete wrq;
 

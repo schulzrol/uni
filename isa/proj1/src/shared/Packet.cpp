@@ -21,4 +21,8 @@ size_t Packet::maxSizeBytes()
     return 65507;
 }
 
+string Packet::log(string ip, unsigned short srcport, unsigned short dstport) {
+    throw runtime_error("Not implemented");
+}
+
 Packet::~Packet() { }

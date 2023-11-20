@@ -33,6 +33,7 @@ class xRQPacket : public Packet {
         void setOption(string key, string value);
         void setOptions(map<string,string> options);
         bool containsValidBlksizeOption(unsigned short& blksize, int leq_than);
+        string log(string ip, unsigned short srcport, unsigned short dstport);
 };
 
 bool mapContainsValidBlksizeOption(map<string, string> options, unsigned short* blksize, int leq_than);

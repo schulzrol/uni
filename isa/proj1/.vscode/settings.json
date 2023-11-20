@@ -20,6 +20,8 @@
         "bitset": "cpp",
         "initializer_list": "cpp",
         "set": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp"
     }
 }

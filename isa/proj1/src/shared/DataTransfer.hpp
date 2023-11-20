@@ -22,10 +22,11 @@ class DataTransfer {
     int timeout_s;
     int retries;
     int max_retries;
+    unsigned short myport;
     public:
         string last_sent;
         ssize_t last_sent_n;
-        DataTransfer(int my_socket, tftp_mode transfer_mode, bool usedOptions, unsigned short block_size = DEFAULT_BLOCK_SIZE_BYTES, int timeout_s=-1);
+        DataTransfer(int my_socket, tftp_mode transfer_mode, bool usedOptions, unsigned short block_size = DEFAULT_BLOCK_SIZE_BYTES, int timeout_s=-1, unsigned short myport=69);
         int uploadFile(FILE* from=stdin, bool skip_first_ack_receive=false, const sockaddr_in* partner_addr=NULL, const socklen_t* partner_size = NULL, const sockaddr_in* default_partner_address = NULL, const socklen_t* default_partner_size=NULL);
         int downloadFile(FILE* to, bool skip_first_data_receive=false, const sockaddr_in* partner_addr=NULL, const socklen_t* partner_size = NULL, const sockaddr_in* default_partner_address = NULL, const socklen_t* default_partner_size=NULL);
     private:

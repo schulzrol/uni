@@ -83,3 +83,12 @@ unsigned short getOpcode() {
 size_t ERRORPacket::getLength() {
     return 4 + this->error_message.length() + 1; // +1 for null terminator
 }
+
+size_t ERRORPacket::maxSizeBytes() {
+    return 516;
+}
+
+string ERRORPacket::log(string ip, unsigned short srcport, unsigned short dstport) {
+    // ERROR {SRC_IP}:{SRC_PORT}:{DST_PORT} {CODE} "{MESSAGE}"
+    return "ERROR " + ip + ":" + to_string(srcport) + ":" + to_string(dstport) + " " + to_string(this->error_code) + " \"" + this->error_message + "\"";
+}

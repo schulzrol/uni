@@ -27,6 +27,15 @@ string writeOptions(map<string, string> options){
     return packet;
 }
 
+string logOptions(map<string, string> options){
+    // {OPT1_NAME}={OPT1_VALUE} ... {OPTn_NAME}={OPTn_VALUE}
+    string log = "";
+    for (pair<string, string> kv : options) {
+        log += kv.first + "=" + kv.second + " ";
+    }
+    return log;
+}
+
 OACKPacket::OACKPacket(map<string, string> options){
     for (pair<string, string> kv : options) {
         this->setOption(kv.first, kv.second);
@@ -93,4 +102,9 @@ size_t OACKPacket::maxSizeBytes() {
 
 size_t OACKPacket::keyCount() {
     return this->options.size();
+}
+
+string OACKPacket::log(string ip, unsigned short srcport, unsigned short dstport) {
+    // OACK {SRC_IP}:{SRC_PORT} {$OPTS}
+    return "OACK " + ip + ":" + to_string(srcport) + " " + logOptions(this->options);
 }

@@ -27,6 +27,7 @@ class DATAPacket : public Packet {
         unsigned short blockSizeBytes();
         size_t maxSizeBytes();
         size_t getLength();
+        string log(string ip, unsigned short srcport, unsigned short dstport);
 };
 
 #endif

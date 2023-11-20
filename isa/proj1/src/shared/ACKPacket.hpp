@@ -20,6 +20,7 @@ class ACKPacket : public Packet {
         string toByteStream();
         size_t getLength();
         size_t maxSizeBytes();
+        string log(string ip, unsigned short srcport, unsigned short dstport);
 };
 
 #endif
