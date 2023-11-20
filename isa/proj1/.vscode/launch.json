@@ -16,7 +16,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/tftp-client",
-            "args": ["-h", "localhost", "-p", "69", "-f", "zad1.pdf", "-t", "${workspaceFolder}/testout.pdf", "-b", "256"],
+            "args": ["-h", "localhost", "-p", "69", "-t", "zad1.pdf", "-b" , "256"],
             "stopAtEntry": false,
             "cwd": ".",
             "environment": [],

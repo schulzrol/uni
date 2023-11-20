@@ -26,12 +26,13 @@ using namespace std;
 
 void getHelp(){
     auto help = "\
-tftp-client -h hostname [-p dest_port] [-f filepath] -t dest_filepath \n\
+tftp-client -h hostname [-p dest_port] [-f filepath] [-b blksize] -t dest_filepath \n\
     -h IP adresa/doménový název vzdáleného serveru \n\
     -p port vzdáleného serveru, pokud není specifikován předpokládá se výchozí dle specifikace (69)\n\
     -f cesta ke stahovanému souboru na serveru (pro download), pokud není specifikován používá se obsah stdin (pro upload) \n\
-    -t cesta, pod kterou bude soubor na vzdáleném serveru/lokálně uložen";
-    cout << help << endl;
+    -t cesta, pod kterou bude soubor na vzdáleném serveru/lokálně uložen\n\
+    -b velikost dat. bloku v bajtech, pokud není specifikován použije se výchozí dle specifikace (512)";
+    std::cout << help << endl;
 }
 
 class Config {
@@ -67,17 +68,42 @@ class Config {
             for(int i = 1; i < argc; i++){
                 string arg = argv[i];
                 if(arg == "-h"){
+                    if (i+1 >= argc){
+                        std::cout << "Chybí hodnota parametru -h" << endl;
+                        getHelp();
+                        exit(NE_ARGS);
+                    }
                     args["hostname"] = argv[++i];
                 }else if(arg == "-p"){
+                    if (i+1 >= argc){
+                        std::cout << "Chybí hodnota parametru -p" << endl;
+                        getHelp();
+                        exit(NE_ARGS);
+                    }
                     args["dest_port"] = argv[++i];
                 }else if(arg == "-f"){
+                    if (i+1 >= argc){
+                        std::cout << "Chybí hodnota parametru -f" << endl;
+                        getHelp();
+                        exit(NE_ARGS);
+                    }
                     args["filepath"] = argv[++i];
                 }else if(arg == "-t"){
+                    if (i+1 >= argc){
+                        std::cout << "Chybí hodnota parametru -t" << endl;
+                        getHelp();
+                        exit(NE_ARGS);
+                    }
                     args["dest_filepath"] = argv[++i];
                 }else if(arg == "-b"){
+                    if (i+1 >= argc){
+                        std::cout << "Chybí hodnota parametru -b" << endl;
+                        getHelp();
+                        exit(NE_ARGS);
+                    }
                     args["block_size"] = argv[++i];
                 }else{
-                    cout << "Neznámý parametr: " << arg << endl;
+                    std::cout << "Neznámý parametr: " << arg << endl;
                     getHelp();
                     exit(UNKNOWN_ARG);
                 }
@@ -85,30 +111,30 @@ class Config {
 
             // postconditions
             if(args["hostname"] == ""){
-                cout << "Chybí parametr -h" << endl;
+                std::cout << "Chybí parametr -h" << endl;
                 getHelp();
                 exit(NE_ARGS);
             }
             if(args["dest_filepath"] == ""){
-                cout << "Chybí parametr -t" << endl;
+                std::cout << "Chybí parametr -t" << endl;
                 getHelp();
                 exit(NE_ARGS);
             }
             
             if (!isNum(args["dest_port"])){
-                cout << "Parametr -p musí být číslo" << endl;
+                std::cout << "Parametr -p musí být číslo" << endl;
                 getHelp();
                 exit(NE_ARGS);
             }
             
             if(args["block_size"] != "" && !isNum(args["block_size"])){
-                cout << "Parametr -b musí být číslo" << endl;
+                std::cout << "Parametr -b musí být číslo" << endl;
                 getHelp();
                 exit(NE_ARGS);
             }
             else {
                 if (args["block_size"] != "" && (stoi(args["block_size"]) < 8 || stoi(args["block_size"]) > 65464)){
-                    cout << "Parametr -b musí být v rozsahu 8-65464" << endl;
+                    std::cout << "Parametr -b musí být v rozsahu 8-65464" << endl;
                     getHelp();
                     exit(NE_ARGS);
                 }
@@ -116,7 +142,7 @@ class Config {
 
 
             if (stoi(args["dest_port"]) < 0 || stoi(args["dest_port"]) > 65535){
-                cout << "Parametr -p musí být v rozsahu 0-65535" << endl;
+                std::cout << "Parametr -p musí být v rozsahu 0-65535" << endl;
                 getHelp();
                 exit(NE_ARGS);
             }
@@ -130,7 +156,7 @@ void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mo
     ssize_t n;
     // Initiate connection
     // send write request to the server
-    cout << "Sending WRQ" << endl;
+    std::cout << "Sending WRQ" << endl;
     WRQPacket wrq(dest_filepath, mode);
     if (blksize_option){
         wrq.setOption("blksize", to_string(block_size));
@@ -139,19 +165,22 @@ void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mo
         n = sendto(socket, wrq.toByteStream().c_str(), wrq.getLength(), 0, (const sockaddr*)& server, sizeof(server)); // send data to the server
         if (!handleSendToReturn(n, wrq.getLength())){
             // TODO try again
-            cout << "Error sending WRQ" << endl;
+            std::cout << "Error sending WRQ" << endl;
             return;
         }
     }
-    DataTransfer dt(socket, mode, blksize_option, block_size);
-    dt.uploadFile(stdin);
-    cout << "Upload finished" << endl;
+    DataTransfer dt(socket, mode, blksize_option, block_size, 1);
+    dt.last_sent = wrq.toByteStream();
+    dt.last_sent_n = n;
+    socklen_t length = sizeof(server);
+    dt.uploadFile(stdin, false, NULL, NULL, &server, &length);
+    std::cout << "Upload finished" << endl;
 }
 
 void download(int socket, string save_to_file, string file_on_remote, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES, bool blksize_option = false){
     ssize_t n;
     // send read request to the server
-    cout << "Sending RRQ" << endl;
+    std::cout << "Sending RRQ" << endl;
     RRQPacket rrq(file_on_remote, mode);
     if (blksize_option){
         rrq.setOption("blksize", to_string(block_size));
@@ -160,26 +189,29 @@ void download(int socket, string save_to_file, string file_on_remote, struct soc
         n = sendto(socket, rrq.toByteStream().c_str(), rrq.getLength(), 0, (const sockaddr*)& server, sizeof(server)); // send data to the server
         if (!handleSendToReturn(n, rrq.getLength())){
             // TODO try again or timeout
-            cout << "Error sending WRQ" << endl;
+            std::cout << "Error sending WRQ" << endl;
             return;
         }
     }
 
     FILE* f = fopen(save_to_file.c_str(), "wb");
     if (f == NULL) {
-        cout << "Error opening file \'" << save_to_file << "\' for writing: " << strerror(errno) << endl;
+        std::cout << "Error opening file \'" << save_to_file << "\' for writing: " << strerror(errno) << endl;
     }
-    DataTransfer dt(socket, mode, blksize_option, block_size);
-    dt.downloadFile(f);
+    DataTransfer dt(socket, mode, blksize_option, block_size, 1);
+    dt.last_sent = rrq.toByteStream();
+    dt.last_sent_n = n;
+    socklen_t length = sizeof(server);
+    dt.downloadFile(f, false, NULL, NULL, &server, &length);
     fclose(f);
-    cout << "Download finished" << endl;
+    std::cout << "Download finished" << endl;
 }
 
 void printBytes(char* bytes, size_t length){
     for(int i = 0; i < length; i++){
-        cout << hex << (int)bytes[i] << " ";
+        std::cout << hex << (int)bytes[i] << " ";
     }
-    cout << endl;
+    std::cout << endl;
 }
 
 int main(int argc, char** argv){

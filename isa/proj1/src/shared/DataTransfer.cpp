@@ -2,6 +2,16 @@
 
 #include <err.h>
 
+bool reserveSpaceForFile(FILE* f, size_t n){
+    int r = 1;
+    #ifdef __APPLE__
+        r = fcntl(fileno(f), F_PREALLOCATE, 0, n);
+    #else 
+        r = fallocate(fileno(f), 0, 0, n);
+    #endif
+    return r == 0;
+}
+
 void handleErrnoFeedback(int errno_copy,
                          ERRORPacket *ep,
                          ssize_t *n,
@@ -10,44 +20,50 @@ void handleErrnoFeedback(int errno_copy,
                          socklen_t *length)
 {
     switch (errno_copy) {
+        case EFBIG:
         case ENOSPC:
             ep->setErrorCode(DISK_FULL);
-            sendPacket(n, child_fd, ep, assigned_client, *length);
+            sendPacket(n, child_fd, ep, assigned_client, *length, NULL, NULL);
             break;
         case EEXIST:
             ep->setErrorCode(FILE_ALREADY_EXISTS);
-            sendPacket(n, child_fd, ep, assigned_client, *length);
+            sendPacket(n, child_fd, ep, assigned_client, *length, NULL, NULL);
             break;
         case EACCES:
             ep->setErrorCode(ACCESS_VIOLATION);
-            sendPacket(n, child_fd, ep, assigned_client, *length);
+            sendPacket(n, child_fd, ep, assigned_client, *length, NULL, NULL);
             break;
         case EISDIR:
             ep->setErrorCode(FILE_NOT_FOUND);
-            sendPacket(n, child_fd, ep, assigned_client, *length);
+            sendPacket(n, child_fd, ep, assigned_client, *length, NULL, NULL);
             break;
         case ENOENT:
             ep->setErrorCode(FILE_NOT_FOUND);
-            sendPacket(n, child_fd, ep, assigned_client, *length);
+            sendPacket(n, child_fd, ep, assigned_client, *length, NULL, NULL);
             break;
         case ENOTDIR:
             ep->setErrorCode(FILE_NOT_FOUND);
-            sendPacket(n, child_fd, ep, assigned_client, *length);
+            sendPacket(n, child_fd, ep, assigned_client, *length, NULL, NULL);
             break;
         default:
             ep->setErrorCode(NOT_DEFINED);
             ep->setErrorMessage(strerror(errno_copy));
-            sendPacket(n, child_fd, ep, assigned_client, *length);
+            sendPacket(n, child_fd, ep, assigned_client, *length, NULL, NULL);
             break;
     }
 }
 
 // partner_addr co mi dal pro me nic neznamena, protoze kdo ti posila zjistis az z prvni prijmute zpravy
-DataTransfer::DataTransfer(int my_socket, tftp_mode transfer_mode, bool usedOptions, unsigned short block_size) {
+DataTransfer::DataTransfer(int my_socket, tftp_mode transfer_mode, bool usedOptions, unsigned short block_size, int timeout_s) {
     this->my_socket = my_socket;
     this->transfer_mode = transfer_mode;
     this->block_size = block_size;
     this->usedOptions = usedOptions;
+    this->timeout_s = timeout_s;
+    this->retries = 0;
+    this->max_retries = 5-1;
+    this->last_sent = "";
+    this->last_sent_n = 0;
 }
 
 bool handleSendToReturn(ssize_t n, size_t length){
@@ -82,9 +98,23 @@ bool handleRecvFromReturn(ssize_t n){
  * @param reference_address_already_set true if function should check equality of sender and established partner TIDs
  * @param partner_addr established partner address
  * @param partner_size size of established partner address
- * @return int 0 if success, 1 if error receiving packet, 2 if TIDs don't match
+ * @return int 0 if success, 1 if error, 2 if TIDs don't match, 3 if timeout
  */
-int receivePacket(ssize_t* n, int socket, char* buffer, size_t buflen, sockaddr_in* from_addr, socklen_t* from_size, bool* reference_address_already_set, sockaddr_in* partner_addr, socklen_t* partner_size){
+int receivePacket(ssize_t* n, int socket, char* buffer, size_t buflen, sockaddr_in* from_addr, socklen_t* from_size, bool* reference_address_already_set, sockaddr_in* partner_addr, socklen_t* partner_size, int timeout_s){
+    struct pollfd pfd = {.fd = socket, .events = POLLIN};
+    int poll_result = 0;
+    if (timeout_s >= 0){
+        poll_result = poll(&pfd, 1, timeout_s*1000);
+        if (poll_result == 0){
+            // timeout
+            return 3;
+        }
+        else if (poll_result == -1){
+            // error
+            return 1;
+        }
+    }
+
     *n = recvfrom(socket, buffer, buflen, 0,(sockaddr*) from_addr, from_size);
     if (!handleRecvFromReturn(*n)) {
         // error receiving packet
@@ -103,6 +133,22 @@ int receivePacket(ssize_t* n, int socket, char* buffer, size_t buflen, sockaddr_
     return 0;
 }
 
+
+int sendPacketFromString(ssize_t* n, int socket, string packet, const sockaddr_in partner_addr, socklen_t partner_size, string* last_sent_packet, ssize_t* last_sent_packet_n){
+    *n = sendto(socket, packet.c_str(), packet.size(), 0, (const sockaddr *)&partner_addr, partner_size);
+    if (!handleSendToReturn(*n, packet.size())) {
+        // TODO try again or timeout
+        std::cout << "Error sending DATAPacket" << endl;
+        return 1;
+    }
+    if (last_sent_packet != NULL){
+        *last_sent_packet = packet;
+        *last_sent_packet_n = *n;
+    }
+    return 0;
+}
+
+
 /**
  * @brief Function for sending a packet to a partner
  * 
@@ -113,18 +159,8 @@ int receivePacket(ssize_t* n, int socket, char* buffer, size_t buflen, sockaddr_
  * @param partner_size size of partner address
  * @return int 0 if success, 1 if error sending packet
  */
-int sendPacket(ssize_t* n, int socket, Packet* packet, const sockaddr_in partner_addr, socklen_t partner_size){
-    // TODO what if the packet is too big? read manpage for sendto A: it will be truncated
-    // sendto will return -1 and errno will be set to EMSGSIZE
-    // send an error if it's too big? or just truncate it? what is the maximum for UDP packets? 65507 bytes
-
-    *n = sendto(socket, packet->toByteStream().c_str(), packet->getLength(), 0, (const sockaddr *)&partner_addr, partner_size);
-    if (!handleSendToReturn(*n, packet->getLength())) {
-        // TODO try again or timeout
-        cout << "Error sending DATAPacket" << endl;
-        return 1;
-    }
-    return 0;
+int sendPacket(ssize_t* n, int socket, Packet* packet, const sockaddr_in partner_addr, socklen_t partner_size, string* last_sent_packet, ssize_t* last_sent_packet_n){
+    return sendPacketFromString(n, socket, packet->toByteStream(), partner_addr, partner_size, last_sent_packet, last_sent_packet_n);
 }
 
 // todo add handler for when the first waiting recvfrom times out (possibly only a packet object to resend)
@@ -146,7 +182,7 @@ int sendPacket(ssize_t* n, int socket, Packet* packet, const sockaddr_in partner
  * @param partner_size size of partner address - must be not NULL if skip_first_data_receive set to true
  * @return int 0 if successful, nonzero if unsuccessful
  */
-int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const sockaddr_in* partner_addr, const socklen_t* partner_size) {
+int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const sockaddr_in* partner_addr, const socklen_t* partner_size, const sockaddr_in* default_partner_addr, const socklen_t* default_partner_size) {
     ssize_t n;
     size_t w;
     bool havent_already_handled_oack = !skip_first_data_receive;
@@ -163,23 +199,41 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
     bool receivedLastDataPacket = false;
     unsigned short block_number = (skip_first_data_receive) ? 0 : (this->usedOptions) ? 0 : 1;
     do {
+        if (this->retries > this->max_retries){
+            std::cout << "Max retries reached" << endl;
+            return 0;
+        }
         // Receive packet
         if (!skip_first_data_receive) {
             {
-                cout << "Waiting for DATAPacket" << endl;
-                switch (receivePacket(&n, this->my_socket, buffer, buflen, &from_addr, &from_size, &reference_address_already_set, &reference_addr, &reference_addr_size))
+                std::cout << "Waiting for DATAPacket" << endl;
+                switch (receivePacket(&n, this->my_socket, buffer, buflen, &from_addr, &from_size, &reference_address_already_set, &reference_addr, &reference_addr_size, this->timeout_s))
                 {
                 case 0:
                     break;
                 case 1:
                     // TODO try again?
-                    cout << "Error receiving DATAPacket" << endl;
+                    std::cout << "Error receiving DATAPacket" << endl;
                     continue;
                 case 2:
                     ep.setErrorCode(UNKNOWN_TID);
-                    sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
-                    cout << "Received DATAPacket from unexpected TID" << endl;
+                    sendPacket(&n, this->my_socket, &ep, from_addr, from_size, NULL, NULL);
+                    std::cout << "Received DATAPacket from unexpected TID" << endl;
                     ep.setErrorCode(NOT_DEFINED);
+                    continue;
+                case 3: // timeout
+                    std::cout << "Timeout " << this->retries << " out of " << this->max_retries << endl;
+                    std::cout << "Sending last sent packet again" << endl;
+                    if (block_number == 0)
+                    {
+                        sendPacketFromString(&this->last_sent_n, this->my_socket, this->last_sent, *default_partner_addr, *default_partner_size, NULL, NULL);
+                    }
+                    else
+                    {
+                        sendPacketFromString(&this->last_sent_n, this->my_socket, this->last_sent, reference_addr, reference_addr_size, NULL, NULL);
+                    }
+                    this->retries += 1;
+                    this->timeout_s *= 2;
                     continue;
                 default:
                     return 1;
@@ -194,6 +248,8 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
                 switch (packet->getOpcode())
                 {
                 case tftp_opcode::DATA:
+                    this->retries = 0;
+                    this->timeout_s = 1;
                     if (this->usedOptions && havent_already_handled_oack){
                         this->block_size = DEFAULT_BLOCK_SIZE_BYTES;
                     }
@@ -202,26 +258,26 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
                     if (dp->getBlockNumber() != block_number)
                     {
                         ep.setErrorCode(ILLEGAL_OPERATION);
-                        sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
-                        cout << "Invalid DATAPacket block number " << dp->getBlockNumber() << " expected " << block_number << endl;
+                        sendPacket(&n, this->my_socket, &ep, from_addr, from_size, NULL, NULL);
+                        std::cout << "Invalid DATAPacket block number " << dp->getBlockNumber() << " expected " << block_number << endl;
                         continue;
                     }
                     // Check the length of the received block of data
                     if (dp->getData().size() < this->block_size)
                     {
-                        cout << "Received last DATAPacket with block number " << dp->getBlockNumber() << endl;
+                        std::cout << "Received last DATAPacket with block number " << dp->getBlockNumber() << endl;
                         receivedLastDataPacket = true;
                     }
                     else
                     {
-                        cout << "Received DATAPacket with block number " << dp->getBlockNumber() << endl;
+                        std::cout << "Received DATAPacket with block number " << dp->getBlockNumber() << endl;
                     }
-                    cout << "Writing to file" << endl;
+                    std::cout << "Writing to file" << endl;
                     // Write data to file
                     w = fwrite(dp->getData().c_str(), 1, dp->getData().size(), to);
                     if (w != dp->getData().size())
                     {
-                        cout << "Error writing to file" << endl;
+                        std::cout << "Error writing to file" << endl;
                         handleErrnoFeedback(errno, &ep, &n, this->my_socket, from_addr, &from_size);
                         return 1;
                     }
@@ -229,25 +285,27 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
                     break;
                 case tftp_opcode::OACK:
                     if (this->usedOptions && havent_already_handled_oack){
+                        this->retries = 0;
+                        this->timeout_s = 1;
                         havent_already_handled_oack = false;
                         if (this->handleOACKPacket((OACKPacket*)packet, from_addr, from_size, &ep) != 0){
                             return 1;
                         }
                     } else {
                         ep.setErrorCode(ILLEGAL_OPERATION);
-                        sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
-                        cout << "Received unexpected OACK packet" << endl;
+                        sendPacket(&n, this->my_socket, &ep, from_addr, from_size, NULL, NULL);
+                        std::cout << "Received unexpected OACK packet" << endl;
                         continue;
                     }
                     break;
                 case tftp_opcode::ERR:
                     // TODO
-                    cout << "Received ERROR packet" << endl;
+                    std::cout << "Received ERROR packet" << endl;
                     return 1;
                 default:
                     ep.setErrorCode(ILLEGAL_OPERATION);
-                    sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
-                    cout << "Received unexpected packet" << endl;
+                    sendPacket(&n, this->my_socket, &ep, from_addr, from_size, NULL, NULL);
+                    std::cout << "Received unexpected packet" << endl;
                     delete packet;
                     continue;
                 }
@@ -255,7 +313,7 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
             catch (runtime_error &e)
             {
                 // TODO invalid or unknown packet, send back error and go back to waiting for my expected packet
-                cout << e.what() << endl;
+                std::cout << e.what() << endl;
                 continue;
             }
         } else {
@@ -266,34 +324,34 @@ int DataTransfer::downloadFile(FILE* to, bool skip_first_data_receive, const soc
             havent_already_sent_oack = false;
             // send oack packet
             OACKPacket oack({{"blksize", to_string(this->block_size)}});
-            cout << "Sending OACKPacket with block size " << this->block_size << endl;
-            switch(sendPacket(&n, this->my_socket, &oack, reference_addr, reference_addr_size)){
+            std::cout << "Sending OACKPacket with block size " << this->block_size << endl;
+            switch(sendPacket(&n, this->my_socket, &oack, reference_addr, reference_addr_size, &this->last_sent, &this->last_sent_n)){
                 case 0:
                     break;
                 case 1:
                     // TODO try again or timeout
-                    cout << "Error sending OACK" << endl;
+                    std::cout << "Error sending OACK" << endl;
                     return 1;
                 default:
                     return 1;
             }
-            cout << "Sent OACKPacket with block size " << this->block_size << endl;
+            std::cout << "Sent OACKPacket with block size " << this->block_size << endl;
         }
         else
         {
             ACKPacket ack = ACKPacket(block_number);
-            cout << "Sending ACKPacket with block number " << ack.getBlockNumber() << endl;
-            switch(sendPacket(&n, this->my_socket, &ack, reference_addr, reference_addr_size)){
+            std::cout << "Sending ACKPacket with block number " << ack.getBlockNumber() << endl;
+            switch(sendPacket(&n, this->my_socket, &ack, reference_addr, reference_addr_size, &this->last_sent, &this->last_sent_n)){
                 case 0:
                     break;
                 case 1:
                     // TODO try again or timeout
-                    cout << "Error sending ACK" << endl;
+                    std::cout << "Error sending ACK" << endl;
                     return 1;
                 default:
                     return 1;
             }
-            cout << "Sent ACKPacket with block number: " << ack.getBlockNumber() << endl;
+            std::cout << "Sent ACKPacket with block number: " << ack.getBlockNumber() << endl;
         }
         // Get ready for next block
         block_number++;
@@ -307,8 +365,8 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
     map<string, string> blksize_option = oack->getOptions({"blksize"});
     if (blksize_option.size() != 1 || oack->keyCount() > 1 || !isNum(blksize_option["blksize"])) {
         ep->setErrorCode(BAD_OPTION);
-        sendPacket(&n, this->my_socket, ep, partner_addr, partner_size);
-        cout << "Didn't receive blksize or received more than asked for" << endl;
+        sendPacket(&n, this->my_socket, ep, partner_addr, partner_size, NULL, NULL);
+        std::cout << "Didn't receive blksize or received more than asked for" << endl;
         delete oack;
         return 1;
     }
@@ -318,8 +376,8 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
     if (blksize < 8 || blksize > 65464 || blksize > this->block_size)
     {
         ep->setErrorCode(BAD_OPTION);
-        sendPacket(&n, this->my_socket, ep, partner_addr, partner_size);
-        cout << "blksize out of range" << endl;
+        sendPacket(&n, this->my_socket, ep, partner_addr, partner_size, NULL, NULL);
+        std::cout << "blksize out of range" << endl;
         delete oack;
         return 1;
     }
@@ -348,7 +406,7 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
      * @param partner_size size of partner address - must be not NULL if skip_first_ack_receive set to true.
      * @return int 0 if successful, nonzero if unsuccessful
      */
-    int DataTransfer::uploadFile(FILE * from, bool skip_first_ack_receive, const sockaddr_in *partner_addr, const socklen_t *partner_size)
+    int DataTransfer::uploadFile(FILE * from, bool skip_first_ack_receive, const sockaddr_in *partner_addr, const socklen_t *partner_size, const sockaddr_in* default_partner_addr, const socklen_t* default_partner_size)
     {
         ssize_t n;
         size_t r;
@@ -368,25 +426,41 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
         unsigned short block_number = 0;
         while (!file_sent)
         {
+
+            if (this->retries > this->max_retries){
+                std::cout << "Max retries reached" << endl;
+                return 0;
+            }
             // Receive an ACK
             if (!skip_first_ack_receive)
             {
                 {
-                    cout << "Waiting for ACK" << endl;
-                    switch (receivePacket(&n, this->my_socket, buffer, buflen, &from_addr, &from_size, &reference_address_already_set, &reference_addr, &reference_addr_size))
+                    std::cout << "Waiting for ACK" << endl;
+                    switch (receivePacket(&n, this->my_socket, buffer, buflen, &from_addr, &from_size, &reference_address_already_set, &reference_addr, &reference_addr_size, this->timeout_s))
                     {
                     case 0:
                         break;
                     case 1:
                         // TODO try again?
-                        cout << "Error receiving ACKPacket" << endl;
+                        std::cout << "Error receiving ACKPacket" << endl;
                         continue;
                     case 2:
                         // TODO send to sender back error and go back to waiting for my packet
                         ep.setErrorCode(UNKNOWN_TID);
-                        sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
-                        cout << "Received ACKPacket from unexpected TID" << endl;
+                        sendPacket(&n, this->my_socket, &ep, from_addr, from_size, NULL, NULL);
+                        std::cout << "Received ACKPacket from unexpected TID" << endl;
                         ep.setErrorCode(NOT_DEFINED);
+                        continue;
+                    case 3: // timeout
+                        std::cout << "Timeout " << this->retries << " out of " << this->max_retries << endl;
+                        std::cout << "Sending last sent packet again" << endl;
+                        if (block_number == 0){
+                            sendPacketFromString(&this->last_sent_n, this->my_socket, this->last_sent, *default_partner_addr, *default_partner_size, NULL, NULL);
+                        } else {
+                            sendPacketFromString(&this->last_sent_n, this->my_socket, this->last_sent, reference_addr, reference_addr_size, NULL, NULL);
+                        }
+                        this->retries += 1;
+                        this->timeout_s *= 2;
                         continue;
                     default:
                         return 1;
@@ -408,8 +482,8 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
                         if (ack->getBlockNumber() != block_number)
                         {
                             ep.setErrorCode(ILLEGAL_OPERATION);
-                            sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
-                            cout << "Invalid ACK block number" << endl;
+                            sendPacket(&n, this->my_socket, &ep, from_addr, from_size, NULL, NULL);
+                            std::cout << "Invalid ACK block number" << endl;
                             continue;
                         }
                         if (sentLastDataPacket)
@@ -417,12 +491,16 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
                             file_sent = true;
                             continue;
                         }
+                        this->retries = 0;
+                        this->timeout_s = 1;
                         delete ack;
                         break;
 
                     case tftp_opcode::OACK:
                         if (this->usedOptions && havent_already_handled_oack)
                         {
+                            this->retries = 0;
+                            this->timeout_s = 1;
                             havent_already_handled_oack = false;
                             if (this->handleOACKPacket((OACKPacket *)packet, from_addr, from_size, &ep) != 0)
                             {
@@ -432,18 +510,18 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
                         else
                         {
                             ep.setErrorCode(ILLEGAL_OPERATION);
-                            sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
-                            cout << "Received unexpected OACK packet" << endl;
+                            sendPacket(&n, this->my_socket, &ep, from_addr, from_size, NULL, NULL);
+                            std::cout << "Received unexpected OACK packet" << endl;
                             continue;
                         }
                         break;
                     case tftp_opcode::ERR:
                         // TODO
-                        cout << "Received ERROR packet" << endl;
+                        std::cout << "Received ERROR packet" << endl;
                         return 1;
                     default:
                         ep.setErrorCode(ILLEGAL_OPERATION);
-                        sendPacket(&n, this->my_socket, &ep, from_addr, from_size);
+                        sendPacket(&n, this->my_socket, &ep, from_addr, from_size, NULL, NULL);
                         delete packet;
                         continue;
                     }
@@ -451,7 +529,7 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
                 catch (runtime_error &e)
                 {
                     // TODO invalid or unknown packet, send back error and go back to waiting for my expected packet
-                    cout << e.what() << endl;
+                    std::cout << e.what() << endl;
                     continue;
                 }
             }
@@ -464,18 +542,17 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
             havent_already_sent_oack = false;
             // send oack packet
             OACKPacket oack({{"blksize", to_string(this->block_size)}});
-            cout << "Sending OACKPacket with block size " << this->block_size << endl;
-            switch(sendPacket(&n, this->my_socket, &oack, reference_addr, reference_addr_size)){
+            std::cout << "Sending OACKPacket with block size " << this->block_size << endl;
+            switch(sendPacket(&n, this->my_socket, &oack, reference_addr, reference_addr_size, &this->last_sent, &this->last_sent_n)){
                 case 0:
                     break;
                 case 1:
-                    // TODO try again or timeout
-                    cout << "Error sending OACK" << endl;
+                    std::cout << "Error sending OACK" << endl;
                     return 1;
                 default:
                     return 1;
             }
-            cout << "Sent OACKPacket with block size " << this->block_size << endl;
+            std::cout << "Sent OACKPacket with block size " << this->block_size << endl;
         } else {
             // Get ready to send next block
             block_number++;
@@ -484,29 +561,29 @@ int DataTransfer::handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_a
             {
                 r = fread(buffer, 1, this->block_size, from);
                 if (ferror(from)){
-                    cout << "Error reading file" << endl;
+                    std::cout << "Error reading file" << endl;
                     return 1;
                 }
                 if (r < this->block_size) {
-                    cout << "Read last block of data from file r=" << r << endl;
+                    std::cout << "Read last block of data from file r=" << r << endl;
                     sentLastDataPacket = true;
                 }
             }
             // Send data packet
             {
                 DATAPacket dp(block_number, buffer, this->transfer_mode, r);
-                cout << "Sending DATAPacket with block number " << dp.getBlockNumber() << " of size " << dp.getData().size() << endl;
-                switch(sendPacket(&n, this->my_socket, &dp, reference_addr, reference_addr_size)){
+                std::cout << "Sending DATAPacket with block number " << dp.getBlockNumber() << " of size " << dp.getData().size() << endl;
+                switch(sendPacket(&n, this->my_socket, &dp, reference_addr, reference_addr_size, &this->last_sent, &this->last_sent_n)){
                     case 0:
                         break;
                     case 1:
                         // TODO try again or timeout
-                        cout << "Error sending ACK" << endl;
+                        std::cout << "Error sending ACK" << endl;
                         return 1;
                     default:
                         return 1;
                 }
-                cout << "Sent DATAPacket with block number: " << dp.getBlockNumber() << endl;
+                std::cout << "Sent DATAPacket with block number: " << dp.getBlockNumber() << endl;
             }
         }
     }

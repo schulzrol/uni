@@ -28,7 +28,7 @@ tftp-server [-p port] root_dirpath\n\
     -p místní port, na kterém bude server očekávat příchozí spojení\n\
        pokud není specifikován předpokládá se výchozí dle specifikace (69)\n\
     root_dirpath cesta k adresáři, pod kterým se budou ukládat příchozí soubory";
-    cout << help << endl;
+    std::cout << help << endl;
 }
 
 class Config{
@@ -54,6 +54,11 @@ class Config{
             for (int i = 1; i < argc; i++){
                 string arg = argv[i];
                 if (arg == "-p"){
+                    if (i+1 >= argc){
+                        std::cout << "Chybí hodnota parametru -p" << endl;
+                        getHelp();
+                        exit(NE_ARGS);
+                    }
                     args["port"] = argv[++i];
                 }
                 else{
@@ -63,19 +68,19 @@ class Config{
 
             // postconditions
             if (args["root_dirpath"] == ""){
-                cout << "Chybí parametr: root_dirpath" << endl;
+                std::cout << "Chybí parametr: root_dirpath" << endl;
                 getHelp();
                 exit(NE_ARGS);
             }
 
             if (!isNum(args["port"])){
-                cout << "Parametr port musí být číslo" << endl;
+                std::cout << "Parametr port musí být číslo" << endl;
                 getHelp();
                 exit(NE_ARGS);
             }
 
             if (stoi(args["port"]) < 0 || stoi(args["port"]) > 65535){
-                cout << "Parametr -p musí být v rozsahu 0-65535" << endl;
+                std::cout << "Parametr -p musí být v rozsahu 0-65535" << endl;
                 getHelp();
                 exit(NE_ARGS);
             }
@@ -90,12 +95,25 @@ FILE* handleFileOpen(string filename,
                      ssize_t* n,
                      int child_fd,
                      const struct sockaddr_in assigned_client,
-                     socklen_t* length)
+                     socklen_t* length,
+                     string tsize,
+                     long* file_size)
                      {
     FILE *f = fopen(filename.c_str(), mode.c_str());
     if (f == NULL) {
-        cout << "Error opening file \'" << filename << "\' for reading: " << strerror(errno) << endl;
+        std::cout << "Error opening file \'" << filename << "\' : " << strerror(errno) << endl;
         handleErrnoFeedback(errno, ep, n, child_fd, assigned_client, length);
+    }
+    if (f != NULL && tsize != ""){
+        if (reserveSpaceForFile(f, stoul(tsize))){
+            std::cout << "Error reserving space for file \'" << filename << "\' : " << strerror(errno) << endl;
+            handleErrnoFeedback(errno, ep, n, child_fd, assigned_client, length);
+        }
+    }
+    if (file_size){
+        fseek(f, 0, SEEK_END);
+        *file_size = ftell(f);
+        fseek(f, 0, SEEK_SET);
     }
     return f;
 }
@@ -135,15 +153,15 @@ void child_main(int* child_process,
             err(1, "bind() failed");
         }
         int child_port = ntohs(child_server.sin_port);
-        cout << "Child port: " << child_port << endl;
+        std::cout << "Child port: " << child_port << endl;
 
         Packet* first_packet;
         try {
             first_packet = PacketFactory::createPacket(first_packet_buffer, first_packet_len, tftp_mode::octet);
         } catch (runtime_error& e) {
-            cout << "Error creating packet from buffer: " << e.what() << endl;
+            std::cout << "Error creating packet from buffer: " << e.what() << endl;
             ep.setErrorCode(ILLEGAL_OPERATION);
-            sendPacket(&n, child_fd, &ep, assigned_client, length);
+            sendPacket(&n, child_fd, &ep, assigned_client, length, NULL, NULL);
             return;
         }
         switch (first_packet->getOpcode()){
@@ -153,17 +171,28 @@ void child_main(int* child_process,
                 if (mapContainsValidBlksizeOption(options, &blksize, 65535)){
                     usedOptions = true;
                 }
-                DataTransfer dt = DataTransfer(child_fd, rrq->getModeEnum(), usedOptions, blksize);
+                if (options.find("tsize") != options.end()){
+                    string tsize = options["tsize"];
+                    if (tsize != "0") {
+                        ep.setErrorCode(ILLEGAL_OPERATION);
+                        sendPacket(&n, child_fd, &ep, assigned_client, length, NULL, NULL);
+                        std::cout << "bad tsize option value not supported" << endl;
+                        delete rrq;
+                        return;
+                    }
+                }
+                DataTransfer dt = DataTransfer(child_fd, rrq->getModeEnum(), usedOptions, blksize, 5);
                 string filename = config.root_dirpath + "/" + rrq->getFilename();
                 delete rrq;
 
-                FILE* f = handleFileOpen(filename, "rb", &ep, &n, child_fd, assigned_client, &length);
+                long filesize = 0;
+                FILE* f = handleFileOpen(filename, "rb", &ep, &n, child_fd, assigned_client, &length, "", &filesize);
                 if (f == NULL) {
-                    cout << "Child process exiting" << endl;
+                    std::cout << "Child process exiting" << endl;
                     close(child_fd);
                     exit(1);
                 }
-                dt.uploadFile(f, true, &assigned_client, &length);
+                dt.uploadFile(f, true, &assigned_client, &length, &assigned_client, &length);
                 fclose(f);
                 break;
             }
@@ -173,28 +202,28 @@ void child_main(int* child_process,
                 if (mapContainsValidBlksizeOption(options, &blksize, 65535)){
                     usedOptions = true;
                 }
-                DataTransfer dt = DataTransfer(child_fd, wrq->getModeEnum(), usedOptions, blksize);
+                DataTransfer dt = DataTransfer(child_fd, wrq->getModeEnum(), usedOptions, blksize, 5);
                 string filename = config.root_dirpath + "/" + wrq->getFilename();
                 delete wrq;
 
-                FILE* f = handleFileOpen(filename, "wxb", &ep, &n, child_fd, assigned_client, &length);
+                FILE* f = handleFileOpen(filename, "wxb", &ep, &n, child_fd, assigned_client, &length, "", NULL);
                 if (f == NULL) {
-                    cout << "Child process exiting" << endl;
+                    std::cout << "Child process exiting" << endl;
                     close(child_fd);
                     exit(1);
                 }
-                dt.downloadFile(f, true, &assigned_client, &length);
+                dt.downloadFile(f, true, &assigned_client, &length, &assigned_client, &length);
                 fclose(f);
                 break;
             }
             default:
                 ep.setErrorCode(ILLEGAL_OPERATION);
-                sendPacket(&n, child_fd, &ep, assigned_client, length);
-                cout << "Unknown packet opcode" << endl;
+                sendPacket(&n, child_fd, &ep, assigned_client, length, NULL, NULL);
+                std::cout << "Unknown packet opcode" << endl;
                 break;
         }
 
-        cout << "Child process exiting" << endl;
+        std::cout << "Child process exiting" << endl;
         close(child_fd);
         exit(0);
     }
@@ -232,20 +261,20 @@ int main(int argc, char** argv) {
         bool created_child_for_this_port = (client_process_port.find(client_port) != client_process_port.end());
         bool child_process_running = created_child_for_this_port && waitpid(client_process_port[client_port], NULL, WNOHANG) == 0;
         if (!child_process_running) {
-            cout << "Creating new child process for client port: " << client_port << endl;
+            std::cout << "Creating new child process for client port: " << client_port << endl;
             int child_pid = 0;
             child_main(&child_pid, config, client, server, buffer, n);
             if (child_pid != -1){
-                cout << "Child process created: " << child_pid << endl;
+                std::cout << "Child process created: " << child_pid << endl;
                 client_process_port[client_port] = child_pid;
             }
         } 
         else {
             // child process was already created yet client still sends a packet to the server instead of to the child process
             // send back error
-            cout << "Child process already running for client port: " << client_port << endl;
+            std::cout << "Child process already running for client port: " << client_port << endl;
             ep.setErrorCode(ILLEGAL_OPERATION);
-            sendPacket(&n, fd, &ep, client, length);
+            sendPacket(&n, fd, &ep, client, length, NULL, NULL);
         }
     }
     printf("* Closing the socket\n");

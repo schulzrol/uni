@@ -42,7 +42,7 @@ xRQPacket::xRQPacket(unsigned short opcode, const char *data, size_t length) {
 }
 
 bool mapContainsValidBlksizeOption(map<string, string> options, unsigned short* blksize, int leq_than){
-    if (options.size() != 1 || options.find("blksize") == options.end() || !isNum(options["blksize"])) {
+    if (options.find("blksize") == options.end() || !isNum(options["blksize"])) {
         return false;
     }
     int temp_blksize = stoi(options["blksize"]);
