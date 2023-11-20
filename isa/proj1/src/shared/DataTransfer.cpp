@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #include "DataTransfer.hpp"
 
 #include <err.h>

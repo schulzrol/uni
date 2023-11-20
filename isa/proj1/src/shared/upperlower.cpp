@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #include "upperlower.hpp"
 
 string toUpper(const string str) {

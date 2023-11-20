@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #include "ACKPacket.hpp"
 
 using namespace std;

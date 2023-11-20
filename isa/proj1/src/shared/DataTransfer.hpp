@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef DATA_TRANSFER_H
 #define DATA_TRANSFER_H
 

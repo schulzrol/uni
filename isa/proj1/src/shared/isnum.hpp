@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef ISNUM_HPP
 #define ISNUM_HPP
 

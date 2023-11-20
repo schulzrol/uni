@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #include "RRQPacket.hpp"
 
 RRQPacket::RRQPacket(string filename, string mode, map<string,string> options): xRQPacket(RRQ, filename, mode, options){};

@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #include "Packet.hpp"
 
 unsigned short Packet::getOpcode()

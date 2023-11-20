@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #include "WRQPacket.hpp"
 
 WRQPacket::WRQPacket(string filename, string mode, map<string, string> options) : xRQPacket(WRQ, filename, mode, options){};

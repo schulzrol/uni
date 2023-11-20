@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef xRQPACKET_H
 #define xRQPACKET_H
 

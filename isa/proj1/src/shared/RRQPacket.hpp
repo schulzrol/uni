@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef RRQPACKET_H
 #define RRQPACKET_H
 

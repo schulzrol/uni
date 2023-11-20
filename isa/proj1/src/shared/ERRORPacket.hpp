@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef ERROR_PACKET_H
 #define ERROR_PACKET_H
 

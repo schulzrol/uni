@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 

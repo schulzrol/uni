@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef WRQPACKET_H
 #define WRQPACKET_H
 

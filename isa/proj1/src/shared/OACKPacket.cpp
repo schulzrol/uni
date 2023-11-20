@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #include "OACKPacket.hpp"
 
 map<string, string> readOptions(const char* buffer, size_t length){

@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef ERROR_CODES_H
 #define ERROR_CODES_H
 

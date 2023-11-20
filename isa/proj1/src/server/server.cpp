@@ -1,6 +1,7 @@
-//
-// Created by Roland Schulz on 15.10.2023.
-//
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #include <iostream>
 #include <cerrno>
 #include <err.h>

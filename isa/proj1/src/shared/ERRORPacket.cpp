@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #include "ERRORPacket.hpp"
 
 ERRORPacket::ERRORPacket(tftp_error_code error_code, string error_message) {

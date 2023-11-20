@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef OACK_PACKET_HPP
 #define OACK_PACKET_HPP
 

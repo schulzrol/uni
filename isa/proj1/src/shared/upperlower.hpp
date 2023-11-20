@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef UPPERLOWER_HPP
 #define UPPERLOWER_HPP
 

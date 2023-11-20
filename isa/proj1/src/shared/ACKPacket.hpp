@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef ACK_PACKET_H
 #define ACK_PACKET_H
 

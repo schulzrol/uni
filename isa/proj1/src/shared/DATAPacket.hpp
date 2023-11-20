@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef DATA_PACKET_H
 #define DATA_PACKET_H
 

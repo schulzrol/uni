@@ -1,3 +1,7 @@
+/*
+* Autor: Roland Schulz (xschul06)
+*/
+
 #ifndef PACKET_FACTORY_H
 #define PACKET_FACTORY_H
 
