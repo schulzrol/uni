@@ -9,9 +9,9 @@ using namespace std;
 
 class RRQPacket : public xRQPacket {
     public:
-        RRQPacket(string filename, string mode);
-        RRQPacket(string filename, tftp_mode mode);
-        RRQPacket(const char* data);
+        RRQPacket(string filename, string mode, map<string, string> options = {});
+        RRQPacket(string filename, tftp_mode mode, map<string, string> options = {});
+        RRQPacket(const char* data, size_t length);
 };
 
 #endif

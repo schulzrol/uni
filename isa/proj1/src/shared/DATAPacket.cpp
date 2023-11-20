@@ -46,13 +46,13 @@ tftp_mode get_mode(const string mode) {
     }
 }
 
-DATAPacket::DATAPacket(unsigned short block_number, const char *data, tftp_mode mode, size_t block_size = DEFAULT_BLOCK_SIZE_BYTES) {
+DATAPacket::DATAPacket(unsigned short block_number, const char *data, tftp_mode mode, unsigned short block_size = DEFAULT_BLOCK_SIZE_BYTES) {
     this->block_number = block_number;
     this->data = string(data, block_size);
     this->block_size = block_size;
     this->mode = mode;
 };
-DATAPacket::DATAPacket(const char *data, tftp_mode mode, size_t block_size = DEFAULT_BLOCK_SIZE_BYTES) {
+DATAPacket::DATAPacket(const char *data, tftp_mode mode, unsigned short block_size = DEFAULT_BLOCK_SIZE_BYTES) {
     if (data[0] != 0 || data[1] != this->getOpcode()) {
         throw runtime_error("Invalid opcode");
     }
@@ -95,7 +95,7 @@ string DATAPacket::getDataDecoded(tftp_mode mode) {
 void DATAPacket::setBlockNumber(unsigned short block_number) {
     this->block_number = block_number;
 }
-void DATAPacket::setData(const char *data, size_t block_size = DEFAULT_BLOCK_SIZE_BYTES) {
+void DATAPacket::setData(const char *data, unsigned short block_size = DEFAULT_BLOCK_SIZE_BYTES) {
     this->data = string(data, block_size);
     this->block_size = block_size;
 }
@@ -128,7 +128,7 @@ unsigned short DATAPacket::getOpcode() {
     return DATA;
 }
 
-size_t DATAPacket::blockSizeBytes() {
+unsigned short DATAPacket::blockSizeBytes() {
     return this->block_size;
 }
 

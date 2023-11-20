@@ -7,15 +7,17 @@ Packet* PacketFactory::createPacket(const char* data, size_t data_len, tftp_mode
     size_t block_size = data_len-4;
     switch(opcode) {
         case RRQ:
-            return new RRQPacket(data);
+            return new RRQPacket(data, data_len);
         case WRQ:
-            return new WRQPacket(data);
+            return new WRQPacket(data, data_len);
         case DATA:
             return new DATAPacket(data, mode, block_size);
         case ACK:
             return new ACKPacket(data);
         case ERR:
             return new ERRORPacket(data);
+        case OACK:
+            return new OACKPacket(data, data_len);
         default:
             throw runtime_error("Unsupported opcode");
     }

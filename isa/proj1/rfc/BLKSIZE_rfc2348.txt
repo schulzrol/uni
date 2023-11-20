@@ -73,6 +73,7 @@ RFC 2348                 TFTP Blocksize Option                  May 1998
       #octets
          The number of octets in a block, specified in ASCII.  Valid
          values range between "8" and "65464" octets, inclusive.  The
+         TODO: valid value range
          blocksize refers to the number of data octets; it does not
          include the four octets of TFTP header.
 
@@ -89,6 +90,7 @@ RFC 2348                 TFTP Blocksize Option                  May 1998
    If the server is willing to accept the blocksize option, it sends an
    Option Acknowledgment (OACK) to the client.  The specified value must
    be less than or equal to the value specified by the client.  The
+   TODO: less than or equal to to co dostanes od klienta
    client must then either use the size specified in the OACK, or send
    an ERROR packet, with error code 8, to terminate the transfer.
 
@@ -99,6 +101,7 @@ RFC 2348                 TFTP Blocksize Option                  May 1998
    the final packet.  If the amount of data to be transfered is an
    integral multiple of the blocksize, an extra data packet containing
    no data is sent to end the transfer.
+   TODO: posila se prazdny data packet
 
 Proof of Concept
 

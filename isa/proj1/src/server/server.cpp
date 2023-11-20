@@ -20,6 +20,7 @@
 #include "shared/WRQPacket.hpp"
 #include "shared/DataTransfer.hpp"
 #include "shared/ERRORPacket.hpp"
+#include "shared/isnum.hpp"
 
 void getHelp(){
     auto help = "\
@@ -67,6 +68,18 @@ class Config{
                 exit(NE_ARGS);
             }
 
+            if (!isNum(args["port"])){
+                cout << "Parametr port musí být číslo" << endl;
+                getHelp();
+                exit(NE_ARGS);
+            }
+
+            if (stoi(args["port"]) < 0 || stoi(args["port"]) > 65535){
+                cout << "Parametr -p musí být v rozsahu 0-65535" << endl;
+                getHelp();
+                exit(NE_ARGS);
+            }
+
             return args;
         }
 };
@@ -107,6 +120,9 @@ void child_main(int* child_process,
         // bind to a random port
         socklen_t length = sizeof(assigned_client);
         struct sockaddr_in child_server;
+        unsigned short blksize = DEFAULT_BLOCK_SIZE_BYTES;
+        map<string, string> options = {};
+        bool usedOptions = false;
         ssize_t n;
         int child_fd;
         child_server.sin_family = AF_INET;                // set IPv4 addressing
@@ -133,7 +149,11 @@ void child_main(int* child_process,
         switch (first_packet->getOpcode()){
             case RRQ: {
                 RRQPacket* rrq = (RRQPacket*)first_packet;
-                DataTransfer dt = DataTransfer(child_fd, rrq->getModeEnum());
+                options = rrq->getOptions();
+                if (mapContainsValidBlksizeOption(options, &blksize, 65535)){
+                    usedOptions = true;
+                }
+                DataTransfer dt = DataTransfer(child_fd, rrq->getModeEnum(), usedOptions, blksize);
                 string filename = config.root_dirpath + "/" + rrq->getFilename();
                 delete rrq;
 
@@ -149,7 +169,11 @@ void child_main(int* child_process,
             }
             case WRQ: {
                 WRQPacket* wrq = (WRQPacket*)first_packet;
-                DataTransfer dt = DataTransfer(child_fd, wrq->getModeEnum());
+                options = wrq->getOptions();
+                if (mapContainsValidBlksizeOption(options, &blksize, 65535)){
+                    usedOptions = true;
+                }
+                DataTransfer dt = DataTransfer(child_fd, wrq->getModeEnum(), usedOptions, blksize);
                 string filename = config.root_dirpath + "/" + wrq->getFilename();
                 delete wrq;
 

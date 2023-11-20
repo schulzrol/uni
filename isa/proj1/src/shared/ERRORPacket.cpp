@@ -45,6 +45,8 @@ string ERRORPacket::getErrorMessage(tftp_error_code error_code) {
             return "File already exists.";
         case NO_SUCH_USER:
             return "No such user.";
+        case BAD_OPTION:
+            return "Bad request option or unsupported or denied.";
         default:
             return "Unknown error code.";
     }

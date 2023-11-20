@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 
+#include "isnum.hpp"
 #include "PacketFactory.hpp"
 #include "definitions.h"
 
@@ -15,10 +16,13 @@ class DataTransfer {
     int my_socket;
     tftp_mode transfer_mode;
     unsigned short block_size;
+    bool usedOptions;
     public:
-        DataTransfer(int my_socket, tftp_mode transfer_mode, unsigned short block_size = DEFAULT_BLOCK_SIZE_BYTES);
+        DataTransfer(int my_socket, tftp_mode transfer_mode, bool usedOptions, unsigned short block_size = DEFAULT_BLOCK_SIZE_BYTES);
         int uploadFile(FILE* from=stdin, bool skip_first_ack_receive=false, const sockaddr_in* partner_addr=NULL, const socklen_t* partner_size = NULL);
         int downloadFile(FILE* to, bool skip_first_data_receive=false, const sockaddr_in* partner_addr=NULL, const socklen_t* partner_size = NULL);
+    private:
+        int handleOACKPacket(OACKPacket* oack, const sockaddr_in partner_addr, const socklen_t partner_size, ERRORPacket* ep);
 };
 
 
@@ -32,7 +36,7 @@ void handleErrnoFeedback(int errno_copy,
 bool handleRecvFromReturn(ssize_t n);
 bool handleSendToReturn(ssize_t n, size_t length);
 
-int sendPacket(ssize_t* n, int socket, Packet* packet, sockaddr_in partner_addr, socklen_t partner_size);
+int sendPacket(ssize_t* n, int socket, Packet* packet, const sockaddr_in partner_addr, socklen_t partner_size);
 int receivePacket(ssize_t* n, int socket, char* buffer, size_t buflen, sockaddr_in* from_addr, socklen_t* from_size, bool* reference_address_already_set, sockaddr_in* partner_addr, socklen_t* partner_size);
 
 #endif

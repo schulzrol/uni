@@ -12,7 +12,8 @@ enum tftp_error_code {
     ILLEGAL_OPERATION = 4,
     UNKNOWN_TID = 5,
     FILE_ALREADY_EXISTS = 6,
-    NO_SUCH_USER = 7
+    NO_SUCH_USER = 7,
+    BAD_OPTION = 8
 };
 
 class ERRORPacket : public Packet {

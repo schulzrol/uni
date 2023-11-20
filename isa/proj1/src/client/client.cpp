@@ -11,6 +11,8 @@
 #include "shared/RRQPacket.hpp"
 #include "shared/PacketFactory.hpp"
 #include "shared/DataTransfer.hpp"
+#include "shared/OACKPacket.hpp"
+#include "shared/isnum.hpp"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -40,11 +42,13 @@ class Config {
             this->dest_port = stoi(args["dest_port"]);
             this->filepath = args["filepath"];
             this->dest_filepath = args["dest_filepath"];
+            this->block_size = args["block_size"];
         }
         string hostname;
         int dest_port;
         string filepath;
         string dest_filepath;
+        string block_size;
         
         string toString(){
             return "hostname: " + this->hostname + ", dest_port: " + to_string(this->dest_port) + ", filepath: " + this->filepath + ", dest_filepath: " + this->dest_filepath;
@@ -56,7 +60,8 @@ class Config {
                 {"hostname", ""},
                 {"dest_port", "69"},
                 {"filepath", ""},
-                {"dest_filepath", ""}
+                {"dest_filepath", ""},
+                {"block_size", ""}
             };
 
             for(int i = 1; i < argc; i++){
@@ -69,6 +74,8 @@ class Config {
                     args["filepath"] = argv[++i];
                 }else if(arg == "-t"){
                     args["dest_filepath"] = argv[++i];
+                }else if(arg == "-b"){
+                    args["block_size"] = argv[++i];
                 }else{
                     cout << "Neznámý parametr: " << arg << endl;
                     getHelp();
@@ -87,18 +94,47 @@ class Config {
                 getHelp();
                 exit(NE_ARGS);
             }
+            
+            if (!isNum(args["dest_port"])){
+                cout << "Parametr -p musí být číslo" << endl;
+                getHelp();
+                exit(NE_ARGS);
+            }
+            
+            if(args["block_size"] != "" && !isNum(args["block_size"])){
+                cout << "Parametr -b musí být číslo" << endl;
+                getHelp();
+                exit(NE_ARGS);
+            }
+            else {
+                if (args["block_size"] != "" && (stoi(args["block_size"]) < 8 || stoi(args["block_size"]) > 65464)){
+                    cout << "Parametr -b musí být v rozsahu 8-65464" << endl;
+                    getHelp();
+                    exit(NE_ARGS);
+                }
+            }
+
+
+            if (stoi(args["dest_port"]) < 0 || stoi(args["dest_port"]) > 65535){
+                cout << "Parametr -p musí být v rozsahu 0-65535" << endl;
+                getHelp();
+                exit(NE_ARGS);
+            }
 
             return args;
         }
 };
 
 
-void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES){
+void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES, bool blksize_option = false){
     ssize_t n;
     // Initiate connection
     // send write request to the server
     cout << "Sending WRQ" << endl;
     WRQPacket wrq(dest_filepath, mode);
+    if (blksize_option){
+        wrq.setOption("blksize", to_string(block_size));
+    }
     {
         n = sendto(socket, wrq.toByteStream().c_str(), wrq.getLength(), 0, (const sockaddr*)& server, sizeof(server)); // send data to the server
         if (!handleSendToReturn(n, wrq.getLength())){
@@ -107,16 +143,19 @@ void upload(int socket, string dest_filepath, struct sockaddr_in server, tftp_mo
             return;
         }
     }
-    DataTransfer dt(socket, mode, block_size);
+    DataTransfer dt(socket, mode, blksize_option, block_size);
     dt.uploadFile(stdin);
     cout << "Upload finished" << endl;
 }
 
-void download(int socket, string save_to_file, string file_on_remote, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES){
+void download(int socket, string save_to_file, string file_on_remote, struct sockaddr_in server, tftp_mode mode, unsigned int block_size = DEFAULT_BLOCK_SIZE_BYTES, bool blksize_option = false){
     ssize_t n;
     // send read request to the server
     cout << "Sending RRQ" << endl;
     RRQPacket rrq(file_on_remote, mode);
+    if (blksize_option){
+        rrq.setOption("blksize", to_string(block_size));
+    }
     {
         n = sendto(socket, rrq.toByteStream().c_str(), rrq.getLength(), 0, (const sockaddr*)& server, sizeof(server)); // send data to the server
         if (!handleSendToReturn(n, rrq.getLength())){
@@ -130,21 +169,11 @@ void download(int socket, string save_to_file, string file_on_remote, struct soc
     if (f == NULL) {
         cout << "Error opening file \'" << save_to_file << "\' for writing: " << strerror(errno) << endl;
     }
-    DataTransfer dt(socket, mode, block_size);
+    DataTransfer dt(socket, mode, blksize_option, block_size);
     dt.downloadFile(f);
     fclose(f);
     cout << "Download finished" << endl;
 }
-
-/**
-Initial Connection Protocol for reading a file
-
-   1. Host  A  sends  a  "RRQ"  to  host  B  with  source= A's TID,
-      destination= 69.
-
-   2. Host B sends a "DATA" (with block number= 1) to host  A  with
-      source= B's TID, destination= A's TID.
- */
 
 void printBytes(char* bytes, size_t length){
     for(int i = 0; i < length; i++){
@@ -174,10 +203,15 @@ int main(int argc, char** argv){
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1) // create a client socket
         err(1, "socket() failed\n");
 
+    int block_size = DEFAULT_BLOCK_SIZE_BYTES;
+    if (!config.block_size.empty()){
+        block_size = stoi(config.block_size);
+    }
+
     if (config.filepath.empty()){
-        upload(sock, config.dest_filepath, server, default_mode);
+        upload(sock, config.dest_filepath, server, default_mode, block_size, !config.block_size.empty());
     } else {
-        download(sock, config.dest_filepath, config.filepath, server, default_mode);
+        download(sock, config.dest_filepath, config.filepath, server, default_mode, block_size, !config.block_size.empty());
     }
 
     close(sock);

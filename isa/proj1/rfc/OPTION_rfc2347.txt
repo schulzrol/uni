@@ -101,7 +101,8 @@ RFC 2347                 TFTP Option Extension                  May 1998
    original request format.  If multiple options are to be negotiated,
    they are appended to each other.  The order in which options are
    specified is not significant.  The maximum size of a request packet
-   is 512 octets.
+   is 512 octets
+   TODO: max size pro xRQ packety
 
    The OACK packet has the following format:
 
@@ -189,6 +190,7 @@ RFC 2347                 TFTP Option Extension                  May 1998
       ACK   - acknowledge of Write Request, but not the options;
 
       ERROR - the request has been denied.
+   TODO: postup
 
    If a server implementation does not support option negotiation, it
    will likely ignore any options appended to the client's request.  In
@@ -196,6 +198,7 @@ RFC 2347                 TFTP Option Extension                  May 1998
    and an ACK packet for a Write Request establishing normal TFTP data
    transfer.  In the event that a server returns an error for a request
    which carries an option, the client may attempt to repeat the request
+   TODO: kdyz vrati error, zapomen na options u klienta
    without appending any options.  This implementation option would
    handle servers which consider extraneous data in the request packet
    to be erroneous.
@@ -209,6 +212,7 @@ RFC 2347                 TFTP Option Extension                  May 1998
    packet, using the negotiated values.  If the client rejects the OACK,
    then it sends an ERROR packet, with error code 8, to the server and
    the transfer is terminated.
+   TODO: funguje normalne, jen kdyz rejectne options tak error code 8
 
    Once a client acknowledges an OACK, with an appropriate non-error
    response, that client has agreed to use only the options and values
@@ -216,6 +220,7 @@ RFC 2347                 TFTP Option Extension                  May 1998
    option; it can only respond to them.  If the client receives an OACK
    containing an unrequested option, it should respond with an ERROR
    packet, with error code 8, and terminate the transfer.
+   TODO: terminovat kdyz client dostane neco na co se neptal
 
 
 
@@ -248,7 +253,7 @@ Examples
 
       client                                           server
       -------------------------------------------------------
-      |2|barfile|0|octet|0|blksize|0|2048|0|  -->               RRQ
+      |2|barfile|0|octet|0|blksize|0|2048|0|  -->               WRQ
                                     <--  |6|blksize|0|2048|0|   OACK
       |3|1| 2048 octets of data |  -->                          DATA
                                                    <--  |4|1|   ACK
