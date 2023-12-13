@@ -41,7 +41,7 @@ hw_timer_t *refreshDisplayTimer = NULL;
 #define debounce_delay_millis 20
 #define debounce_delay_micros debounce_delay_millis * 1000
 
-#define LONG_BUTTON_PRESS_MILLIS 2000
+#define LONG_BUTTON_PRESS_MILLIS 2000 // 2s
 
 #define rotationButton 26
 #define menuButton 25
@@ -535,7 +535,7 @@ void loop() {
 
             String httpRequestData = dataAsJson();
             unsigned long currentTimeMillis = millis();
-            if ((currentTimeMillis - lastDataSentMillis) >= 1000) {
+            if ((currentTimeMillis - lastDataSentMillis) >= 1000) { // 1s
                 http.begin(cloudMethod);
                 http.addHeader("Content-Type", "application/json");
                 int httpResponseCode = http.POST(httpRequestData);

@@ -1,0 +1,277 @@
+\documentclass[twocolumn,a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[czech]{babel}
+\usepackage[]{alltt}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\usepackage[inkscapeformat=png]{svg}
+\usepackage[]{dirtytalk}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage[left=1.6cm,text={18cm, 24.7cm},top=1.5cm]{geometry}
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows}
+\usepackage{graphicx}
+\usepackage{multirow}
+
+\newcommand*{\email}[1]{%
+    \href{mailto:#1}{#1}
+}
+
+\begin{document}
+
+\twocolumn[
+		\begin{@twocolumnfalse}
+			\begin{center}
+				{ \includegraphics[width=0.5\linewidth]{FIT_barevne_RGB_CZ.png} } \\
+    
+				{\Large
+					Vysoké učení technické v~Brně \\
+					Fakulta informačních technologií \\
+				}
+
+				{\LARGE
+					Mikroprocesorové a~vestavěné systémy \\
+					Projekt\,--\,Tachometr \\[0.4cm]
+				}
+
+				{\large
+					Roland Schulz \\
+                    \email{xschul06@stud.fit.vutbr.cz} \\ 
+					\today
+				}
+			\end{center}
+		\end{@twocolumnfalse}
+	]
+
+
+\section{Představení}\label{sec:intro}
+Projekt se zabývá sestrojením cyklopočítače zobrazujícího aktuální rychlost, průměrnou rychlost a ujetou vzdálenost na displeji.
+
+Menu na displeji cyklopočítače lze ovládat jedním z dostupných tlačítek, druhé tlačítko simuluje otočení kola.
+
+Cyklopočítač umožňuje přístup skrze webové rozhraní poskytující vizualizací aktuálních dat, konfiguraci cyklopočítače nebo přístup k strojově čitelným datům ve formátu JSON.
+
+Cyklopočítač lze použít samostatně nebo v kombinaci s chytrým zařízením pro centralizovaný sběr dat z tachometru.
+
+\section{Schéma zapojení}\label{sec:schema}
+Displej je zapojen podle doporučení ze zadání.
+
+Zapojení všech periferií k mikrokontroleru je zdokumentováno graficky na obrázku \ref{fig:schematics} nebo v tabulce \ref{table:schematics}.
+
+\begin{center}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth,keepaspectratio]{schematics.pdf}
+        \caption{Schéma zapojení graficky}
+        \label{fig:schematics}
+    \end{figure}
+\end{center}
+\subsection{Zapojení pinů}\label{sec:pins}
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+
+\begin{center}
+    \begin{table}[h]
+        \begin{tabular}{|c|l|l|l|}
+            \hline
+            Komponenta                            & Vývod            & MCU Pin\\ \hline
+            \multirow{5}{*}{SSD1306 SPI displej}  & MOSI             & 23  \\ 
+                                                  & CLK              & 18  \\ 
+                                                  & DC               & 27  \\ 
+                                                  & CS               & 5   \\ 
+                                                  & RESET            & 17  \\ \hline
+            \multicolumn{1}{|l|}{Tlačítko Rotace} & -                & 26  (Input pullup) \\ \hline
+            \multicolumn{1}{|l|}{Tlačítko Menu}   & -                & 25  (Input pullup) \\ \hline
+        \end{tabular}
+        \caption{Schéma zapojení vyjádřeno tabulkou}
+        \label{table:schematics}
+    \end{table}
+\end{center}
+
+\section{Použití}
+\begin{center}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth,keepaspectratio]{menu_state_machine.pdf}
+        \caption{Stavový automat přechodů mezi zobrazením v menu}
+        \label{fig:menu_FSM}
+    \end{figure}
+\end{center}
+Menu cyklopočítače se skládá ze seřazených záložek, mezi kterými může uživatel krátkým stisknutím tlačítka menu přepínat. Obnovení dat zobrazených na aktuální záložce probíhá každou vteřinu.
+
+Většina záložek zpřístupňuje i alternativní zobrazení nebo funkci skrze dlouhý stisk tlačítka menu (stisk trvající alespoň 2 sekundy).
+
+Přepínání mezi záložkami je implementováno pomocí stavového automatu reprezentovaného na obrázku \ref{fig:menu_FSM}, kde přechody představují krátký stisk tlačítka menu a stavy představují jednotlivé záložky v menu s příkladnou ukázkou dané záložky.
+
+\subsection{Záložky menu}
+Přehled záložek dostupných v nabídce menu cyklopočítače.
+
+Zobrazené údaje na záložkách se v závislosti na zobrazovaných datech snaží přizpůsobit dostupnému místu na displeji pro zajištění čitelnosti (např. úpravou jednotek nebo posunutím desetinné čárky).
+
+\begin{itemize}
+    \item \textbf{Aktuální rychlost a průměrná rychlost} \\
+    Záložka ve výchozím stavu po zapnutí zobrazuje aktuální i průměrnou rychlost kola v kilometrech za hodinu.
+    
+    Dlouhým stiskem lze přepínat mezi zobrazením rychlosti v kilometrech za hodinu nebo v mílích za hodinu.
+
+    Pro výpočet průměrné rychlosti se použije posledních 10 údajů o aktuální rychlosti uchovávaných v cyklickém bufferu ve volatilní paměti.
+
+    \item \textbf{Ujetá vzdálenost} \\
+    Záložka zobrazuje celkovou ujetou vzdálenost v metrech od posledního smazání. Jednotka ujeté vzdálenosti se automaticky nastaví na kilometry v případě že ujetá vzdálenost přesáhne 900 metrů.
+    
+    Dlouhým stiskem lze ujetou vzdálenost nastavit na hodnotu 0 (resetovat).
+
+    Ujetá vzdálenost se při každé změně ukládá do perzistentní paměti, ze které je při opakovaném zapnutí cyklopočítače dostupná.
+
+    \item \textbf{Otáčkoměr} \\
+    Záložka zobrazuje aktuální otáčky kola za minutu.
+
+    \item \textbf{Funkce sdílení dat} \\
+    Záložka umožňuje přístup ke sdílení dat z tachometru pomocí webového rozhraní.
+    
+    Funkce poskytované touto záložkou je implementovaná pomocí stavového automatu na obrázku \ref{fig:AP_FSM} (předpokládá korektní připojení a přechody mezi stavy bez nutnosti předčasného ukončení sdílení), kdy sdílení dat je ve výchozím stavu vypnuté a přechod mezi stavy se provádí pomocí dlouhého stisknutí tlačítka menu.
+
+    Záložka se trvale nachází pouze ve stavu vypnuto, sdílení pomocí přístupového bodu WiFi cyklopočítače (přístupové údaje k připojení na přístupový bod, IP adresa cyklopočítače a počet připojených zařízení k přístupovému bodu jsou v tomto stavu zobrazené na záložce), sdílení pomocí připojení na dostupnou WiFi síť podle předešle nakonfigurovaných přístupových údajů a zasílání dat na "cloud" metodu přibližně každou vteřinu (pokud se cyklopočítači nepovede připojit na takto nakonfigurovanou WiFi síť po 120 vteřinách, sdílení se automaticky přepne do stavu vypnuto).
+
+    Stav sdílení dat je nezávislý od aktuálně zobrazené záložky, lze tedy po zapnutí sdílení dat, kterýmkoliv ze způsobů, přejít na libovolnou další záložku a sdílení bude probíhat nadále.
+
+    Sdílení dat a konfigurace přístupových údajů je dále popsáno v sekci \ref{subsec:web}.
+\end{itemize}
+
+\subsection{Webové rozhraní}\label{subsec:web}
+Cyklopočítač poskytuje jednoduché webové rozhraní pro zobrazení aktuálních hodnot ujeté vzdálenosti a rychlosti, nastavení sdílení zasíláním dat na "cloud" metodu, přístup k strojově čitelným datům z cyklopočítače a smazání ujeté vzdálenosti.
+
+Pro přístup je třeba mít zařízení připojené na stejnou WiFi síť jako cyklopočítač (případně využít přístupového bodu cyklopočítače).
+
+Adresa pro přístup k webovému rozhraní se zobrazí na displeji.
+
+Reset vzdálenosti lze provést nezávisle na aktuální záložce menu cyklopočítače.
+
+Strojovš čitelná data ve formátu JSON odpovídají formátu zobrazeném v příkladném soupisu \ref{code:json_data}.
+
+\begin{center}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\linewidth,keepaspectratio]{admin.png}
+        \caption{Hlavní menu webového rozhraní s ovládacími prvky}
+        \label{fig:admin}
+    \end{figure}
+\end{center}
+
+\begin{center}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\linewidth,keepaspectratio]{station_setup.png}
+        \caption{Formulář webového rozhraní pro správu zasílání dat na cloud}
+        \label{fig:cloud}
+    \end{figure}
+\end{center}
+
+\begin{center}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\linewidth,keepaspectratio]{AP_state_machine.pdf}
+        \caption{Stavový automat sdílení dat skrze webové rozhraní}
+        \label{fig:AP_FSM}
+    \end{figure}
+\end{center}
+
+\section{Zajímavosti implementace}\label{sec:impl_interests}
+Výpočet aktuální rychlosti probíhá na základě poslední prodlevy mezi rotacemi kola. Prodleva mezi posledními dvěma rotacemi však není postačující v případě kdy kolo začne zpomalovat nebo úplně zastaví.
+
+Pokud by se implementace řídila pouze poslední prodlevou mezi rotacemi, zobrazovaná aktuální rychlost má tendenci náhlých a výrazných skoků při zpomalování. V případě úplného zastavení kola by také cyklopočítač ukazoval neustále stejnou rychlost neodpovídající reálnému stavu zastaveného kola.
+
+Implementace se taky nemůže řídit pouze prodlevou mezi poslední rotací a současností, v takovém případě by rotace krátce následovaná obnovením dat na displeji měla za následek výrazný skok zrychlení neodpovídající realitě.
+
+Výpočet aktuální rychlosti se tak děje při každém obnovení dat záložek na displeji (každou vteřinu) a rozšiřuje se o prodlevu mezi poslední rotací kola a současností (čas poslední obnovy dat).
+
+Pro výpočet aktuální rychlosti se použije \textbf{delší} z prodlev.
+
+Zpomalují-li otáčky kola, vybere se pro výpočet zpomalené rychlosti prodleva od poslední rotace kola po současnost.
+
+Zrychlují-li otáčky kola, použije se pro výpočet aktuální rychlosti prodleva mezi posledními dvěma rotacemi.
+
+V případě shodných prodlev nezáleží na vybrané prodlevě pro správný výpočet.
+
+Postup výběru prodlevy pro správný výpočet a zobrazení aktuální rychlosti je popsán graficky na obrázku \ref{fig:t_diff}.
+
+\begin{center}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=1\linewidth,keepaspectratio]{delta_time_select.pdf}
+        \caption{Výběr $\Delta t$ pro správné vykreslení zpomalování}
+        \label{fig:t_diff}
+    \end{figure}
+\end{center}
+
+\section{Použité technologie}\label{sec:technologies}
+Programové i technické vybavení použité při vývoji projektu a programové i technické závislosti potřebné pro korektní funkčnost projektu.
+
+\subsection{Hardware}\label{sec:dependencies_hw}
+Projekt byl vyvíjen a testován na desce WeMos D1 R32 UNO ESP32 s připojeným displejem SSD1306 přes rozhraní SPI.
+
+Dále je využito dvou mikrospínačů, z nichž jeden simuluje rotaci kola připojeného k tachometru a druhý slouží k ovládání tachometru.
+
+Schéma zapojení hardwarových prostředků je popsáno graficky na obrázku \ref{fig:schematics} nebo v tabulce \ref{table:schematics}.
+
+\subsection{Software}\label{sec:dependencies_sw}
+Pro vývoj projektu bylo použito vývojové platformy Arduino ve vývojovém prostředí \footnote{https://platformio.org}{PlatformIO}.
+
+Významné knihovny použité v projektu:
+\begin{itemize}
+    \item \texttt{Adafruit\_SSD1306.h} \\komunikace s OLED displejem
+    \item \texttt{Preferences.h} \\perzistentní paměť
+    \item \texttt{WebServer.h} \\webové rozhraní
+    \item \texttt{WiFi.h} \\použití WiFi antény pro potřeby webového rozhraní a "cloud" metody
+    \item \texttt{HTTPClient.h} \\zasílání dat tachometru na "cloud" metodu
+\end{itemize}
+
+\section{Přednosti a omezení}\label{sec:limits_benefits}
+\subsection{Přednosti}\label{subsec:benefits}
+Tachometr je od začátku koncipován pro využití jako jednoduchý cyklistický počítač pro použití v kombinaci s přenosným WiFi přístupovým bodem pro centralizovaný sběr dat.
+
+Uživatelské rozhraní obsahuje elementy dostatečné velikosti pro komfortní čitelnost i za jízdy na jízdním kole.
+
+Systém záložek poskytuje uživateli přímočarý způsob používání tachometru i za jízdy.
+
+Záložky menu na displeji cyklopočítače podporují alternativní funkce při dlouhém stisku po dobu dvou sekund.
+
+Jednotku rychlosti pro zobrazení aktuální a průměrné rychlosti lze uživatelsky konfigurovat dlouhým stisknutím v záložce zobrazující rychlosti. Dlouhým stisknutím lze přepínat mezi jednotkou míle za hodinu (Mph) a kilometry za hodinu (Km/h).
+
+Tachometr podporuje připojení až 4 zařízení v režimu \footnote{Access Point - přístupový bod WiFi}{AP} pro konfiguraci tachometru nebo čtení dat pomocí dotazování.
+
+V režimu stanice je tachometr připojen k nakonfigurované a dostupné síti WiFi, v tomto režimu zároveň tachometr periodicky každou vteřinu zasílá na konfigurovanou "cloud" metodu POST data, obsahující ujetou vzdálenost v centimetrech a aktuální průměrnou rychlost v kilometrech za hodinu, ve strojově čitelném formátu JSON. Příklad JSON dat spolu s HTTP hlavičkou je dostupný v soupisu \ref{code:json_data}.
+
+\begin{listing}[h]
+\begin{minted}[frame=single,
+               framesep=3mm,
+               linenos=true,
+               xleftmargin=21pt,
+               tabsize=4]{http}
+POST / HTTP/1.1
+Host: 172.20.10.13
+User-Agent: ESP32HTTPClient
+Connection: keep-alive
+Content-Type: application/json
+Content-Length: 52
+
+{
+"distanceCM": 20263.27,
+"avgSpeedKmph": 22.54
+}
+\end{minted}
+\caption{Příklad HTTP hlavičky s JSON daty} 
+\label{code:json_data}
+\end{listing}
+
+% Highlight the advantages and benefits offered by the project.
+\subsection{Omezení}\label{subsec:limits}
+Aktuální implementace neumožňuje uživatelskou změnu obvodu kola, tato skutečnost však není vyžadována pro účel demonstrace funkčnosti řešení, v případě potřeby by bylo možné o tento údaj rozšířit formulář dostupný na administrativním webovém rozhraní.
+
+Tachometr neumožňuje zobrazit ani nastavit aktuální čas. Časová značka se nevyskytuje v datech dostupných na webovém (aplikačním) rozhraní a opatření dat časovými značkami je ponecháno jako zodpovědnost návazným aplikacím pro sběr dat.
+
+Tachometr si do perzistentní paměti neukládá časové průběhy dat dostupných na displeji nebo webovém (aplikačním) rozhraní, tachometr vystavuje vždy poslední aktuální data.
+
+\end{document}
